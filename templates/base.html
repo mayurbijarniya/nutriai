@@ -1,0 +1,1049 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Diet Designer AI{% endblock %}</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        /* Modern Diet Designer AI CSS */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+
+:root {
+    /* Modern Color Palette - Fresh Blue/Teal Theme */
+    --primary-gradient: linear-gradient(135deg, #0ea5e9 0%, #06b6d4 100%);
+    --primary-color: #0ea5e9;
+    --primary-dark: #0284c7;
+    --secondary-color: #06b6d4;
+    
+    /* Status Colors */
+    --success-color: #10b981;
+    --warning-color: #f59e0b;
+    --danger-color: #ef4444;
+    --info-color: #3b82f6;
+    
+    /* Neutral Colors */
+    --gray-50: #f9fafb;
+    --gray-100: #f3f4f6;
+    --gray-200: #e5e7eb;
+    --gray-300: #d1d5db;
+    --gray-400: #9ca3af;
+    --gray-500: #6b7280;
+    --gray-600: #4b5563;
+    --gray-700: #374151;
+    --gray-800: #1f2937;
+    --gray-900: #111827;
+    
+    /* Typography */
+    --font-primary: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    --font-secondary: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    
+    /* Font Sizes */
+    --text-xs: 0.75rem;     /* 12px */
+    --text-sm: 0.875rem;    /* 14px */
+    --text-base: 1rem;      /* 16px */
+    --text-lg: 1.125rem;    /* 18px */
+    --text-xl: 1.25rem;     /* 20px */
+    --text-2xl: 1.5rem;     /* 24px */
+    --text-3xl: 1.875rem;   /* 30px */
+    --text-4xl: 2.25rem;    /* 36px */
+    --text-5xl: 3rem;       /* 48px */
+    
+    /* Spacing */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    
+    /* Shadows */
+    --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    --shadow-xl: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+    
+    /* Border Radius */
+    --radius-sm: 0.375rem;
+    --radius-md: 0.5rem;
+    --radius-lg: 0.75rem;
+    --radius-xl: 1rem;
+    --radius-2xl: 1.5rem;
+}
+
+/* Base Styles */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 50%, #cffafe 100%);
+    font-family: var(--font-secondary);
+    font-size: var(--text-base);
+    line-height: 1.6;
+    color: var(--gray-800);
+    min-height: 100vh;
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Container */
+.main-container {
+    background: rgba(255, 255, 255, 0.98);
+    border-radius: var(--radius-2xl);
+    box-shadow: var(--shadow-xl);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    margin: var(--space-6) auto;
+    padding: var(--space-10);
+    max-width: 1200px;
+}
+
+/* Navigation */
+.navbar {
+    background: rgba(255, 255, 255, 0.95) !important;
+    backdrop-filter: blur(15px);
+    border-bottom: 1px solid var(--gray-200);
+    box-shadow: var(--shadow-sm);
+}
+
+.navbar-brand {
+    font-family: var(--font-primary);
+    font-size: var(--text-xl);
+    font-weight: 700;
+    background: var(--primary-gradient);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.nav-link {
+    font-weight: 500;
+    font-size: var(--text-sm);
+    color: var(--gray-700) !important;
+    transition: all 0.2s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary-color) !important;
+    transform: translateY(-1px);
+}
+
+/* Typography */
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-primary);
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: var(--space-4);
+    color: var(--gray-900);
+}
+
+.display-3 {
+    font-size: var(--text-5xl);
+    font-weight: 800;
+    line-height: 1.1;
+    margin-bottom: var(--space-6);
+}
+
+.display-4 {
+    font-size: var(--text-4xl);
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+h3 {
+    font-size: var(--text-2xl);
+    font-weight: 600;
+}
+
+h4 {
+    font-size: var(--text-xl);
+    font-weight: 600;
+}
+
+h5 {
+    font-size: var(--text-lg);
+    font-weight: 600;
+}
+
+.lead {
+    font-size: var(--text-lg);
+    font-weight: 400;
+    color: var(--gray-600);
+    line-height: 1.7;
+}
+
+.text-muted {
+    color: var(--gray-500) !important;
+}
+
+small, .small {
+    font-size: var(--text-sm);
+}
+
+/* Badges */
+.badge {
+    font-weight: 500;
+    font-size: var(--text-xs);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
+}
+
+.fs-6.badge {
+    font-size: var(--text-sm) !important;
+    padding: var(--space-2) var(--space-4);
+}
+
+/* Diet Cards - Fixed Layout */
+.diet-cards-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-8);
+}
+
+.diet-card {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-xl);
+    background: #ffffff;
+    box-shadow: var(--shadow-md);
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    padding: var(--space-5) !important;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    min-height: 160px;
+}
+
+.diet-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(14, 165, 233, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.diet-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--primary-color);
+    background: #fafbff;
+}
+
+.diet-card:hover::before {
+    left: 100%;
+}
+
+.diet-card.selected {
+    background: var(--primary-gradient);
+    color: white;
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+
+.diet-card.selected .badge {
+    background: rgba(255, 255, 255, 0.2) !important;
+    color: white !important;
+}
+
+.diet-card h5 {
+    font-size: var(--text-lg);
+    font-weight: 600;
+    margin-bottom: var(--space-2);
+    color: inherit;
+}
+
+.diet-card small {
+    font-size: var(--text-sm);
+    opacity: 0.8;
+    color: inherit;
+    margin-bottom: var(--space-3);
+}
+
+.diet-icon {
+    font-size: 2.5rem;
+    margin-bottom: var(--space-3);
+    display: block;
+}
+
+/* Upload Area */
+.upload-area {
+    border: 2px dashed var(--gray-300);
+    border-radius: var(--radius-xl);
+    padding: var(--space-12) var(--space-6);
+    text-align: center;
+    transition: all 0.3s ease;
+    background: linear-gradient(145deg, #fafbff, #ffffff);
+}
+
+.upload-area:hover {
+    border-color: var(--primary-color);
+    background: linear-gradient(145deg, #ffffff, #f0f9ff);
+    transform: scale(1.01);
+}
+
+.upload-area.dragover {
+    border-color: var(--success-color);
+    background: linear-gradient(145deg, #f0fdf4, #ecfdf5);
+    transform: scale(1.02);
+}
+
+.upload-area h4 {
+    font-size: var(--text-xl);
+    font-weight: 600;
+    margin-bottom: var(--space-4);
+    color: var(--gray-800);
+}
+
+.upload-area p {
+    color: var(--gray-600);
+    margin-bottom: var(--space-4);
+}
+
+/* Buttons */
+.btn {
+    font-family: var(--font-secondary);
+    font-weight: 500;
+    font-size: var(--text-sm);
+    border-radius: var(--radius-lg);
+    padding: var(--space-3) var(--space-6);
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+}
+
+.btn-primary {
+    background: var(--primary-gradient);
+    color: white;
+    box-shadow: var(--shadow-md);
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    filter: brightness(1.05);
+}
+
+.btn-lg {
+    font-size: var(--text-base);
+    padding: var(--space-4) var(--space-8);
+    border-radius: var(--radius-xl);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    background: transparent;
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-1px);
+}
+
+/* Form Controls */
+.form-control {
+    font-family: var(--font-secondary);
+    font-size: var(--text-base);
+    border: 2px solid var(--gray-200);
+    border-radius: var(--radius-lg);
+    padding: var(--space-4);
+    transition: all 0.2s ease;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.form-control-lg {
+    padding: var(--space-5);
+    font-size: var(--text-lg);
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 120px;
+}
+
+/* Input Groups */
+.input-group-lg .input-group-text {
+    padding: var(--space-5);
+    border: 2px solid var(--gray-200);
+    background: var(--gray-50);
+}
+
+/* Tabs */
+.nav-tabs {
+    border-bottom: 2px solid var(--gray-200);
+    margin-bottom: var(--space-6);
+}
+
+.nav-tabs .nav-link {
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+    margin-right: var(--space-2);
+    font-weight: 600;
+    border: none;
+    padding: var(--space-4) var(--space-6);
+    color: var(--gray-600);
+    background: transparent;
+}
+
+.nav-tabs .nav-link.active {
+    background: var(--primary-gradient);
+    color: white;
+    border-bottom: 2px solid transparent;
+}
+
+/* Cards */
+.card {
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+}
+
+.card-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    padding: var(--space-5);
+}
+
+.card-body {
+    padding: var(--space-6);
+}
+
+.card-footer {
+    background: var(--gray-50);
+    border-top: 1px solid var(--gray-200);
+    padding: var(--space-4) var(--space-6);
+}
+
+/* Analysis Results */
+.analysis-result {
+    background: linear-gradient(145deg, #ffffff, var(--gray-50));
+    border-radius: var(--radius-2xl);
+    padding: var(--space-8);
+    margin-top: var(--space-8);
+    box-shadow: var(--shadow-xl);
+    border: 1px solid var(--gray-200);
+}
+
+.analysis-text {
+    line-height: 1.8;
+    font-size: var(--text-base);
+    color: var(--gray-700);
+}
+
+.analysis-text strong {
+    color: var(--gray-900);
+    font-weight: 600;
+}
+
+/* Statistics Cards */
+.stat-card {
+    background: linear-gradient(145deg, #ffffff, var(--gray-50));
+    border-radius: var(--radius-xl);
+    padding: var(--space-6);
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    transition: transform 0.3s ease;
+    border: 1px solid var(--gray-200);
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+
+.stat-number {
+    font-family: var(--font-primary);
+    font-size: var(--text-4xl);
+    font-weight: 800;
+    margin-bottom: var(--space-2);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    opacity: 0.8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Images */
+.preview-image, .nutrition-chart {
+    max-width: 100%;
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-lg);
+    transition: transform 0.3s ease;
+}
+
+.preview-image:hover, .nutrition-chart:hover {
+    transform: scale(1.02);
+}
+
+.preview-image {
+    max-width: 350px;
+    max-height: 350px;
+    margin: var(--space-4) auto;
+    display: block;
+}
+
+/* Loading Spinner */
+.loading-spinner {
+    display: none;
+    text-align: center;
+    padding: var(--space-8);
+}
+
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Animations */
+.fade-in {
+    animation: fadeIn 0.6s ease-in;
+}
+
+@keyframes fadeIn {
+    from { 
+        opacity: 0; 
+        transform: translateY(20px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+
+.pulse {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Progress Bar */
+.progress {
+    height: 6px;
+    border-radius: var(--radius-lg);
+    background-color: var(--gray-200);
+    overflow: hidden;
+}
+
+.progress-bar {
+    border-radius: var(--radius-lg);
+}
+
+/* Modern Classic Footer */
+.modern-footer {
+    background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    color: #e2e8f0;
+    position: relative;
+    overflow: hidden;
+    margin-top: var(--space-12);
+}
+
+.modern-footer::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #0ea5e9, transparent);
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 3rem 2rem 2rem;
+    position: relative;
+}
+
+.footer-main {
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2.5rem;
+}
+
+.footer-brand {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-family: var(--font-primary);
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #ffffff;
+    text-decoration: none;
+    transition: all 0.3s ease;
+}
+
+.brand-logo:hover {
+    color: #0ea5e9;
+    transform: translateY(-1px);
+}
+
+.brand-logo i {
+    font-size: 1.75rem;
+    background: linear-gradient(135deg, #0ea5e9, #06b6d4);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.brand-description {
+    color: #94a3b8;
+    line-height: 1.6;
+    font-size: 0.95rem;
+}
+
+.tech-stack {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 1rem;
+}
+
+.tech-badge {
+    background: rgba(14, 165, 233, 0.1);
+    color: #0ea5e9;
+    padding: 0.25rem 0.75rem;
+    border-radius: 1rem;
+    font-size: 0.8rem;
+    font-weight: 500;
+    border: 1px solid rgba(14, 165, 233, 0.2);
+}
+
+.footer-links {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.footer-title {
+    font-family: var(--font-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #ffffff;
+    margin-bottom: 0.5rem;
+}
+
+.footer-link {
+    color: #94a3b8;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.footer-link:hover {
+    color: #0ea5e9;
+    transform: translateX(4px);
+}
+
+.footer-link i {
+    width: 16px;
+    font-size: 0.85rem;
+}
+
+.footer-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.contact-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.contact-icon {
+    width: 18px;
+    height: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(14, 165, 233, 0.1);
+    border-radius: 0.5rem;
+    color: #0ea5e9;
+    font-size: 0.8rem;
+}
+
+.social-links {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.social-link {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 0.75rem;
+    color: #94a3b8;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.social-link:hover {
+    background: #0ea5e9;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(14, 165, 233, 0.3);
+}
+
+.footer-bottom {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    padding: 1.5rem 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.footer-credit {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.footer-credit .heart {
+    color: #ef4444;
+    animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+.footer-year {
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+@keyframes heartbeat {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+}
+
+/* Footer Responsive Design */
+@media (max-width: 768px) {
+    .footer-content {
+        padding: 2rem 1rem 1.5rem;
+    }
+    
+    .footer-main {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .footer-bottom {
+        flex-direction: column;
+        text-align: center;
+        gap: 0.75rem;
+    }
+    
+    .social-links {
+        justify-content: center;
+    }
+}
+
+@media (max-width: 640px) {
+    .brand-logo {
+        font-size: 1.25rem;
+    }
+    
+    .tech-stack {
+        justify-content: center;
+    }
+    
+    .footer-links, .footer-contact {
+        align-items: center;
+        text-align: center;
+    }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .main-container {
+        margin: var(--space-3);
+        padding: var(--space-6);
+        border-radius: var(--radius-xl);
+    }
+    
+    .display-3 {
+        font-size: var(--text-3xl);
+    }
+    
+    .display-4 {
+        font-size: var(--text-2xl);
+    }
+    
+    .diet-card {
+        margin-bottom: var(--space-4);
+        padding: var(--space-4) !important;
+    }
+    
+    .diet-icon {
+        font-size: 1.5rem;
+    }
+    
+    .upload-area {
+        padding: var(--space-8) var(--space-4);
+    }
+    
+    .preview-image {
+        max-width: 280px;
+        max-height: 280px;
+    }
+    
+    .stat-number {
+        font-size: var(--text-2xl);
+    }
+    
+    .btn-lg {
+        padding: var(--space-3) var(--space-6);
+        font-size: var(--text-base);
+    }
+}
+
+@media (max-width: 480px) {
+    .display-3 {
+        font-size: var(--text-2xl);
+    }
+    
+    .lead {
+        font-size: var(--text-base);
+    }
+    
+    .diet-card h5 {
+        font-size: var(--text-base);
+    }
+    
+    .diet-icon {
+        font-size: 1.25rem;
+    }
+    
+    .stat-number {
+        font-size: var(--text-xl);
+    }
+}
+/* STAT CARD TEXT COLOR FIX */
+.stat-card.bg-primary {
+    background: #0ea5e9 !important;
+    color: white !important;
+}
+
+.stat-card.bg-primary .stat-number,
+.stat-card.bg-primary .stat-label {
+    color: white !important;
+}
+
+.stat-card.bg-success {
+    background: #10b981 !important;
+    color: white !important;
+}
+
+.stat-card.bg-success .stat-number,
+.stat-card.bg-success .stat-label {
+    color: white !important;
+}
+
+.stat-card.bg-info {
+    background: #3b82f6 !important;
+    color: white !important;
+}
+
+.stat-card.bg-info .stat-number,
+.stat-card.bg-info .stat-label {
+    color: white !important;
+}
+
+.stat-card.bg-warning {
+    background: #f59e0b !important;
+    color: #1f2937 !important;
+}
+
+.stat-card.bg-warning .stat-number,
+.stat-card.bg-warning .stat-label {
+    color: #1f2937 !important;
+}
+
+.analysis-text {
+    color: #374151 !important;
+}
+
+.analysis-text * {
+    color: inherit !important;
+}
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-utensils me-2"></i>Diet Designer AI
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <div class="navbar-nav ms-auto">
+                    <a class="nav-link" href="/">
+                        <i class="fas fa-camera me-1"></i>Analyze
+                    </a>
+                    <a class="nav-link" href="/history">
+                        <i class="fas fa-history me-1"></i>History
+                    </a>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container-fluid">
+        <div class="main-container fade-in">
+            {% block content %}{% endblock %}
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="modern-footer">
+        <div class="footer-content">
+            <div class="footer-main">
+                <!-- Brand Section -->
+                <div class="footer-brand">
+                    <a href="/" class="brand-logo">
+                        <i class="fas fa-utensils"></i>
+                        Diet Designer AI
+                    </a>
+                    <p class="brand-description">
+                        Empowering healthier eating choices through AI-powered meal analysis. 
+                        Get personalized nutrition insights and recommendations tailored to your dietary goals.
+                    </p>
+                    <!--<div class="tech-stack">
+                        <span class="tech-badge">🤖 Google Gemini</span>
+                        <span class="tech-badge">🐍 Python 3.9.6</span>
+                        <span class="tech-badge">⚡ Flask</span>
+                        <span class="tech-badge">📊 AI Analytics</span>
+                    </div>-->
+                </div>
+                
+                <!-- Quick Links -->
+                <div class="footer-links">
+                    <h4 class="footer-title">Quick Links</h4>
+                    <a href="/" class="footer-link">
+                        <i class="fas fa-camera"></i>
+                        Analyze Meal
+                    </a>
+                    <a href="/history" class="footer-link">
+                        <i class="fas fa-history"></i>
+                        View History
+                    </a>
+                    <a href="#" class="footer-link">
+                        <i class="fas fa-chart-line"></i>
+                        Nutrition Reports
+                    </a>
+                    <!--<a href="#" class="footer-link">
+                        <i class="fas fa-question-circle"></i>
+                        How It Works
+                    </a>-->
+                </div>
+                
+                <!-- Contact Info -->
+                <div class="footer-contact">
+                    <h4 class="footer-title">Get In Touch</h4>
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-user"></i>
+                        </div>
+                        <span>Mayur Bijarniya</span>
+                    </div>
+                    <!--<div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-code"></i>
+                        </div>
+                        <span>Full Stack Developer</span>
+                    </div>-->
+                    <div class="contact-item">
+                        <div class="contact-icon">
+                            <i class="fas fa-envelope"></i>
+                        </div>
+                        <span>bijarniya.m@northeastern.edu</span>
+                    </div>
+                    
+                    <div class="social-links">
+                        <a href="https://github.com/mayurbijarniya" class="social-link" title="GitHub">
+                            <i class="fab fa-github"></i>
+                        </a>
+                        <a href="https://www.linkedin.com/in/mayurbijarniya/" class="social-link" title="LinkedIn">
+                            <i class="fab fa-linkedin"></i>
+                        </a>
+                        <!--<a href="#" class="social-link" title="Twitter">
+                            <i class="fab fa-twitter"></i>
+                        </a>-->
+                        <a href="https://www.mayurbijarniya.com/" class="social-link" title="Portfolio">
+                            <i class="fas fa-globe"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="footer-bottom">
+                <div class="footer-credit">
+                    <span>Made with</span>
+                    <i class="fas fa-heart heart"></i>
+                    <span>by <strong>Mayur Bijarniya</strong></span>
+                </div>
+                <div class="footer-year">
+                    © 2025 Diet Designer AI. All rights reserved.
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

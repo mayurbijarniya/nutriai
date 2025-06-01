@@ -1,0 +1,39 @@
+# requirements.txt
+Flask==2.3.2
+google-generativeai==0.3.2
+Pillow==10.0.0
+requests==2.31.0
+matplotlib==3.7.2
+seaborn==0.12.2
+pandas==2.0.3
+Werkzeug==2.3.6
+
+# .env (Create this file separately)
+GEMINI_API_KEY=your_actual_gemini_api_key_here
+
+# Setup Commands for macOS
+
+## 1. Install Dependencies (use your virtual environment)
+/Users/mayurbijarniya/Downloads/Diet-Designer/.venv/bin/python -m pip install -r requirements.txt
+
+## 2. Alternative: Activate virtual environment first
+source /Users/mayurbijarniya/Downloads/Diet-Designer/.venv/bin/activate
+pip install -r requirements.txt
+
+## 3. Get your Gemini API Key
+# Go to: https://makersuite.google.com/app/apikey
+# Create new API key and copy it
+
+## 4. Create .env file
+echo "GEMINI_API_KEY=your_actual_api_key_here" > .env
+
+## 5. Create required directories
+mkdir -p templates
+mkdir -p static/charts
+mkdir -p uploads
+
+## 6. Run the application
+/Users/mayurbijarniya/Downloads/Diet-Designer/.venv/bin/python app.py
+
+# Or if virtual environment is activated:
+python app.py

@@ -1,0 +1,516 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="text-center mb-5">
+    <h1 class="display-3 fw-bold mb-3" style="background: linear-gradient(45deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+        <i class="fas fa-utensils me-3"></i>AI Diet Designer
+    </h1>
+    <p class="lead text-muted fs-4">Upload your meal photo and get personalized nutrition analysis with AI-powered recommendations</p>
+    <div class="mt-4">
+        <span class="badge bg-primary fs-6 me-2">🤖 AI Powered</span>
+        <span class="badge bg-success fs-6 me-2">🔬 Scientific Analysis</span>
+        <span class="badge bg-info fs-6">📊 Visual Reports</span>
+    </div>
+</div>
+
+<form id="analysisForm" enctype="multipart/form-data">
+    <!-- Diet Selection -->
+    <div class="mb-5">
+        <h3 class="fw-bold mb-4 text-center">
+            <i class="fas fa-apple-alt me-2 text-success"></i>Choose Your Diet Goal
+        </h3>
+        <div class="row g-4">
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="diet-card card h-100 p-4 text-center" data-diet="keto">
+                    <span class="diet-icon">🥑</span>
+                    <h5 class="fw-bold mb-2">Keto</h5>
+                    <small class="text-muted">Low carb, high fat</small>
+                    <div class="mt-2">
+                        <small class="badge bg-warning text-dark">&lt;20g carbs</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="diet-card card h-100 p-4 text-center" data-diet="vegan">
+                    <span class="diet-icon">🌱</span>
+                    <h5 class="fw-bold mb-2">Vegan</h5>
+                    <small class="text-muted">Plant-based only</small>
+                    <div class="mt-2">
+                        <small class="badge bg-success">No animal products</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="diet-card card h-100 p-4 text-center" data-diet="paleo">
+                    <span class="diet-icon">🥩</span>
+                    <h5 class="fw-bold mb-2">Paleo</h5>
+                    <small class="text-muted">Whole foods only</small>
+                    <div class="mt-2">
+                        <small class="badge bg-danger">No processed</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="diet-card card h-100 p-4 text-center" data-diet="mediterranean">
+                    <span class="diet-icon">🫒</span>
+                    <h5 class="fw-bold mb-2">Mediterranean</h5>
+                    <small class="text-muted">Heart healthy</small>
+                    <div class="mt-2">
+                        <small class="badge bg-info">Olive oil + fish</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-2 col-md-4 col-sm-6">
+                <div class="diet-card card h-100 p-4 text-center" data-diet="low-carb">
+                    <span class="diet-icon">⚖️</span>
+                    <h5 class="fw-bold mb-2">Low Carb</h5>
+                    <small class="text-muted">Reduced carbs</small>
+                    <div class="mt-2">
+                        <small class="badge bg-primary">&lt;100g carbs</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <input type="hidden" id="dietGoal" name="diet_goal" value="keto">
+    </div>
+
+    <!-- Image Upload Section -->
+    <div class="mb-5">
+        <h3 class="fw-bold mb-4 text-center">
+            <i class="fas fa-camera me-2 text-primary"></i>Upload Your Meal Photo
+        </h3>
+        
+        <!-- Tab Navigation -->
+        <ul class="nav nav-tabs justify-content-center mb-4" role="tablist">
+            <li class="nav-item">
+                <a class="nav-link active" data-bs-toggle="tab" href="#uploadTab">
+                    <i class="fas fa-upload me-2"></i>Upload File
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" data-bs-toggle="tab" href="#urlTab">
+                    <i class="fas fa-link me-2"></i>Image URL
+                </a>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- File Upload Tab -->
+            <div class="tab-pane fade show active" id="uploadTab">
+                <div class="upload-area" id="uploadArea">
+                    <i class="fas fa-cloud-upload-alt fa-4x text-muted mb-3 pulse"></i>
+                    <h4 class="fw-bold mb-3">Drag & Drop Your Photo Here</h4>
+                    <p class="text-muted mb-4">Or click the button below to browse files</p>
+                    <div class="mb-3">
+                        <span class="badge bg-secondary me-2">JPG</span>
+                        <span class="badge bg-secondary me-2">PNG</span>
+                        <span class="badge bg-secondary me-2">GIF</span>
+                        <span class="badge bg-secondary">WebP</span>
+                    </div>
+                    <p class="small text-muted">Maximum file size: 16MB</p>
+                    <input type="file" id="imageFile" name="image_file" accept="image/*" class="d-none">
+                    <button type="button" class="btn btn-outline-primary btn-lg" onclick="document.getElementById('imageFile').click()">
+                        <i class="fas fa-folder-open me-2"></i>Choose Photo
+                    </button>
+                </div>
+            </div>
+
+            <!-- URL Tab -->
+            <div class="tab-pane fade" id="urlTab">
+                <div class="row justify-content-center">
+                    <div class="col-md-8">
+                        <div class="input-group input-group-lg">
+                            <span class="input-group-text">
+                                <i class="fas fa-link text-primary"></i>
+                            </span>
+                            <input type="url" class="form-control" name="image_url" 
+                                   placeholder="https://example.com/your-meal-photo.jpg">
+                        </div>
+                        <small class="text-muted d-block mt-2 text-center">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Enter the direct URL to your meal image
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Image Preview -->
+        <div id="imagePreview" class="mt-4 text-center" style="display: none;">
+            <div class="mb-3">
+                <h5 class="text-success">
+                    <i class="fas fa-check-circle me-2"></i>Photo Ready for Analysis
+                </h5>
+            </div>
+            <img id="previewImg" class="preview-image" alt="Meal Preview">
+        </div>
+    </div>
+
+    <!-- User Preferences -->
+    <div class="mb-5">
+        <h3 class="fw-bold mb-4 text-center">
+            <i class="fas fa-user-cog me-2 text-info"></i>Personal Preferences
+            <small class="text-muted fs-6">(Optional)</small>
+        </h3>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <textarea class="form-control form-control-lg" name="user_preferences" rows="4" 
+                          placeholder="Tell us about your preferences...
+
+Examples:
+• I prefer spicy foods and want to increase protein
+• I have gluten sensitivity 
+• I'm trying to gain muscle mass
+• I want to reduce sodium intake
+• I love Mediterranean flavors"></textarea>
+                <div class="mt-2 text-center">
+                    <small class="text-muted">
+                        <i class="fas fa-lightbulb me-1"></i>
+                        The more details you provide, the better our recommendations!
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Analyze Button -->
+    <div class="text-center mb-4">
+        <button type="submit" class="btn btn-primary btn-lg px-5 py-3">
+            <i class="fas fa-magic me-3"></i>Analyze My Meal with AI
+        </button>
+        
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner-border text-primary mb-3" role="status">
+                <span class="visually-hidden">Analyzing...</span>
+            </div>
+            <h5 class="text-primary mb-2">🤖 AI is analyzing your meal...</h5>
+            <p class="text-muted">This may take 10-15 seconds</p>
+            <div class="progress" style="height: 6px;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+                     role="progressbar" style="width: 100%"></div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- Results Section -->
+<div id="resultsSection" style="display: none;">
+    <hr class="my-5" style="border: 2px solid #e9ecef; border-radius: 2px;">
+    
+    <div class="analysis-result">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold mb-3">
+                <i class="fas fa-chart-line me-3"></i>Your Meal Analysis Report
+            </h2>
+            <div id="dietBadge" class="mb-3">
+                <!-- Diet badge will be inserted here -->
+            </div>
+        </div>
+        
+        <!-- Quick Stats Row -->
+        <div class="row mb-5 text-dark" id="quickStats">
+            <!-- Stats will be populated by JavaScript -->
+        </div>
+        
+        <!-- Nutrition Chart -->
+        <div class="text-center mb-5" id="chartContainer">
+            <h4 class="fw-bold mb-3">📊 Nutrition Breakdown & Scores</h4>
+            <img id="nutritionChart" class="nutrition-chart" alt="Nutrition Analysis Chart">
+        </div>
+        
+        <!-- Detailed Analysis -->
+        <div class="row">
+            <div class="col-12">
+                <h4 class="fw-bold mb-3">
+                    <i class="fas fa-clipboard-list me-2"></i>Detailed AI Analysis
+                </h4>
+                <div id="analysisText" class="analysis-text p-4 rounded" 
+                     style="background: linear-gradient(145deg, #f8f9fa, #ffffff); border-left: 4px solid #667eea;"></div>
+            </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="text-center mt-5">
+            <button class="btn btn-success btn-lg me-3" onclick="window.location.href='/history'">
+                <i class="fas fa-history me-2"></i>View All Analyses
+            </button>
+            <button class="btn btn-primary btn-lg" onclick="analyzeAnother()">
+                <i class="fas fa-plus me-2"></i>Analyze Another Meal
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Tips Section -->
+<div class="mt-5 p-4 rounded" style="background: linear-gradient(145deg, #e3f2fd, #f3e5f5);">
+    <h4 class="fw-bold mb-3 text-center">
+        <i class="fas fa-lightbulb me-2 text-warning"></i>Pro Tips for Better Results
+    </h4>
+    <div class="row">
+        <div class="col-md-3 text-center mb-3">
+            <i class="fas fa-camera fa-2x text-primary mb-2"></i>
+            <h6 class="fw-bold">Good Lighting</h6>
+            <small class="text-muted">Take photos in natural light when possible</small>
+        </div>
+        <div class="col-md-3 text-center mb-3">
+            <i class="fas fa-expand-alt fa-2x text-success mb-2"></i>
+            <h6 class="fw-bold">Full View</h6>
+            <small class="text-muted">Show the complete meal from above</small>
+        </div>
+        <div class="col-md-3 text-center mb-3">
+            <i class="fas fa-utensils fa-2x text-info mb-2"></i>
+            <h6 class="fw-bold">Include Utensils</h6>
+            <small class="text-muted">Helps AI estimate portion sizes</small>
+        </div>
+        <div class="col-md-3 text-center mb-3">
+            <i class="fas fa-eye fa-2x text-warning mb-2"></i>
+            <h6 class="fw-bold">Clear Details</h6>
+            <small class="text-muted">Make sure all ingredients are visible</small>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Diet selection functionality
+    document.querySelectorAll('.diet-card').forEach(card => {
+        card.addEventListener('click', function() {
+            // Remove selection from all cards
+            document.querySelectorAll('.diet-card').forEach(c => c.classList.remove('selected'));
+            // Add selection to clicked card
+            this.classList.add('selected');
+            // Update hidden input
+            document.getElementById('dietGoal').value = this.dataset.diet;
+            
+            // Add visual feedback
+            this.style.transform = 'scale(1.05)';
+            setTimeout(() => {
+                this.style.transform = '';
+            }, 200);
+        });
+    });
+
+    // Set default selection (Keto)
+    document.querySelector('[data-diet="keto"]').classList.add('selected');
+
+    // File upload handling
+    const uploadArea = document.getElementById('uploadArea');
+    const imageFile = document.getElementById('imageFile');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+
+    // Drag and drop functionality
+    uploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        this.classList.add('dragover');
+    });
+
+    uploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+    });
+
+    uploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        this.classList.remove('dragover');
+        const files = e.dataTransfer.files;
+        if (files.length > 0) {
+            imageFile.files = files;
+            previewImage(files[0]);
+        }
+    });
+
+    // File input change event
+    imageFile.addEventListener('change', function() {
+        if (this.files.length > 0) {
+            previewImage(this.files[0]);
+        }
+    });
+
+    // Image preview function
+    function previewImage(file) {
+        // Validate file type
+        if (!file.type.startsWith('image/')) {
+            alert('Please select a valid image file.');
+            return;
+        }
+        
+        // Validate file size (16MB)
+        if (file.size > 16 * 1024 * 1024) {
+            alert('File size must be less than 16MB.');
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewImg.src = e.target.result;
+            imagePreview.style.display = 'block';
+            imagePreview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        };
+        reader.readAsDataURL(file);
+    }
+
+    // Form submission
+    document.getElementById('analysisForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const loadingSpinner = document.getElementById('loadingSpinner');
+        const resultsSection = document.getElementById('resultsSection');
+        
+        // Validate inputs
+        const hasFile = document.getElementById('imageFile').files.length > 0;
+        const hasUrl = document.querySelector('input[name="image_url"]').value.trim();
+        
+        if (!hasFile && !hasUrl) {
+            alert('Please upload an image or provide an image URL.');
+            return;
+        }
+        
+        // Show loading state
+        loadingSpinner.style.display = 'block';
+        resultsSection.style.display = 'none';
+        document.querySelector('button[type="submit"]').disabled = true;
+        
+        // Scroll to loading spinner
+        loadingSpinner.scrollIntoView({ behavior: 'smooth' });
+        
+        // Submit analysis request
+        fetch('/analyze', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadingSpinner.style.display = 'none';
+            document.querySelector('button[type="submit"]').disabled = false;
+            
+            if (data.success) {
+                displayResults(data);
+            } else {
+                alert('Analysis Error: ' + data.error);
+            }
+        })
+        .catch(error => {
+            loadingSpinner.style.display = 'none';
+            document.querySelector('button[type="submit"]').disabled = false;
+            alert('Network Error: ' + error.message);
+        });
+    });
+
+    // Display results function
+    // Updated JavaScript for index.html - TEXT ONLY VERSION
+
+// Display results function - FIXED for text-only
+function displayResults(data) {
+    console.log('Displaying results:', data);
+    
+    // Hide chart container since we're not generating charts
+    const chartContainer = document.getElementById('chartContainer');
+    if (chartContainer) {
+        chartContainer.style.display = 'none';
+    }
+    
+    // Format and display analysis text with proper styling
+    const analysisDiv = document.getElementById('analysisText');
+    if (analysisDiv && data.analysis) {
+        // Clean and format the text
+        let formattedText = data.analysis
+            .replace(/\n/g, '<br>')
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            .replace(/(\d+\/10)/g, '<span class="badge bg-primary text-white px-2 py-1 rounded">$1</span>')
+            .replace(/🍽️|📊|⭐|✅|⚠️|🔧|🎯|💡|📋/g, '<span class="fs-5 me-2">$&</span>');
+        
+        analysisDiv.innerHTML = formattedText;
+        analysisDiv.style.color = '#374151'; // Ensure dark text
+        analysisDiv.style.backgroundColor = 'transparent';
+    }
+    
+    // Display diet badge
+    if (data.diet_info) {
+        const dietBadge = document.getElementById('dietBadge');
+        if (dietBadge) {
+            dietBadge.innerHTML = `
+                <span class="badge fs-5 px-4 py-2 text-white" style="background-color: ${data.diet_info.color};">
+                    ${data.diet_info.icon} ${data.diet_info.name} Diet Analysis
+                </span>
+            `;
+        }
+    }
+    
+    // Populate quick stats if available
+    const quickStats = document.getElementById('quickStats');
+    if (quickStats && data.nutrition_data) {
+        const nutrition = data.nutrition_data;
+        let statsHTML = '';
+        
+        if (nutrition.calories) {
+            statsHTML += `
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stat-card bg-primary text-white">
+                        <div class="stat-number">${nutrition.calories}</div>
+                        <div class="stat-label">Calories</div>
+                    </div>
+                </div>`;
+        }
+        
+        if (nutrition.health_score) {
+            statsHTML += `
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stat-card bg-success text-white">
+                        <div class="stat-number">${nutrition.health_score}/10</div>
+                        <div class="stat-label">Health Score</div>
+                    </div>
+                </div>`;
+        }
+        
+        if (nutrition.compatibility_score) {
+            statsHTML += `
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stat-card bg-info text-white">
+                        <div class="stat-number">${nutrition.compatibility_score}/10</div>
+                        <div class="stat-label">Diet Match</div>
+                    </div>
+                </div>`;
+        }
+        
+        if (nutrition.protein) {
+            statsHTML += `
+                <div class="col-lg-3 col-md-6 mb-3">
+                    <div class="stat-card bg-warning text-dark">
+                        <div class="stat-number">${nutrition.protein}g</div>
+                        <div class="stat-label">Protein</div>
+                    </div>
+                </div>`;
+        }
+        
+        quickStats.innerHTML = statsHTML;
+    }
+    
+    // Show results with animation
+    const resultsSection = document.getElementById('resultsSection');
+    if (resultsSection) {
+        resultsSection.style.display = 'block';
+        resultsSection.classList.add('fade-in');
+        resultsSection.scrollIntoView({ behavior: 'smooth' });
+    }
+    
+    console.log('Results displayed successfully');
+}
+
+// Add this to your existing JavaScript in index.html
+// Replace the existing displayResults function with the one above
+});
+
+// Function to analyze another meal
+function analyzeAnother() {
+    document.getElementById('resultsSection').style.display = 'none';
+    document.getElementById('imagePreview').style.display = 'none';
+    document.getElementById('analysisForm').reset();
+    document.querySelector('[data-diet="keto"]').click(); // Reset to default
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+{% endblock %}
