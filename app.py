@@ -404,6 +404,42 @@ def test():
         "upload_folder": app.config['UPLOAD_FOLDER']
     })
 
+@app.route('/debug-db')
+def debug_db():
+    """Debug database connection"""
+    try:
+        # Test database connection
+        if db.client:
+            # Test saving a simple document
+            test_data = {
+                "test": True,
+                "timestamp": datetime.now().isoformat(),
+                "message": "Database test from Vercel",
+                "dietary_goal": "test",
+                "analysis": "This is a test analysis"
+            }
+            
+            result = db.save_analysis(test_data)
+            history = db.get_history(5)
+            
+            return jsonify({
+                "database_connected": True,
+                "save_test_result": result,
+                "history_count": len(history),
+                "sample_history": history[:2] if history else []
+            })
+        else:
+            return jsonify({
+                "database_connected": False,
+                "error": "Database client not initialized"
+            })
+    except Exception as e:
+        return jsonify({
+            "database_connected": False,
+            "error": str(e),
+            "error_type": type(e).__name__
+        })
+
 def save_to_history(analysis_data, chart_path):
     """Save analysis to MongoDB database"""
     try:
