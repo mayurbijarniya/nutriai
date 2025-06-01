@@ -1,4 +1,4 @@
-# app.py - Diet Designer Flask Web Application (Python 3.9.6) - MongoDB Atlas Version
+# app.py - Diet Designer Flask Web Application - VERCEL VERSION
 
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
 import google.generativeai as genai
@@ -12,6 +12,7 @@ import re
 import uuid
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
+import tempfile
 
 # MongoDB import
 from database import get_db
@@ -21,13 +22,20 @@ load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = 'diet-designer-secret-key-2024'
-app.config['UPLOAD_FOLDER'] = 'uploads'
-app.config['STATIC_FOLDER'] = 'static'
+
+# VERCEL FIX: Use /tmp directory for uploads (only writable directory)
+app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
-# Create directories if they don't exist
-os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-os.makedirs(app.config['STATIC_FOLDER'], exist_ok=True)
+# VERCEL FIX: Only create directories if not on Vercel
+if not os.environ.get('VERCEL'):
+    # Local development
+    os.makedirs('uploads', exist_ok=True)
+    os.makedirs('static', exist_ok=True)
+    app.config['UPLOAD_FOLDER'] = 'uploads'
+else:
+    # Vercel deployment - use /tmp (only writable directory)
+    os.makedirs('/tmp/uploads', exist_ok=True)
 
 # Configure Gemini API
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
@@ -142,7 +150,7 @@ class DietAnalyzer:
         })
     
     def analyze_meal(self, image_path, dietary_goal, user_preferences=""):
-        """Analyze meal with comprehensive AI assessment - TEXT ONLY"""
+        """Analyze meal with comprehensive AI assessment"""
         if not self.model:
             return {"error": "Gemini API not configured. Please set GEMINI_API_KEY in .env file"}
         
@@ -155,7 +163,7 @@ class DietAnalyzer:
             
             img = self.enhance_image(img)
             
-            # Save processed image
+            # VERCEL FIX: Save processed image to /tmp
             processed_path = image_path.replace('.', '_processed.')
             if not processed_path.lower().endswith(('.jpg', '.jpeg')):
                 processed_path = processed_path + '.jpg'
@@ -165,7 +173,7 @@ class DietAnalyzer:
             
             diet_info = self.get_diet_info(dietary_goal)
             
-            # Enhanced analysis prompt - STRUCTURED TEXT OUTPUT
+            # Enhanced analysis prompt
             prompt = f"""**COMPREHENSIVE MEAL ANALYSIS FOR {diet_info['name'].upper()} DIET {diet_info['icon']}**
 
 Please analyze this meal image and provide a detailed, well-structured analysis:
@@ -284,11 +292,11 @@ def index():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    """Handle meal analysis requests - MongoDB VERSION"""
+    """Handle meal analysis requests - VERCEL VERSION"""
     try:
         image_path = None
         
-        # Handle file upload
+        # Handle file upload - VERCEL COMPATIBLE
         if 'image_file' in request.files and request.files['image_file'].filename:
             file = request.files['image_file']
             if file and allowed_file(file.filename):
@@ -327,17 +335,17 @@ def analyze():
         
         print(f"🎯 Analyzing for {diet_goal} diet")
         
-        # Analyze meal - NO CHARTS
+        # Analyze meal
         result = analyzer.analyze_meal(image_path, diet_goal, user_preferences)
         
         if result.get("success"):
-            # Save analysis to MongoDB (without chart)
+            # Save analysis to MongoDB
             save_to_history(result["data"], None)
             
             return jsonify({
                 "success": True,
                 "analysis": result["analysis"],
-                "chart_url": None,  # No chart generated
+                "chart_url": None,
                 "nutrition_data": analyzer.extract_nutrition_data(result["analysis"]),
                 "diet_info": analyzer.get_diet_info(diet_goal)
             })
@@ -352,7 +360,7 @@ def analyze():
 def history():
     """Display analysis history from MongoDB"""
     try:
-        history_data = db.get_history(20)  # Get last 20 analyses
+        history_data = db.get_history(20)
         return render_template('history.html', history=history_data)
     except Exception as e:
         print(f"❌ History error: {e}")
@@ -376,7 +384,6 @@ def delete_analysis(analysis_id):
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
-# Add new stats endpoint
 @app.route('/stats')
 def stats():
     """Get database statistics"""
@@ -385,6 +392,17 @@ def stats():
         return jsonify(stats)
     except Exception as e:
         return jsonify({"error": str(e)})
+
+@app.route('/test')
+def test():
+    """Test route to check if basic Flask works"""
+    return jsonify({
+        "status": "Flask is working on Vercel! 🎉",
+        "environment": "Vercel" if os.environ.get('VERCEL') else "Local",
+        "gemini_configured": bool(GEMINI_API_KEY),
+        "mongodb_uri_exists": bool(os.getenv('MONGODB_URI')),
+        "upload_folder": app.config['UPLOAD_FOLDER']
+    })
 
 def save_to_history(analysis_data, chart_path):
     """Save analysis to MongoDB database"""
