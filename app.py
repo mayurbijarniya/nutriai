@@ -406,11 +406,19 @@ def test():
 
 @app.route('/debug-db')
 def debug_db():
-    """Debug database connection"""
+    """Enhanced database debugging"""
     try:
         # Test database connection
-        if db.client:
-            # Test saving a simple document
+        db_connected = db.is_connected()
+        
+        debug_info = {
+            "mongodb_uri_exists": bool(os.getenv('MONGODB_URI')),
+            "database_connected": db_connected,
+            "client_exists": bool(db.client),
+        }
+        
+        if db_connected:
+            # Test saving a document
             test_data = {
                 "test": True,
                 "timestamp": datetime.now().isoformat(),
@@ -419,25 +427,22 @@ def debug_db():
                 "analysis": "This is a test analysis"
             }
             
-            result = db.save_analysis(test_data)
-            history = db.get_history(5)
+            save_result = db.save_analysis(test_data)
+            history = db.get_history(3)
             
-            return jsonify({
-                "database_connected": True,
-                "save_test_result": result,
+            debug_info.update({
+                "save_test": save_result,
                 "history_count": len(history),
-                "sample_history": history[:2] if history else []
+                "sample_history": history[:1] if history else []
             })
-        else:
-            return jsonify({
-                "database_connected": False,
-                "error": "Database client not initialized"
-            })
+        
+        return jsonify(debug_info)
+        
     except Exception as e:
         return jsonify({
-            "database_connected": False,
             "error": str(e),
-            "error_type": type(e).__name__
+            "error_type": type(e).__name__,
+            "mongodb_uri_exists": bool(os.getenv('MONGODB_URI'))
         })
 
 def save_to_history(analysis_data, chart_path):

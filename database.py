@@ -1,32 +1,75 @@
-# database.py - MongoDB Atlas Database Manager
+# database.py - MongoDB Atlas Database Manager - VERCEL FIXED VERSION
 import os
 from pymongo import MongoClient
 from datetime import datetime
 import json
 from bson import ObjectId
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 class MongoDBManager:
     def __init__(self):
         # Get connection string from environment variable
         self.connection_string = os.getenv('MONGODB_URI')
+        print(f"🔍 MongoDB URI exists: {bool(self.connection_string)}")
+        
         if not self.connection_string:
-            print("⚠️ Warning: MONGODB_URI not found in environment variables!")
+            print("❌ MONGODB_URI not found in environment variables!")
             self.client = None
             self.db = None
-        else:
-            try:
-                self.client = MongoClient(self.connection_string)
-                self.db = self.client.diet_designer
-                self.collection = self.db.analysis_history
-                
-                # Test connection
-                self.client.admin.command('ping')
-                print("✅ Connected to MongoDB Atlas successfully!")
-                
-            except Exception as e:
-                print(f"❌ MongoDB connection failed: {e}")
-                self.client = None
-                self.db = None
+            return
+        
+        # Print partial URI for debugging (hide password)
+        uri_parts = self.connection_string.split('@')
+        if len(uri_parts) > 1:
+            print(f"🔗 Connecting to: ...@{uri_parts[1][:50]}...")
+        
+        try:
+            # Create MongoDB client with explicit timeout settings
+            self.client = MongoClient(
+                self.connection_string,
+                serverSelectionTimeoutMS=10000,  # 10 seconds timeout
+                connectTimeoutMS=10000,
+                socketTimeoutMS=10000,
+                maxPoolSize=10,
+                retryWrites=True
+            )
+            
+            # Set database and collection
+            self.db = self.client.diet_designer
+            self.collection = self.db.analysis_history
+            
+            # Test connection with ping
+            print("🔄 Testing MongoDB connection...")
+            self.client.admin.command('ping')
+            print("✅ Connected to MongoDB Atlas successfully!")
+            
+        except Exception as e:
+            print(f"❌ MongoDB connection failed: {e}")
+            print(f"🔍 Error type: {type(e).__name__}")
+            
+            # More detailed error info
+            if "authentication failed" in str(e).lower():
+                print("🔐 Authentication issue - check username/password in MongoDB URI")
+            elif "timeout" in str(e).lower():
+                print("⏰ Connection timeout - check network/firewall settings")
+            elif "dns" in str(e).lower():
+                print("📡 DNS resolution issue - check MongoDB cluster hostname")
+            
+            self.client = None
+            self.db = None
+    
+    def is_connected(self):
+        """Check if database is connected"""
+        if not self.client:
+            return False
+        try:
+            self.client.admin.command('ping')
+            return True
+        except:
+            return False
     
     def save_analysis(self, analysis_data):
         """Save analysis to MongoDB"""
@@ -41,14 +84,17 @@ class MongoDBManager:
             # Add created_at for sorting
             analysis_data['created_at'] = datetime.now()
             
+            print(f"💾 Attempting to save analysis to MongoDB...")
+            
             # Insert document
             result = self.collection.insert_one(analysis_data)
             
-            print(f"💾 Analysis saved with ID: {result.inserted_id}")
+            print(f"✅ Analysis saved with ID: {result.inserted_id}")
             return {"success": True, "id": str(result.inserted_id)}
             
         except Exception as e:
             print(f"❌ Save error: {e}")
+            print(f"🔍 Error type: {type(e).__name__}")
             return {"success": False, "error": str(e)}
     
     def get_history(self, limit=20):
@@ -58,6 +104,8 @@ class MongoDBManager:
             return []
         
         try:
+            print(f"📚 Attempting to retrieve {limit} analyses...")
+            
             # Get documents sorted by created_at (newest first)
             cursor = self.collection.find().sort("created_at", -1).limit(limit)
             
@@ -73,11 +121,12 @@ class MongoDBManager:
                 
                 history.append(doc)
             
-            print(f"📚 Retrieved {len(history)} analyses from database")
+            print(f"✅ Retrieved {len(history)} analyses from database")
             return history
             
         except Exception as e:
             print(f"❌ History retrieval error: {e}")
+            print(f"🔍 Error type: {type(e).__name__}")
             return []
     
     def delete_analysis(self, analysis_id):
@@ -87,7 +136,6 @@ class MongoDBManager:
         
         try:
             # Convert string ID to ObjectId
-            from bson import ObjectId
             object_id = ObjectId(analysis_id)
             
             # Delete document
@@ -122,18 +170,33 @@ class MongoDBManager:
     def get_stats(self):
         """Get database statistics"""
         if not self.client:
-            return {}
+            return {"error": "Database not connected"}
         
         try:
+            total_analyses = self.collection.count_documents({})
+            
             stats = {
-                "total_analyses": self.collection.count_documents({}),
-                "database_size": self.db.command("dbStats")["dataSize"],
-                "collection_size": self.db.command("collStats", "analysis_history")["size"] if self.collection.count_documents({}) > 0 else 0
+                "total_analyses": total_analyses,
+                "connected": True
             }
+            
+            # Only get advanced stats if we have data
+            if total_analyses > 0:
+                try:
+                    db_stats = self.db.command("dbStats")
+                    stats["database_size"] = db_stats.get("dataSize", 0)
+                    
+                    coll_stats = self.db.command("collStats", "analysis_history")
+                    stats["collection_size"] = coll_stats.get("size", 0)
+                except:
+                    # Advanced stats failed, but basic stats work
+                    pass
+            
             return stats
+            
         except Exception as e:
             print(f"⚠️ Stats error: {e}")
-            return {}
+            return {"error": str(e), "connected": False}
 
 # Global database instance
 db_manager = None
@@ -142,5 +205,6 @@ def get_db():
     """Get database manager instance"""
     global db_manager
     if db_manager is None:
+        print("🔄 Initializing MongoDB connection...")
         db_manager = MongoDBManager()
     return db_manager
