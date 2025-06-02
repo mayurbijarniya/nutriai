@@ -1,5 +1,3 @@
-# app.py - Diet Designer Flask Web Application - VERCEL VERSION
-
 from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
 import google.generativeai as genai
 from PIL import Image, ImageEnhance
