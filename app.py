@@ -171,53 +171,53 @@ class DietAnalyzer:
             
             diet_info = self.get_diet_info(dietary_goal)
             
-            # Enhanced analysis prompt
-            prompt = f"""**COMPREHENSIVE MEAL ANALYSIS FOR {diet_info['name'].upper()} DIET {diet_info['icon']}**
+            # Enhanced analysis prompt without markdown formatting
+            prompt = f"""COMPREHENSIVE MEAL ANALYSIS FOR {diet_info['name'].upper()} DIET {diet_info['icon']}
 
-Please analyze this meal image and provide a detailed, well-structured analysis:
+Please analyze this meal image and provide a detailed, well-structured analysis using clean text formatting (NO MARKDOWN SYMBOLS like ** or *):
 
-**🍽️ MEAL IDENTIFICATION:**
+MEAL IDENTIFICATION:
 List all visible food items with estimated portions and cooking methods.
 
-**📊 NUTRITIONAL ESTIMATION:**
+NUTRITIONAL ESTIMATION:
 Provide estimates for:
-- Total Calories: [number] kcal
-- Carbohydrates: [number]g (including fiber)
-- Protein: [number]g 
-- Fat: [number]g
-- Key vitamins/minerals present
-- Sodium level: [Low/Medium/High]
+• Total Calories: [number] kcal
+• Carbohydrates: [number]g (including fiber)
+• Protein: [number]g 
+• Fat: [number]g
+• Key vitamins/minerals present
+• Sodium level: [Low/Medium/High]
 
-**⭐ DIET COMPATIBILITY SCORE: [X]/10**
+DIET COMPATIBILITY SCORE: [X]/10
 {diet_info['rules']}
 
-**✅ POSITIVE ASPECTS:**
-- What makes this meal good for {dietary_goal} diet
-- Health benefits identified
-- Nutritionally strong points
+POSITIVE ASPECTS:
+• What makes this meal good for {dietary_goal} diet
+• Health benefits identified
+• Nutritionally strong points
 
-**⚠️ AREAS FOR IMPROVEMENT:**
-- What doesn't align with {dietary_goal} diet
-- Specific concerns or issues
-- Missing nutrients
+AREAS FOR IMPROVEMENT:
+• What doesn't align with {dietary_goal} diet
+• Specific concerns or issues
+• Missing nutrients
 
-**🔧 PERSONALIZED RECOMMENDATIONS:**
+PERSONALIZED RECOMMENDATIONS:
 {diet_info['focus']}
-1. **Ingredient Modifications:** Specific swaps to make
-2. **Portion Adjustments:** What to increase/decrease
-3. **Preparation Changes:** Better cooking methods
-4. **Additions:** What to add to make it more {dietary_goal}-friendly
+1. Ingredient Modifications: Specific swaps to make
+2. Portion Adjustments: What to increase/decrease
+3. Preparation Changes: Better cooking methods
+4. Additions: What to add to make it more {dietary_goal}-friendly
 
-**🎯 OVERALL HEALTH SCORE: [X]/10**
+OVERALL HEALTH SCORE: [X]/10
 Explanation of why this score was given.
 
-**💡 PERSONALIZED ADVICE:**
+PERSONALIZED ADVICE:
 {f'Based on your preferences: {user_preferences}' if user_preferences else 'General recommendations for optimal nutrition'}
 
-**📋 SUMMARY:**
+SUMMARY:
 One paragraph summary of the meal's suitability for {dietary_goal} diet and key takeaways.
 
-Please be specific with numbers, practical with suggestions, and format the response clearly with the section headers shown above."""
+Please be specific with numbers, practical with suggestions, and format the response clearly with the section headers shown above. Use NO markdown symbols like asterisks or underscores."""
 
             # Generate analysis
             response = self.model.generate_content([prompt, img])
@@ -463,6 +463,58 @@ def allowed_file(filename):
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}
     return ('.' in filename and 
             filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS)
+
+# Favicon and icon routes for comprehensive device support
+@app.route('/favicon.ico')
+def favicon():
+    """Serve favicon"""
+    return app.send_static_file('favicon.svg')
+
+@app.route('/apple-touch-icon.png')
+def apple_touch_icon():
+    """Serve Apple touch icon"""
+    return app.send_static_file('favicon.svg')
+
+@app.route('/android-chrome-192x192.png')
+def android_chrome_192():
+    """Serve Android Chrome icon 192x192"""
+    return app.send_static_file('favicon.svg')
+
+@app.route('/android-chrome-512x512.png')
+def android_chrome_512():
+    """Serve Android Chrome icon 512x512"""
+    return app.send_static_file('favicon.svg')
+
+@app.route('/favicon-16x16.png')
+def favicon_16():
+    """Serve 16x16 favicon"""
+    return app.send_static_file('favicon.svg')
+
+@app.route('/favicon-32x32.png')
+def favicon_32():
+    """Serve 32x32 favicon"""
+    return app.send_static_file('favicon.svg')
+
+@app.route('/safari-pinned-tab.svg')
+def safari_pinned_tab():
+    """Serve Safari pinned tab icon"""
+    return app.send_static_file('favicon.svg')
+
+@app.route('/manifest.json')
+def manifest():
+    """Serve web app manifest"""
+    return app.send_static_file('manifest.json')
+
+@app.route('/browserconfig.xml')
+def browserconfig():
+    """Serve browser config for Windows"""
+    return app.send_static_file('browserconfig.xml')
+
+# Catch-all for missing PNG favicons - serve SVG instead
+@app.route('/mstile-<size>.png')
+def mstile_fallback(size):
+    """Serve SVG for missing MS tile icons"""
+    return app.send_static_file('favicon.svg')
 
 if __name__ == '__main__':
     print("🍽️  Diet Designer Web App Starting...")

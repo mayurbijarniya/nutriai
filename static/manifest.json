@@ -1,0 +1,76 @@
+{
+  "name": "NutriAI - Diet Designer",
+  "short_name": "NutriAI",
+  "description": "AI-powered nutrition analysis tool with simple robot assistant",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["health", "fitness", "food", "productivity"],
+  "icons": [
+    {
+      "src": "favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "nutri-ai-logo.svg",
+      "sizes": "120x120",
+      "type": "image/svg+xml"
+    },
+    {
+      "src": "/static/android-chrome-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/android-chrome-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Quick Analysis",
+      "short_name": "Analyze",
+      "description": "Start nutrition analysis with AI robot assistant",
+      "url": "/",
+      "icons": [{"src": "favicon.svg", "sizes": "32x32"}]
+    },
+    {
+      "name": "View History",
+      "short_name": "History",
+      "description": "View past nutrition analyses",
+      "url": "/?tab=history",
+      "icons": [{"src": "favicon.svg", "sizes": "32x32"}]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/static/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "NutriAI Desktop Interface"
+    },
+    {
+      "src": "/static/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "NutriAI Mobile Interface"
+    }
+  ]
+} 

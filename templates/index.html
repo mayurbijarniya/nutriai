@@ -1,271 +1,262 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="text-center mb-5">
-    <h1 class="display-3 fw-bold mb-3" style="background: linear-gradient(45deg, #667eea, #764ba2); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-        <i class="fas fa-utensils me-3"></i>AI Diet Designer
-    </h1>
-    <p class="lead text-muted fs-4">Upload your meal photo and get personalized nutrition analysis with AI-powered recommendations</p>
-    <div class="mt-4">
-        <span class="badge bg-primary fs-6 me-2">🤖 AI Powered</span>
-        <span class="badge bg-success fs-6 me-2">🔬 Scientific Analysis</span>
-        <span class="badge bg-info fs-6">📊 Visual Reports</span>
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Hero Section -->
+    <div class="text-center mb-12">
+        <div class="inline-flex items-center space-x-2 bg-blue-50 dark:bg-blue-950/50 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <i class="ph ph-robot"></i>
+            <span>AI-Powered Nutrition Analysis</span>
+        </div>
+        
+        <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4 bg-gradient-to-r from-blue-600 via-purple-600 to-blue-600 bg-clip-text text-transparent">
+            AI Diet Designer
+        </h1>
+        <p class="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            Upload your meal photo and get personalized nutrition analysis with AI-powered recommendations
+        </p>
+        
+        <div class="flex flex-wrap justify-center gap-3 mt-8">
+            <div class="inline-flex items-center space-x-2 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 px-3 py-1.5 rounded-lg text-sm border border-blue-200 dark:border-blue-800">
+                <i class="ph ph-cpu text-blue-500"></i>
+                <span>AI Powered</span>
+            </div>
+            <div class="inline-flex items-center space-x-2 bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-lg text-sm border border-green-200 dark:border-green-800">
+                <i class="ph ph-flask text-green-500"></i>
+                <span>Scientific Analysis</span>
+            </div>
+            <div class="inline-flex items-center space-x-2 bg-purple-50 dark:bg-purple-950/30 text-purple-600 dark:text-purple-400 px-3 py-1.5 rounded-lg text-sm border border-purple-200 dark:border-purple-800">
+                <i class="ph ph-chart-bar text-purple-500"></i>
+                <span>Visual Reports</span>
+            </div>
+        </div>
     </div>
-</div>
 
-<form id="analysisForm" enctype="multipart/form-data">
-    <!-- Diet Selection -->
-    <div class="mb-5">
-        <h3 class="fw-bold mb-4 text-center">
-            <i class="fas fa-apple-alt me-2 text-success"></i>Choose Your Diet Goal
-        </h3>
-        <div class="row g-4">
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <div class="diet-card card h-100 p-4 text-center" data-diet="keto">
-                    <span class="diet-icon">🥑</span>
-                    <h5 class="fw-bold mb-2">Keto</h5>
-                    <small class="text-muted">Low carb, high fat</small>
-                    <div class="mt-2">
-                        <small class="badge bg-warning text-dark">&lt;20g carbs</small>
+    <!-- Chat Interface -->
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
+        <!-- Chat Header -->
+        <div class="border-b border-gray-200 dark:border-gray-700 p-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <i class="ph ph-camera text-white"></i>
+                    </div>
+                    <div>
+                        <h3 class="font-semibold text-gray-900 dark:text-gray-100">Upload Your Meal Photo</h3>
+                        <p class="text-sm text-gray-500 dark:text-gray-400">Drop an image or paste a URL to get started</p>
                     </div>
                 </div>
-            </div>
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <div class="diet-card card h-100 p-4 text-center" data-diet="vegan">
-                    <span class="diet-icon">🌱</span>
-                    <h5 class="fw-bold mb-2">Vegan</h5>
-                    <small class="text-muted">Plant-based only</small>
-                    <div class="mt-2">
-                        <small class="badge bg-success">No animal products</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <div class="diet-card card h-100 p-4 text-center" data-diet="paleo">
-                    <span class="diet-icon">🥩</span>
-                    <h5 class="fw-bold mb-2">Paleo</h5>
-                    <small class="text-muted">Whole foods only</small>
-                    <div class="mt-2">
-                        <small class="badge bg-danger">No processed</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <div class="diet-card card h-100 p-4 text-center" data-diet="mediterranean">
-                    <span class="diet-icon">🫒</span>
-                    <h5 class="fw-bold mb-2">Mediterranean</h5>
-                    <small class="text-muted">Heart healthy</small>
-                    <div class="mt-2">
-                        <small class="badge bg-info">Olive oil + fish</small>
-                    </div>
-                </div>
-            </div>
-            <div class="col-lg-2 col-md-4 col-sm-6">
-                <div class="diet-card card h-100 p-4 text-center" data-diet="low-carb">
-                    <span class="diet-icon">⚖️</span>
-                    <h5 class="fw-bold mb-2">Low Carb</h5>
-                    <small class="text-muted">Reduced carbs</small>
-                    <div class="mt-2">
-                        <small class="badge bg-primary">&lt;100g carbs</small>
+                
+                <!-- Diet Selection Dropdown -->
+                <div class="relative">
+                    <button id="dietDropdownBtn" class="inline-flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 border border-gray-200 dark:border-gray-600">
+                        <span id="selectedDietIcon">🥑</span>
+                        <span id="selectedDietText">Keto Diet</span>
+                        <i class="ph ph-caret-down"></i>
+                    </button>
+                    
+                    <div id="dietDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                        <div class="py-1">
+                            <button class="diet-option w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-diet="keto" data-icon="🥑" data-name="Keto Diet">
+                                <span>🥑</span>
+                                <div class="text-left">
+                                    <div class="font-medium">Keto Diet</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Low carb, high fat</div>
+                                </div>
+                            </button>
+                            <button class="diet-option w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-diet="vegan" data-icon="🌱" data-name="Vegan Diet">
+                                <span>🌱</span>
+                                <div class="text-left">
+                                    <div class="font-medium">Vegan Diet</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Plant-based only</div>
+                                </div>
+                            </button>
+                            <button class="diet-option w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-diet="paleo" data-icon="🥩" data-name="Paleo Diet">
+                                <span>🥩</span>
+                                <div class="text-left">
+                                    <div class="font-medium">Paleo Diet</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Whole foods only</div>
+                                </div>
+                            </button>
+                            <button class="diet-option w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-diet="mediterranean" data-icon="🫒" data-name="Mediterranean Diet">
+                                <span>🫒</span>
+                                <div class="text-left">
+                                    <div class="font-medium">Mediterranean Diet</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Heart healthy</div>
+                                </div>
+                            </button>
+                            <button class="diet-option w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-diet="low-carb" data-icon="⚖️" data-name="Low Carb Diet">
+                                <span>⚖️</span>
+                                <div class="text-left">
+                                    <div class="font-medium">Low Carb Diet</div>
+                                    <div class="text-xs text-gray-500 dark:text-gray-400">Reduced carbs</div>
+                                </div>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-        <input type="hidden" id="dietGoal" name="diet_goal" value="keto">
-    </div>
 
-    <!-- Image Upload Section -->
-    <div class="mb-5">
-        <h3 class="fw-bold mb-4 text-center">
-            <i class="fas fa-camera me-2 text-primary"></i>Upload Your Meal Photo
-        </h3>
-        
-        <!-- Tab Navigation -->
-        <ul class="nav nav-tabs justify-content-center mb-4" role="tablist">
-            <li class="nav-item">
-                <a class="nav-link active" data-bs-toggle="tab" href="#uploadTab">
-                    <i class="fas fa-upload me-2"></i>Upload File
-                </a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" data-bs-toggle="tab" href="#urlTab">
-                    <i class="fas fa-link me-2"></i>Image URL
-                </a>
-            </li>
-        </ul>
+        <!-- Chat Messages -->
+        <div id="chatMessages" class="p-4 min-h-[300px] max-h-[500px] overflow-y-auto space-y-4 bg-gray-50 dark:bg-gray-950">
+            <!-- Welcome Message -->
+            <div class="flex items-start space-x-3 chat-message">
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="ph ph-robot text-white text-sm"></i>
+                </div>
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg rounded-tl-none p-3 max-w-md shadow-sm">
+                    <p class="text-sm text-gray-700 dark:text-gray-300">Hi! I'm your AI nutrition analyst. Upload a photo of your meal or paste an image URL, and I'll provide detailed nutritional analysis based on your chosen diet goal.</p>
+                </div>
+            </div>
+        </div>
 
-        <div class="tab-content">
-            <!-- File Upload Tab -->
-            <div class="tab-pane fade show active" id="uploadTab">
-                <div class="upload-area" id="uploadArea">
-                    <i class="fas fa-cloud-upload-alt fa-4x text-muted mb-3 pulse"></i>
-                    <h4 class="fw-bold mb-3">Drag & Drop Your Photo Here</h4>
-                    <p class="text-muted mb-4">Or click the button below to browse files</p>
-                    <div class="mb-3">
-                        <span class="badge bg-secondary me-2">JPG</span>
-                        <span class="badge bg-secondary me-2">PNG</span>
-                        <span class="badge bg-secondary me-2">GIF</span>
-                        <span class="badge bg-secondary">WebP</span>
-                    </div>
-                    <p class="small text-muted">Maximum file size: 16MB</p>
-                    <input type="file" id="imageFile" name="image_file" accept="image/*" class="d-none">
-                    <button type="button" class="btn btn-outline-primary btn-lg" onclick="document.getElementById('imageFile').click()">
-                        <i class="fas fa-folder-open me-2"></i>Choose Photo
+        <!-- Chat Input -->
+        <div class="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900">
+            <form id="analysisForm" enctype="multipart/form-data" class="space-y-4">
+                <!-- Image Upload Tabs -->
+                <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
+                    <button type="button" id="uploadTab" class="flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-md bg-white dark:bg-gray-700 shadow-sm text-sm font-medium transition-all duration-200 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-600">
+                        <i class="ph ph-upload-simple text-blue-500"></i>
+                        <span>Upload File</span>
+                    </button>
+                    <button type="button" id="urlTab" class="flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-md text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-all duration-200">
+                        <i class="ph ph-link"></i>
+                        <span>Image URL</span>
                     </button>
                 </div>
-            </div>
 
-            <!-- URL Tab -->
-            <div class="tab-pane fade" id="urlTab">
-                <div class="row justify-content-center">
-                    <div class="col-md-8">
-                        <div class="input-group input-group-lg">
-                            <span class="input-group-text">
-                                <i class="fas fa-link text-primary"></i>
-                            </span>
-                            <input type="url" class="form-control" name="image_url" 
-                                   placeholder="https://example.com/your-meal-photo.jpg">
+                <!-- Upload Content -->
+                <div id="uploadContent">
+                    <!-- File Upload -->
+                    <div id="fileUpload" class="space-y-4">
+                        <div id="dropZone" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center transition-colors duration-200 hover:border-blue-400 hover:bg-blue-50/50 dark:hover:bg-blue-950/20 cursor-pointer bg-white dark:bg-gray-800">
+                            <div class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-500">
+                                <i class="ph ph-cloud-arrow-up text-4xl"></i>
+                            </div>
+                            <h4 class="text-lg font-medium mb-2 text-gray-900 dark:text-gray-100">Drag & Drop Your Photo Here</h4>
+                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Or click the button below to browse files</p>
+                            <div class="flex justify-center space-x-2 mb-4">
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600">JPG</span>
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600">PNG</span>
+                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600">WebP</span>
+                            </div>
+                            <p class="text-xs text-gray-500 dark:text-gray-400">Maximum file size: 16MB</p>
+                            <input type="file" id="imageFile" name="image_file" accept="image/*" class="hidden">
+                            <button type="button" class="mt-4 inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm" onclick="document.getElementById('imageFile').click()">
+                                <i class="ph ph-folder-open"></i>
+                                <span>Choose Photo</span>
+                            </button>
                         </div>
-                        <small class="text-muted d-block mt-2 text-center">
-                            <i class="fas fa-info-circle me-1"></i>
-                            Enter the direct URL to your meal image
-                        </small>
+                    </div>
+
+                    <!-- URL Input -->
+                    <div id="urlInput" class="hidden">
+                        <div class="flex space-x-2">
+                            <div class="flex-1 relative">
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="ph ph-link text-gray-400 dark:text-gray-500"></i>
+                                </div>
+                                <input type="url" name="image_url" placeholder="https://example.com/your-meal-photo.jpg" 
+                                       class="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm text-gray-900 dark:text-gray-100">
+                            </div>
+                            <button type="button" id="pasteUrl" class="px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 text-sm font-medium border border-gray-300 dark:border-gray-600">
+                                Paste URL
+                            </button>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center space-x-1">
+                            <i class="ph ph-info"></i>
+                            <span>Enter the direct URL to your meal image</span>
+                        </p>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Image Preview -->
-        <div id="imagePreview" class="mt-4 text-center" style="display: none;">
-            <div class="mb-3">
-                <h5 class="text-success">
-                    <i class="fas fa-check-circle me-2"></i>Photo Ready for Analysis
-                </h5>
-            </div>
-            <img id="previewImg" class="preview-image" alt="Meal Preview">
-        </div>
-    </div>
-
-    <!-- User Preferences -->
-    <div class="mb-5">
-        <h3 class="fw-bold mb-4 text-center">
-            <i class="fas fa-user-cog me-2 text-info"></i>Personal Preferences
-            <small class="text-muted fs-6">(Optional)</small>
-        </h3>
-        <div class="row justify-content-center">
-            <div class="col-md-8">
-                <textarea class="form-control form-control-lg" name="user_preferences" rows="4" 
-                          placeholder="Tell us about your preferences...
+                <!-- Personal Preferences -->
+                <div class="space-y-3">
+                    <div class="flex items-center space-x-2">
+                        <i class="ph ph-user-gear text-blue-500"></i>
+                        <h4 class="font-medium text-gray-900 dark:text-gray-100">Personal Preferences</h4>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">(Optional)</span>
+                    </div>
+                    <textarea name="user_preferences" rows="3" 
+                              placeholder="Tell us about your preferences...
 
 Examples:
 • I prefer spicy foods and want to increase protein
-• I have gluten sensitivity 
-• I'm trying to gain muscle mass
-• I want to reduce sodium intake
-• I love Mediterranean flavors"></textarea>
-                <div class="mt-2 text-center">
-                    <small class="text-muted">
-                        <i class="fas fa-lightbulb me-1"></i>
-                        The more details you provide, the better our recommendations!
-                    </small>
+• I have gluten sensitivity"
+                              class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-sm resize-none text-gray-900 dark:text-gray-100"></textarea>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1">
+                        <i class="ph ph-lightbulb"></i>
+                        <span>The more details you provide, the better our recommendations!</span>
+                    </p>
                 </div>
-            </div>
+
+                <!-- Submit Button -->
+                <button type="submit" id="analyzeBtn" class="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                    <i class="ph ph-magic-wand"></i>
+                    <span>Analyze My Meal with AI</span>
+                </button>
+
+                <!-- Loading State -->
+                <div id="loadingState" class="hidden text-center py-4">
+                    <div class="inline-flex items-center space-x-3 bg-blue-50 dark:bg-blue-950/30 text-blue-600 dark:text-blue-400 px-4 py-2 rounded-lg border border-blue-200 dark:border-blue-800">
+                        <div class="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                        <span class="text-sm font-medium">AI is analyzing your meal<span class="loading-dots"></span></span>
+                    </div>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">This may take 10-15 seconds</p>
+                </div>
+
+                <input type="hidden" id="dietGoal" name="diet_goal" value="keto">
+            </form>
         </div>
     </div>
 
-    <!-- Analyze Button -->
-    <div class="text-center mb-4">
-        <button type="submit" class="btn btn-primary btn-lg px-5 py-3">
-            <i class="fas fa-magic me-3"></i>Analyze My Meal with AI
-        </button>
-        
-        <div class="loading-spinner" id="loadingSpinner">
-            <div class="spinner-border text-primary mb-3" role="status">
-                <span class="visually-hidden">Analyzing...</span>
-            </div>
-            <h5 class="text-primary mb-2">🤖 AI is analyzing your meal...</h5>
-            <p class="text-muted">This may take 10-15 seconds</p>
-            <div class="progress" style="height: 6px;">
-                <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
-                     role="progressbar" style="width: 100%"></div>
-            </div>
+    <!-- Results Section -->
+    <div id="resultsSection" class="hidden mt-8">
+        <div id="analysisResult" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm">
+            <!-- Results will be populated here -->
         </div>
     </div>
-</form>
 
-<!-- Results Section -->
-<div id="resultsSection" style="display: none;">
-    <hr class="my-5" style="border: 2px solid #e9ecef; border-radius: 2px;">
-    
-    <div class="analysis-result">
-        <div class="text-center mb-4">
-            <h2 class="fw-bold mb-3">
-                <i class="fas fa-chart-line me-3"></i>Your Meal Analysis Report
-            </h2>
-            <div id="dietBadge" class="mb-3">
-                <!-- Diet badge will be inserted here -->
+    <!-- Pro Tips -->
+    <div class="mt-12 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800/30">
+        <div class="flex items-center space-x-2 mb-4">
+            <i class="ph ph-lightbulb text-yellow-500"></i>
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100">Pro Tips for Better Results</h3>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div class="text-center">
+                <div class="w-12 h-12 mx-auto mb-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center border border-blue-200 dark:border-blue-800">
+                    <i class="ph ph-camera text-blue-600 dark:text-blue-400"></i>
+                </div>
+                <h4 class="font-medium mb-2 text-gray-900 dark:text-gray-100">Good Lighting</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Take photos in natural light when possible</p>
             </div>
-        </div>
-        
-        <!-- Quick Stats Row -->
-        <div class="row mb-5 text-dark" id="quickStats">
-            <!-- Stats will be populated by JavaScript -->
-        </div>
-        
-        <!-- Nutrition Chart -->
-        <div class="text-center mb-5" id="chartContainer">
-            <h4 class="fw-bold mb-3">📊 Nutrition Breakdown & Scores</h4>
-            <img id="nutritionChart" class="nutrition-chart" alt="Nutrition Analysis Chart">
-        </div>
-        
-        <!-- Detailed Analysis -->
-        <div class="row">
-            <div class="col-12">
-                <h4 class="fw-bold mb-3">
-                    <i class="fas fa-clipboard-list me-2"></i>Detailed AI Analysis
-                </h4>
-                <div id="analysisText" class="analysis-text p-4 rounded" 
-                     style="background: linear-gradient(145deg, #f8f9fa, #ffffff); border-left: 4px solid #667eea;"></div>
+            
+            <div class="text-center">
+                <div class="w-12 h-12 mx-auto mb-3 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center border border-green-200 dark:border-green-800">
+                    <i class="ph ph-arrows-out text-green-600 dark:text-green-400"></i>
+                </div>
+                <h4 class="font-medium mb-2 text-gray-900 dark:text-gray-100">Full View</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Show the complete meal from above</p>
             </div>
-        </div>
-        
-        <!-- Action Buttons -->
-        <div class="text-center mt-5">
-            <!--<button class="btn btn-success btn-lg me-3" onclick="window.location.href='/history'">
-                <i class="fas fa-history me-2"></i>View All Analyses
-            </button>-->
-            <button class="btn btn-primary btn-lg" onclick="analyzeAnother()">
-                <i class="fas fa-plus me-2"></i>Analyze Another Meal
-            </button>
-        </div>
-    </div>
-</div>
-
-<!-- Tips Section -->
-<div class="mt-5 p-4 rounded" style="background: linear-gradient(145deg, #e3f2fd, #f3e5f5);">
-    <h4 class="fw-bold mb-3 text-center">
-        <i class="fas fa-lightbulb me-2 text-warning"></i>Pro Tips for Better Results
-    </h4>
-    <div class="row">
-        <div class="col-md-3 text-center mb-3">
-            <i class="fas fa-camera fa-2x text-primary mb-2"></i>
-            <h6 class="fw-bold">Good Lighting</h6>
-            <small class="text-muted">Take photos in natural light when possible</small>
-        </div>
-        <div class="col-md-3 text-center mb-3">
-            <i class="fas fa-expand-alt fa-2x text-success mb-2"></i>
-            <h6 class="fw-bold">Full View</h6>
-            <small class="text-muted">Show the complete meal from above</small>
-        </div>
-        <div class="col-md-3 text-center mb-3">
-            <i class="fas fa-utensils fa-2x text-info mb-2"></i>
-            <h6 class="fw-bold">Include Utensils</h6>
-            <small class="text-muted">Helps AI estimate portion sizes</small>
-        </div>
-        <div class="col-md-3 text-center mb-3">
-            <i class="fas fa-eye fa-2x text-warning mb-2"></i>
-            <h6 class="fw-bold">Clear Details</h6>
-            <small class="text-muted">Make sure all ingredients are visible</small>
+            
+            <div class="text-center">
+                <div class="w-12 h-12 mx-auto mb-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center border border-purple-200 dark:border-purple-800">
+                    <i class="ph ph-fork-knife text-purple-600 dark:text-purple-400"></i>
+                </div>
+                <h4 class="font-medium mb-2 text-gray-900 dark:text-gray-100">Include Utensils</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Helps AI estimate portion sizes</p>
+            </div>
+            
+            <div class="text-center">
+                <div class="w-12 h-12 mx-auto mb-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center border border-orange-200 dark:border-orange-800">
+                    <i class="ph ph-eye text-orange-600 dark:text-orange-400"></i>
+                </div>
+                <h4 class="font-medium mb-2 text-gray-900 dark:text-gray-100">Clear Details</h4>
+                <p class="text-sm text-gray-600 dark:text-gray-400">Make sure all ingredients are visible</p>
+            </div>
         </div>
     </div>
 </div>
@@ -274,243 +265,325 @@ Examples:
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Diet selection functionality
-    document.querySelectorAll('.diet-card').forEach(card => {
-        card.addEventListener('click', function() {
-            // Remove selection from all cards
-            document.querySelectorAll('.diet-card').forEach(c => c.classList.remove('selected'));
-            // Add selection to clicked card
-            this.classList.add('selected');
-            // Update hidden input
-            document.getElementById('dietGoal').value = this.dataset.diet;
+    // Diet dropdown functionality
+    const dietDropdownBtn = document.getElementById('dietDropdownBtn');
+    const dietDropdown = document.getElementById('dietDropdown');
+    const selectedDietIcon = document.getElementById('selectedDietIcon');
+    const selectedDietText = document.getElementById('selectedDietText');
+    const dietGoalInput = document.getElementById('dietGoal');
+
+    dietDropdownBtn.addEventListener('click', () => {
+        dietDropdown.classList.toggle('hidden');
+    });
+
+    // Close dropdown when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!dietDropdownBtn.contains(e.target) && !dietDropdown.contains(e.target)) {
+            dietDropdown.classList.add('hidden');
+        }
+    });
+
+    // Diet option selection
+    document.querySelectorAll('.diet-option').forEach(option => {
+        option.addEventListener('click', () => {
+            const diet = option.dataset.diet;
+            const icon = option.dataset.icon;
+            const name = option.dataset.name;
             
-            // Add visual feedback
-            this.style.transform = 'scale(1.05)';
-            setTimeout(() => {
-                this.style.transform = '';
-            }, 200);
+            selectedDietIcon.textContent = icon;
+            selectedDietText.textContent = name;
+            dietGoalInput.value = diet;
+            dietDropdown.classList.add('hidden');
+            
+            addChatMessage('user', `I've selected the ${name}.`);
+            addChatMessage('assistant', `Great choice! The ${name} is selected. Now upload your meal photo for analysis.`);
         });
     });
 
-    // Set default selection (Keto)
-    document.querySelector('[data-diet="keto"]').classList.add('selected');
+    // Tab switching
+    const uploadTabBtn = document.getElementById('uploadTab');
+    const urlTabBtn = document.getElementById('urlTab');
+    const fileUpload = document.getElementById('fileUpload');
+    const urlInput = document.getElementById('urlInput');
 
-    // File upload handling
-    const uploadArea = document.getElementById('uploadArea');
-    const imageFile = document.getElementById('imageFile');
-    const imagePreview = document.getElementById('imagePreview');
-    const previewImg = document.getElementById('previewImg');
+    uploadTabBtn.addEventListener('click', () => {
+        uploadTabBtn.classList.add('bg-white', 'dark:bg-gray-700', 'shadow-sm', 'border', 'border-gray-200', 'dark:border-gray-600', 'text-gray-900', 'dark:text-gray-100');
+        urlTabBtn.classList.remove('bg-white', 'dark:bg-gray-700', 'shadow-sm', 'border', 'border-gray-200', 'dark:border-gray-600', 'text-gray-900', 'dark:text-gray-100');
+        urlTabBtn.classList.add('text-gray-600', 'dark:text-gray-400');
+        fileUpload.classList.remove('hidden');
+        urlInput.classList.add('hidden');
+    });
+
+    urlTabBtn.addEventListener('click', () => {
+        urlTabBtn.classList.add('bg-white', 'dark:bg-gray-700', 'shadow-sm', 'border', 'border-gray-200', 'dark:border-gray-600', 'text-gray-900', 'dark:text-gray-100');
+        uploadTabBtn.classList.remove('bg-white', 'dark:bg-gray-700', 'shadow-sm', 'border', 'border-gray-200', 'dark:border-gray-600', 'text-gray-900', 'dark:text-gray-100');
+        uploadTabBtn.classList.add('text-gray-600', 'dark:text-gray-400');
+        urlInput.classList.remove('hidden');
+        fileUpload.classList.add('hidden');
+    });
 
     // Drag and drop functionality
-    uploadArea.addEventListener('dragover', function(e) {
+    const dropZone = document.getElementById('dropZone');
+    const fileInput = document.getElementById('imageFile');
+
+    dropZone.addEventListener('dragover', (e) => {
         e.preventDefault();
-        this.classList.add('dragover');
+        dropZone.classList.add('border-blue-400', 'bg-blue-50/50', 'dark:bg-blue-950/20');
     });
 
-    uploadArea.addEventListener('dragleave', function(e) {
+    dropZone.addEventListener('dragleave', (e) => {
         e.preventDefault();
-        this.classList.remove('dragover');
+        dropZone.classList.remove('border-blue-400', 'bg-blue-50/50', 'dark:bg-blue-950/20');
     });
 
-    uploadArea.addEventListener('drop', function(e) {
+    dropZone.addEventListener('drop', (e) => {
         e.preventDefault();
-        this.classList.remove('dragover');
+        dropZone.classList.remove('border-blue-400', 'bg-blue-50/50', 'dark:bg-blue-950/20');
+        
         const files = e.dataTransfer.files;
         if (files.length > 0) {
-            imageFile.files = files;
-            previewImage(files[0]);
+            fileInput.files = files;
+            handleFileSelection(files[0]);
         }
     });
 
-    // File input change event
-    imageFile.addEventListener('change', function() {
-        if (this.files.length > 0) {
-            previewImage(this.files[0]);
+    fileInput.addEventListener('change', (e) => {
+        if (e.target.files.length > 0) {
+            handleFileSelection(e.target.files[0]);
         }
     });
 
-    // Image preview function
-    function previewImage(file) {
-        // Validate file type
-        if (!file.type.startsWith('image/')) {
-            alert('Please select a valid image file.');
-            return;
+    // File selection handler
+    function handleFileSelection(file) {
+        if (file && file.type.startsWith('image/')) {
+            addChatMessage('user', `Uploaded: ${file.name}`);
+            
+            // Show image preview in chat
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                addImagePreview(e.target.result, file.name);
+            };
+            reader.readAsDataURL(file);
+            
+            addChatMessage('assistant', 'Perfect! I can see your meal photo. Click "Analyze My Meal with AI" to get your nutrition analysis.');
         }
-        
-        // Validate file size (16MB)
-        if (file.size > 16 * 1024 * 1024) {
-            alert('File size must be less than 16MB.');
-            return;
-        }
-        
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            previewImg.src = e.target.result;
-            imagePreview.style.display = 'block';
-            imagePreview.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        };
-        reader.readAsDataURL(file);
     }
+
+    // Paste URL functionality
+    document.getElementById('pasteUrl').addEventListener('click', async () => {
+        try {
+            const text = await navigator.clipboard.readText();
+            if (text && (text.startsWith('http') || text.startsWith('https'))) {
+                document.querySelector('input[name="image_url"]').value = text;
+                addChatMessage('user', `Pasted image URL: ${text}`);
+                addChatMessage('assistant', 'Great! I can see the image URL. Click "Analyze My Meal with AI" to get your nutrition analysis.');
+            }
+        } catch (err) {
+            console.log('Failed to read clipboard');
+        }
+    });
 
     // Form submission
     document.getElementById('analysisForm').addEventListener('submit', function(e) {
         e.preventDefault();
         
         const formData = new FormData(this);
-        const loadingSpinner = document.getElementById('loadingSpinner');
-        const resultsSection = document.getElementById('resultsSection');
-        
-        // Validate inputs
-        const hasFile = document.getElementById('imageFile').files.length > 0;
-        const hasUrl = document.querySelector('input[name="image_url"]').value.trim();
-        
-        if (!hasFile && !hasUrl) {
-            alert('Please upload an image or provide an image URL.');
-            return;
-        }
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const loadingState = document.getElementById('loadingState');
         
         // Show loading state
-        loadingSpinner.style.display = 'block';
-        resultsSection.style.display = 'none';
-        document.querySelector('button[type="submit"]').disabled = true;
+        analyzeBtn.classList.add('hidden');
+        loadingState.classList.remove('hidden');
         
-        // Scroll to loading spinner
-        loadingSpinner.scrollIntoView({ behavior: 'smooth' });
+        addChatMessage('assistant', 'Analyzing your meal with AI...');
         
-        // Submit analysis request
         fetch('/analyze', {
             method: 'POST',
             body: formData
         })
         .then(response => response.json())
         .then(data => {
-            loadingSpinner.style.display = 'none';
-            document.querySelector('button[type="submit"]').disabled = false;
+            analyzeBtn.classList.remove('hidden');
+            loadingState.classList.add('hidden');
             
-            if (data.success) {
-                displayResults(data);
+            if (data.error) {
+                addChatMessage('assistant', `Sorry, there was an error: ${data.error}`);
+                showNotification('Analysis failed: ' + data.error, 'error');
             } else {
-                alert('Analysis Error: ' + data.error);
+                displayResults(data);
+                // Save to history after successful analysis
+                saveToHistory(data);
             }
         })
         .catch(error => {
-            loadingSpinner.style.display = 'none';
-            document.querySelector('button[type="submit"]').disabled = false;
-            alert('Network Error: ' + error.message);
+            analyzeBtn.classList.remove('hidden');
+            loadingState.classList.add('hidden');
+            addChatMessage('assistant', 'Sorry, there was an error processing your request. Please try again.');
+            showNotification('Network error: Please check your connection and try again.', 'error');
         });
     });
 
-    // Display results function
-    // Updated JavaScript for index.html - TEXT ONLY VERSION
-
-// Display results function - FIXED for text-only
-function displayResults(data) {
-    console.log('Displaying results:', data);
-    
-    // Hide chart container since we're not generating charts
-    const chartContainer = document.getElementById('chartContainer');
-    if (chartContainer) {
-        chartContainer.style.display = 'none';
-    }
-    
-    // Format and display analysis text with proper styling
-    const analysisDiv = document.getElementById('analysisText');
-    if (analysisDiv && data.analysis) {
-        // Clean and format the text
-        let formattedText = data.analysis
-            .replace(/\n/g, '<br>')
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-            .replace(/(\d+\/10)/g, '<span class="badge bg-primary text-white px-2 py-1 rounded">$1</span>')
-            .replace(/🍽️|📊|⭐|✅|⚠️|🔧|🎯|💡|📋/g, '<span class="fs-5 me-2">$&</span>');
+    // Chat message functions
+    function addChatMessage(sender, message) {
+        const messagesContainer = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'flex items-start space-x-3 chat-message';
         
-        analysisDiv.innerHTML = formattedText;
-        analysisDiv.style.color = '#374151'; // Ensure dark text
-        analysisDiv.style.backgroundColor = 'transparent';
-    }
-    
-    // Display diet badge
-    if (data.diet_info) {
-        const dietBadge = document.getElementById('dietBadge');
-        if (dietBadge) {
-            dietBadge.innerHTML = `
-                <span class="badge fs-5 px-4 py-2 text-white" style="background-color: ${data.diet_info.color};">
-                    ${data.diet_info.icon} ${data.diet_info.name} Diet Analysis
-                </span>
+        if (sender === 'user') {
+            messageDiv.innerHTML = `
+                <div class="w-8 h-8 bg-gray-600 dark:bg-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="ph ph-user text-white dark:text-gray-900 text-sm"></i>
+                </div>
+                <div class="bg-blue-600 text-white rounded-lg rounded-tl-none p-3 max-w-md shadow-sm">
+                    <p class="text-sm">${message}</p>
+                </div>
+            `;
+        } else {
+            messageDiv.innerHTML = `
+                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                    <i class="ph ph-robot text-white text-sm"></i>
+                </div>
+                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg rounded-tl-none p-3 max-w-md shadow-sm">
+                    <p class="text-sm text-gray-700 dark:text-gray-300">${message}</p>
+                </div>
             `;
         }
+        
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
-    
-    // Populate quick stats if available
-    const quickStats = document.getElementById('quickStats');
-    if (quickStats && data.nutrition_data) {
-        const nutrition = data.nutrition_data;
-        let statsHTML = '';
+
+    function addImagePreview(src, filename) {
+        const messagesContainer = document.getElementById('chatMessages');
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'flex items-start space-x-3 chat-message';
         
-        if (nutrition.calories) {
-            statsHTML += `
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <div class="stat-card bg-primary text-white">
-                        <div class="stat-number">${nutrition.calories}</div>
-                        <div class="stat-label">Calories</div>
-                    </div>
-                </div>`;
-        }
+        messageDiv.innerHTML = `
+            <div class="w-8 h-8 bg-gray-600 dark:bg-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
+                <i class="ph ph-user text-white dark:text-gray-900 text-sm"></i>
+            </div>
+            <div class="bg-blue-600 text-white rounded-lg rounded-tl-none p-3 max-w-md shadow-sm">
+                <img src="${src}" alt="${filename}" class="w-full h-32 object-cover rounded-lg mb-2">
+                <p class="text-sm">${filename}</p>
+            </div>
+        `;
         
-        if (nutrition.health_score) {
-            statsHTML += `
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <div class="stat-card bg-success text-white">
-                        <div class="stat-number">${nutrition.health_score}/10</div>
-                        <div class="stat-label">Health Score</div>
-                    </div>
-                </div>`;
-        }
-        
-        if (nutrition.compatibility_score) {
-            statsHTML += `
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <div class="stat-card bg-info text-white">
-                        <div class="stat-number">${nutrition.compatibility_score}/10</div>
-                        <div class="stat-label">Diet Match</div>
-                    </div>
-                </div>`;
-        }
-        
-        if (nutrition.protein) {
-            statsHTML += `
-                <div class="col-lg-3 col-md-6 mb-3">
-                    <div class="stat-card bg-warning text-dark">
-                        <div class="stat-number">${nutrition.protein}g</div>
-                        <div class="stat-label">Protein</div>
-                    </div>
-                </div>`;
-        }
-        
-        quickStats.innerHTML = statsHTML;
+        messagesContainer.appendChild(messageDiv);
+        messagesContainer.scrollTop = messagesContainer.scrollHeight;
     }
-    
-    // Show results with animation
-    const resultsSection = document.getElementById('resultsSection');
-    if (resultsSection) {
-        resultsSection.style.display = 'block';
-        resultsSection.classList.add('fade-in');
+
+    function displayResults(data) {
+        addChatMessage('assistant', 'Analysis complete! Your detailed results are shown below:');
+        
+        const resultsSection = document.getElementById('resultsSection');
+        const analysisResult = document.getElementById('analysisResult');
+        
+        // Clean the analysis text from markdown formatting
+        let cleanAnalysis = data.analysis || 'Analysis not available';
+        cleanAnalysis = cleanAnalysis
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Convert **text** to <strong>text</strong>
+            .replace(/\*(.*?)\*/g, '<em>$1</em>') // Convert *text* to <em>text</em>
+            .replace(/\n/g, '<br>') // Convert line breaks
+            .replace(/^\s*[\*\-\+]\s+/gm, '• ') // Convert markdown bullets to •
+            .replace(/^#+\s+(.*$)/gm, '<h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">$1</h3>'); // Convert headers
+        
+        analysisResult.innerHTML = `
+            <div class="prose prose-sm max-w-none dark:prose-invert">
+                <div class="text-gray-700 dark:text-gray-300 leading-relaxed">
+                    ${cleanAnalysis}
+                </div>
+            </div>
+        `;
+        
+        resultsSection.classList.remove('hidden');
         resultsSection.scrollIntoView({ behavior: 'smooth' });
     }
-    
-    console.log('Results displayed successfully');
-}
 
-// Add this to your existing JavaScript in index.html
-// Replace the existing displayResults function with the one above
+    function saveToHistory(data) {
+        // Save analysis to localStorage for now
+        const historyData = JSON.parse(localStorage.getItem('nutritionHistory') || '[]');
+        const newEntry = {
+            id: Date.now(),
+            timestamp: new Date().toISOString(),
+            diet_goal: dietGoalInput.value,
+            analysis: data.analysis,
+            nutrition_data: data.nutrition_data || {},
+            user_preferences: document.querySelector('textarea[name="user_preferences"]').value
+        };
+        historyData.unshift(newEntry);
+        
+        // Keep only last 50 entries
+        if (historyData.length > 50) {
+            historyData.splice(50);
+        }
+        
+        localStorage.setItem('nutritionHistory', JSON.stringify(historyData));
+        
+        // Show success notification
+        showNotification('Analysis saved to history successfully!', 'success');
+    }
+
+    // Notification system (same as history page)
+    function showNotification(message, type = 'info') {
+        // Remove any existing notifications
+        const existingNotification = document.querySelector('.notification');
+        if (existingNotification) {
+            existingNotification.remove();
+        }
+        
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = 'notification fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg border max-w-sm transition-all duration-300 transform translate-x-full opacity-0';
+        
+        // Set colors based on type
+        if (type === 'success') {
+            notification.classList.add('bg-green-50', 'dark:bg-green-950/30', 'border-green-200', 'dark:border-green-800', 'text-green-800', 'dark:text-green-200');
+            notification.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <i class="ph ph-check-circle text-green-500 text-xl"></i>
+                    <span class="font-medium">${message}</span>
+                </div>
+            `;
+        } else if (type === 'error') {
+            notification.classList.add('bg-red-50', 'dark:bg-red-950/30', 'border-red-200', 'dark:border-red-800', 'text-red-800', 'dark:text-red-200');
+            notification.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <i class="ph ph-warning text-red-500 text-xl"></i>
+                    <span class="font-medium">${message}</span>
+                </div>
+            `;
+        } else {
+            notification.classList.add('bg-blue-50', 'dark:bg-blue-950/30', 'border-blue-200', 'dark:border-blue-800', 'text-blue-800', 'dark:text-blue-200');
+            notification.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <i class="ph ph-info text-blue-500 text-xl"></i>
+                    <span class="font-medium">${message}</span>
+                </div>
+            `;
+        }
+        
+        // Add to page
+        document.body.appendChild(notification);
+        
+        // Animate in
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full', 'opacity-0');
+            notification.classList.add('translate-x-0', 'opacity-100');
+        }, 100);
+        
+        // Auto remove after 3 seconds
+        setTimeout(() => {
+            notification.classList.add('translate-x-full', 'opacity-0');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    // Initialize with welcome message
+    addChatMessage('assistant', 'Welcome! I\'m your AI nutrition analyst. Please select your diet goal from the dropdown above, then upload a meal photo or paste an image URL to get started.');
 });
-
-// Function to analyze another meal
-function analyzeAnother() {
-    document.getElementById('resultsSection').style.display = 'none';
-    document.getElementById('imagePreview').style.display = 'none';
-    document.getElementById('analysisForm').reset();
-    document.querySelector('[data-diet="keto"]').click(); // Reset to default
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-}
 </script>
 {% endblock %}
