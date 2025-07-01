@@ -504,6 +504,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const historyData = JSON.parse(localStorage.getItem('nutritionHistory') || '[]');
         const newEntry = {
             id: Date.now(),
+            database_id: data.database_id, // Store the MongoDB ObjectId for deletion
             timestamp: new Date().toISOString(),
             diet_goal: dietGoalInput.value,
             analysis: data.analysis,
@@ -520,7 +521,11 @@ document.addEventListener('DOMContentLoaded', function() {
         localStorage.setItem('nutritionHistory', JSON.stringify(historyData));
         
         // Show success notification
-        showNotification('Analysis saved to history successfully!', 'success');
+        if (data.database_id) {
+            showNotification('Analysis saved to database and history successfully!', 'success');
+        } else {
+            showNotification('Analysis saved to history (database save may have failed)', 'success');
+        }
     }
 
     // Notification system (same as history page)

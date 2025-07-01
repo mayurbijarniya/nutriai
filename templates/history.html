@@ -317,6 +317,7 @@ function closeDeleteModal() {
 
 function deleteAnalysis(analysisId) {
     const historyData = JSON.parse(localStorage.getItem('nutritionHistory') || '[]');
+    const analysisToDelete = historyData.find(item => item.id == analysisId);
     const updatedHistory = historyData.filter(item => item.id != analysisId);
     
     localStorage.setItem('nutritionHistory', JSON.stringify(updatedHistory));
@@ -335,25 +336,70 @@ function deleteAnalysis(analysisId) {
         displayHistory(updatedHistory);
     }
     
-    showNotification('Analysis deleted successfully!', 'success');
+    // Also delete from database using stored database_id
+    if (analysisToDelete && analysisToDelete.database_id) {
+        fetch(`/delete-analysis/${analysisToDelete.database_id}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                console.log('Analysis also deleted from database');
+                showNotification('Analysis deleted from both history and database!', 'success');
+            } else {
+                console.error('Database delete failed:', result.error);
+                showNotification('Analysis deleted from history, but database delete failed', 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error deleting from database:', error);
+            showNotification('Analysis deleted from history, but database delete failed', 'error');
+        });
+    } else {
+        console.log('No database_id found, only deleted from localStorage');
+        showNotification('Analysis deleted from history only (no database ID)', 'success');
+    }
 }
 
 function clearHistory() {
     if (confirm('Are you sure you want to clear all analysis history? This action cannot be undone.')) {
-        localStorage.removeItem('nutritionHistory');
+        // Show loading state
+        showNotification('Clearing all analysis history...', 'info');
         
-        // Immediately update the UI
-        const historyContainer = document.getElementById('historyContainer');
-        const emptyState = document.getElementById('emptyState');
-        const loadingState = document.getElementById('loadingState');
-        
-        // Hide loading and history, show empty state
-        loadingState.classList.add('hidden');
-        historyContainer.innerHTML = '';
-        emptyState.classList.remove('hidden');
-        
-        // Show success message
-        showNotification('All analysis history has been cleared successfully!', 'success');
+        // Call backend API to clear database
+        fetch('/clear-history', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Clear localStorage
+                localStorage.removeItem('nutritionHistory');
+                
+                // Immediately update the UI
+                const historyContainer = document.getElementById('historyContainer');
+                const emptyState = document.getElementById('emptyState');
+                const loadingState = document.getElementById('loadingState');
+                
+                // Hide loading and history, show empty state
+                loadingState.classList.add('hidden');
+                historyContainer.innerHTML = '';
+                emptyState.classList.remove('hidden');
+                
+                // Show success message
+                showNotification(`Database cleared successfully! ${data.message}`, 'success');
+            } else {
+                showNotification(`Failed to clear history: ${data.error}`, 'error');
+            }
+        })
+        .catch(error => {
+            console.error('Error clearing history:', error);
+            showNotification('Failed to clear history. Please try again.', 'error');
+        });
     }
 }
 

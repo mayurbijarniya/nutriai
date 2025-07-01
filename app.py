@@ -338,14 +338,15 @@ def analyze():
         
         if result.get("success"):
             # Save analysis to MongoDB
-            save_to_history(result["data"], None)
+            db_save_result = save_to_history(result["data"], None)
             
             return jsonify({
                 "success": True,
                 "analysis": result["analysis"],
                 "chart_url": None,
                 "nutrition_data": analyzer.extract_nutrition_data(result["analysis"]),
-                "diet_info": analyzer.get_diet_info(diet_goal)
+                "diet_info": analyzer.get_diet_info(diet_goal),
+                "database_id": db_save_result.get("id") if db_save_result and db_save_result.get("success") else None
             })
         else:
             return jsonify(result)
@@ -363,6 +364,24 @@ def history():
     except Exception as e:
         print(f"❌ History error: {e}")
         return render_template('history.html', history=[])
+
+@app.route('/api/history')
+def api_history():
+    """API endpoint to get analysis history with proper ObjectIds"""
+    try:
+        history_data = db.get_history(20)
+        return jsonify({
+            "success": True,
+            "history": history_data,
+            "count": len(history_data)
+        })
+    except Exception as e:
+        print(f"❌ API History error: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e),
+            "history": []
+        })
 
 @app.route('/clear-history', methods=['POST'])
 def clear_history():
@@ -451,12 +470,15 @@ def save_to_history(analysis_data, chart_path):
         
         result = db.save_analysis(analysis_data)
         if result["success"]:
-            print("💾 Analysis saved to MongoDB")
+            print(f"💾 Analysis saved to MongoDB with ID: {result['id']}")
         else:
             print(f"⚠️ Database save error: {result['error']}")
+        
+        return result
             
     except Exception as e:
         print(f"⚠️ History save error: {e}")
+        return {"success": False, "error": str(e)}
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
