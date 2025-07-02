@@ -51,9 +51,9 @@ class DietAnalyzer:
     def __init__(self):
         if GEMINI_API_KEY:
             self.model = genai.GenerativeModel(
-                'gemini-2.0-flash',
+                'gemini-2.5-pro',
                 generation_config={
-                    "max_output_tokens": 3000,
+                    "max_output_tokens": 4000,
                     "temperature": 0.7,
                 },
                 safety_settings=[
