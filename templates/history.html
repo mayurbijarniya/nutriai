@@ -10,7 +10,7 @@
                 <p class="text-gray-600 dark:text-gray-400">Your previous meal analyses and nutrition insights</p>
             </div>
             <div class="flex items-center space-x-3">
-                <a href="/" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm">
+                <a href="/" class="inline-flex items-center space-x-2 bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm">
                     <i class="ph ph-plus"></i>
                     <span>New Analysis</span>
                 </a>
@@ -36,7 +36,7 @@
         <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
             You haven't analyzed any meals yet. Start by uploading a meal photo to get personalized nutrition insights.
         </p>
-        <a href="/" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 shadow-sm">
+        <a href="/" class="inline-flex items-center space-x-2 bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 shadow-sm">
             <i class="ph ph-camera"></i>
             <span>Analyze Your First Meal</span>
         </a>
@@ -44,7 +44,7 @@
 
     <!-- Loading State -->
     <div id="loadingState" class="text-center py-16">
-        <div class="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        <div class="w-8 h-8 border-2 border-green-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
         <p class="text-gray-600 dark:text-gray-400">Loading your analysis history...</p>
     </div>
 </div>
@@ -118,7 +118,7 @@ function displayHistory(analyses) {
             <div class="flex items-start justify-between">
                 <div class="flex-1">
                     <div class="flex items-center space-x-3 mb-4">
-                        <div class="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-lg flex items-center justify-center">
                             <i class="ph ph-fork-knife text-white"></i>
                         </div>
                         <div>
@@ -129,19 +129,19 @@ function displayHistory(analyses) {
                     
                     <!-- User Preferences -->
                     ${analysis.user_preferences ? `
-                        <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <div class="mb-4 p-3 bg-green-50 dark:bg-green-950/30 border border-green-200 dark:border-green-800 rounded-lg">
                             <div class="flex items-center space-x-2 mb-2">
-                                <i class="ph ph-user-gear text-blue-500"></i>
-                                <span class="text-sm font-medium text-blue-700 dark:text-blue-300">Personal Preferences</span>
+                                <i class="ph ph-user-gear text-green-500"></i>
+                                <span class="text-sm font-medium text-green-700 dark:text-green-300">Personal Preferences</span>
                             </div>
-                            <p class="text-sm text-blue-600 dark:text-blue-400">${analysis.user_preferences}</p>
+                            <p class="text-sm text-green-600 dark:text-green-400">${analysis.user_preferences}</p>
                         </div>
                     ` : ''}
                     
                     <!-- Quick Stats Grid -->
                     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-4">
-                        <div class="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-center">
-                            <div class="font-semibold text-blue-600 dark:text-blue-400">
+                        <div class="bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 rounded-lg p-3 text-center">
+                            <div class="font-semibold text-red-600 dark:text-red-400">
                                 <i class="ph ph-fire text-lg"></i>
                             </div>
                             <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Calories</div>
@@ -152,8 +152,8 @@ function displayHistory(analyses) {
                             </div>
                             <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Health</div>
                         </div>
-                        <div class="bg-purple-50 dark:bg-purple-950/30 border border-purple-200 dark:border-purple-800 rounded-lg p-3 text-center">
-                            <div class="font-semibold text-purple-600 dark:text-purple-400">
+                        <div class="bg-emerald-50 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-800 rounded-lg p-3 text-center">
+                            <div class="font-semibold text-emerald-600 dark:text-emerald-400">
                                 <i class="ph ph-check-circle text-lg"></i>
                             </div>
                             <div class="text-xs text-gray-500 dark:text-gray-400 mt-1">Diet Match</div>
@@ -169,13 +169,13 @@ function displayHistory(analyses) {
                     <!-- Analysis Preview -->
                     <div class="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-4">
                         <h4 class="font-medium text-gray-900 dark:text-gray-100 mb-2 flex items-center space-x-2">
-                            <i class="ph ph-clipboard-text text-blue-500"></i>
+                            <i class="ph ph-clipboard-text text-green-500"></i>
                             <span>Analysis Summary</span>
                         </h4>
                         <div class="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 leading-relaxed">
                             ${cleanAnalysisText(analysis.analysis).substring(0, 300)}${analysis.analysis.length > 300 ? '...' : ''}
                         </div>
-                        <button onclick="viewFullAnalysis('${analysis.id}')" class="mt-3 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 text-sm font-medium transition-colors duration-200">
+                        <button onclick="viewFullAnalysis('${analysis.id}')" class="mt-3 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 text-sm font-medium transition-colors duration-200">
                             View Full Analysis →
                         </button>
                     </div>
@@ -183,7 +183,7 @@ function displayHistory(analyses) {
                 
                 <!-- Actions -->
                 <div class="flex items-center space-x-2 ml-4">
-                    <button onclick="viewFullAnalysis('${analysis.id}')" class="p-2 text-gray-400 dark:text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition-colors duration-200" title="View Full Analysis">
+                    <button onclick="viewFullAnalysis('${analysis.id}')" class="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-lg transition-colors duration-200" title="View Full Analysis">
                         <i class="ph ph-eye"></i>
                     </button>
                     <button onclick="shareAnalysis('${analysis.id}')" class="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-lg transition-colors duration-200" title="Share Analysis">
@@ -253,7 +253,7 @@ function viewFullAnalysis(analysisId) {
                     </div>
                     
                     <div class="mt-6 flex justify-end space-x-3">
-                        <button onclick="shareAnalysis('${analysis.id}')" class="inline-flex items-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
+                        <button onclick="shareAnalysis('${analysis.id}')" class="inline-flex items-center space-x-2 bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
                             <i class="ph ph-share"></i>
                             <span>Share</span>
                         </button>
@@ -433,10 +433,10 @@ function showNotification(message, type = 'info') {
             </div>
         `;
     } else {
-        notification.classList.add('bg-blue-50', 'dark:bg-blue-950/30', 'border-blue-200', 'dark:border-blue-800', 'text-blue-800', 'dark:text-blue-200');
+        notification.classList.add('bg-green-50', 'dark:bg-green-950/30', 'border-green-200', 'dark:border-green-800', 'text-green-800', 'dark:text-green-200');
         notification.innerHTML = `
             <div class="flex items-center space-x-3">
-                <i class="ph ph-info text-blue-500 text-xl"></i>
+                <i class="ph ph-info text-green-500 text-xl"></i>
                 <span class="font-medium">${message}</span>
             </div>
         `;

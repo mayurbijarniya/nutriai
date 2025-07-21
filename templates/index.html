@@ -9,18 +9,18 @@
             <span>AI-Powered Nutrition Analysis</span>
         </div>
         
-        <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4 bg-gradient-to-r from-green-600 via-emerald-600 to-green-600 bg-clip-text text-transparent">
+        <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4 bg-gradient-to-r from-green-800 via-emerald-700 to-green-800 bg-clip-text text-transparent">
             AI Diet Designer
         </h1>
         <p class="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Upload your meal photo and get personalized nutrition analysis with AI-powered recommendations
+            Upload your meal photo and get personalized nutrition analysis and recommendations
         </p>
         
         <div class="flex flex-wrap justify-center gap-3 mt-8">
-            <div class="inline-flex items-center space-x-2 bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-lg text-sm border border-green-200 dark:border-green-800">
+            <!--<div class="inline-flex items-center space-x-2 bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-lg text-sm border border-green-200 dark:border-green-800">
                 <i class="ph ph-cpu text-green-500"></i>
                 <span>AI Powered</span>
-            </div>
+            </div>-->
             <div class="inline-flex items-center space-x-2 bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-lg text-sm border border-green-200 dark:border-green-800">
                 <i class="ph ph-flask text-green-500"></i>
                 <span>Scientific Analysis</span>
@@ -102,7 +102,7 @@
         <div id="chatMessages" class="p-4 min-h-[300px] max-h-[500px] overflow-y-auto space-y-4 bg-gray-50 dark:bg-gray-950">
             <!-- Welcome Message -->
             <div class="flex items-start space-x-3 chat-message">
-                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
                     <i class="ph ph-robot text-white text-sm"></i>
                 </div>
                 <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg rounded-tl-none p-3 max-w-md shadow-sm">
@@ -143,7 +143,7 @@
                             </div>
                             <p class="text-xs text-gray-500 dark:text-gray-400">Maximum file size: 16MB</p>
                             <input type="file" id="imageFile" name="image_file" accept="image/*" class="hidden">
-                            <button type="button" class="mt-4 inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm" onclick="document.getElementById('imageFile').click()">
+                            <button type="button" class="mt-4 inline-flex items-center space-x-2 bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm" onclick="document.getElementById('imageFile').click()">
                                 <i class="ph ph-folder-open"></i>
                                 <span>Choose Photo</span>
                             </button>
@@ -192,7 +192,7 @@ Examples:
                 </div>
 
                 <!-- Submit Button -->
-                <button type="submit" id="analyzeBtn" class="w-full bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
+                <button type="submit" id="analyzeBtn" class="w-full bg-gradient-to-r from-green-700 to-emerald-700 hover:from-green-800 hover:to-emerald-800 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                     <i class="ph ph-magic-wand"></i>
                     <span>Analyze My Meal with AI</span>
                 </button>
@@ -440,7 +440,7 @@ document.addEventListener('DOMContentLoaded', function() {
             `;
         } else {
             messageDiv.innerHTML = `
-                <div class="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0">
+                <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
                     <i class="ph ph-robot text-white text-sm"></i>
                 </div>
                 <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg rounded-tl-none p-3 max-w-md shadow-sm">
