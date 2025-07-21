@@ -1,4 +1,4 @@
-# 🍎 Diet Designer
+# Diet Designer
 
 AI-powered nutrition analysis tool using Google Gemini AI to analyze food images and provide detailed nutritional insights.
 
