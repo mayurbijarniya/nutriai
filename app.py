@@ -553,8 +553,8 @@ if __name__ == '__main__':
     else:
         print("❌ MongoDB Atlas connection failed")
     
-    print("🌐 Starting server at: http://localhost:5050")
-    print("📱 Access from mobile: http://your-ip:5050")
+    print("🌐 Starting server at: http://localhost:5001")
+    print("📱 Access from mobile: http://your-ip:5001")
     print("📝 MongoDB Atlas integration enabled")
     
-    app.run(debug=True, host='0.0.0.0', port=5050)
+    app.run(debug=True, host='0.0.0.0', port=5001)
