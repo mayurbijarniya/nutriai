@@ -46,7 +46,7 @@ AI-powered nutrition analysis tool using Google Gemini AI to analyze food images
 ## 🔧 Tech Stack
 
 - **Backend**: Flask
-- **AI**: Google Gemini 2.0
+- **AI**: Google Gemini 2.5 Pro
 - **Database**: MongoDB
 - **Frontend**: Tailwind CSS
 - **Deployment**: Vercel-ready 
