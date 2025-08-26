@@ -191,6 +191,11 @@ Examples:
                     </p>
                 </div>
 
+                <!-- Usage Badge -->
+                <div id="usageBadge" class="hidden mb-3 p-3 rounded-lg text-sm">
+                    <!-- Content will be populated by JavaScript -->
+                </div>
+
                 <!-- Submit Button -->
                 <button type="submit" id="analyzeBtn" class="w-full bg-gradient-to-r from-green-700 to-emerald-700 hover:from-green-800 hover:to-emerald-800 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
                     <i class="ph ph-magic-wand"></i>
@@ -383,11 +388,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
-    // Form submission
-    document.getElementById('analysisForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const formData = new FormData(this);
+    // Form submission function
+    function analyzeForm() {
+        const form = document.getElementById('analysisForm');
+        const formData = new FormData(form);
         const analyzeBtn = document.getElementById('analyzeBtn');
         const loadingState = document.getElementById('loadingState');
         
@@ -401,26 +405,49 @@ document.addEventListener('DOMContentLoaded', function() {
             method: 'POST',
             body: formData
         })
-        .then(response => response.json())
+        .then(response => {
+            if (response.status === 429) {
+                // Handle rate limit specifically
+                return response.json().then(data => {
+                    throw new Error(data.message || 'Daily limit exceeded');
+                });
+            }
+            return response.json();
+        })
         .then(data => {
             analyzeBtn.classList.remove('hidden');
             loadingState.classList.add('hidden');
             
             if (data.error) {
-                addChatMessage('assistant', `Sorry, there was an error: ${data.error}`);
-                showNotification('Analysis failed: ' + data.error, 'error');
+                if (data.error === 'limit_exceeded') {
+                    showNotification('error', data.message);
+                    addChatMessage('assistant', `${data.message}`);
+                    // Refresh usage status
+                    loadUsageStatus();
+                } else {
+                    addChatMessage('assistant', `Sorry, there was an error: ${data.error}`);
+                    showNotification('error', 'Analysis failed: ' + data.error);
+                }
             } else {
                 displayResults(data);
-                // Save to history after successful analysis
-                saveToHistory(data);
+                // Only save to history if user is signed in (server handles this)
+                // No local storage saving for guests
+                // Refresh usage status
+                loadUsageStatus();
             }
         })
         .catch(error => {
             analyzeBtn.classList.remove('hidden');
             loadingState.classList.add('hidden');
             addChatMessage('assistant', 'Sorry, there was an error processing your request. Please try again.');
-            showNotification('Network error: Please check your connection and try again.', 'error');
+            showNotification('error', error.message || 'Network error: Please check your connection and try again.');
         });
+    }
+
+    // Form submission event
+    document.getElementById('analysisForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        analyzeForm();
     });
 
     // Chat message functions
@@ -499,34 +526,8 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsSection.scrollIntoView({ behavior: 'smooth' });
     }
 
-    function saveToHistory(data) {
-        // Save analysis to localStorage for now
-        const historyData = JSON.parse(localStorage.getItem('nutritionHistory') || '[]');
-        const newEntry = {
-            id: Date.now(),
-            database_id: data.database_id, // Store the MongoDB ObjectId for deletion
-            timestamp: new Date().toISOString(),
-            diet_goal: dietGoalInput.value,
-            analysis: data.analysis,
-            nutrition_data: data.nutrition_data || {},
-            user_preferences: document.querySelector('textarea[name="user_preferences"]').value
-        };
-        historyData.unshift(newEntry);
-        
-        // Keep only last 50 entries
-        if (historyData.length > 50) {
-            historyData.splice(50);
-        }
-        
-        localStorage.setItem('nutritionHistory', JSON.stringify(historyData));
-        
-        // Show success notification
-        if (data.database_id) {
-            showNotification('Analysis saved to database and history successfully!', 'success');
-        } else {
-            showNotification('Analysis saved to history (database save may have failed)', 'success');
-        }
-    }
+    // History is now handled server-side only for signed-in users
+    // Guests get temporary analysis results without persistent storage
 
     // Notification system (same as history page)
     function showNotification(message, type = 'info') {
@@ -586,6 +587,67 @@ document.addEventListener('DOMContentLoaded', function() {
             }, 300);
         }, 3000);
     }
+
+    // Usage tracking and limits
+    async function loadUsageStatus() {
+        try {
+            const response = await fetch('/api/usage');
+            const data = await response.json();
+            updateUsageBadge(data);
+        } catch (error) {
+            console.error('Failed to load usage status:', error);
+        }
+    }
+
+    function updateUsageBadge(data) {
+        const badge = document.getElementById('usageBadge');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        
+        if (!data.usage.analyses) return;
+        
+        const { current, limit, near_limit, at_limit } = data.usage.analyses;
+        
+        // Show badge for guests or when near/at limit
+        if (data.user_type === 'guest' || near_limit || at_limit) {
+            badge.classList.remove('hidden');
+            
+            if (at_limit) {
+                badge.className = 'mb-3 p-3 rounded-lg text-sm bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200';
+                badge.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <i class="ph ph-warning text-red-500"></i>
+                        <span>Daily limit reached (${current}/${limit}). ${data.user_type === 'guest' ? 'Sign in for higher limits.' : 'Try again tomorrow.'}</span>
+                    </div>
+                `;
+                // Disable button
+                analyzeBtn.disabled = true;
+                analyzeBtn.classList.add('opacity-50', 'cursor-not-allowed');
+            } else if (near_limit) {
+                badge.className = 'mb-3 p-3 rounded-lg text-sm bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200';
+                badge.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <i class="ph ph-warning text-amber-500"></i>
+                        <span>${current}/${limit} analyses used today</span>
+                    </div>
+                `;
+            } else if (data.user_type === 'guest') {
+                badge.className = 'mb-3 p-3 rounded-lg text-sm bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200';
+                badge.innerHTML = `
+                    <div class="flex items-center space-x-2">
+                        <i class="ph ph-info text-blue-500"></i>
+                        <span>Guest mode (${current}/${limit} analyses today) — <a href="#" onclick="document.getElementById('openLoginModal').click()" class="underline hover:no-underline">sign in</a> to sync and unlock more</span>
+                    </div>
+                `;
+            }
+        } else {
+            badge.classList.add('hidden');
+        }
+    }
+
+
+
+    // Load usage status on page load
+    loadUsageStatus();
 
     // Initialize with welcome message
     addChatMessage('assistant', 'Welcome! I\'m your AI nutrition analyst. Please select your diet goal from the dropdown above, then upload a meal photo or paste an image URL to get started.');

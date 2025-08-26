@@ -14,10 +14,16 @@
                     <i class="ph ph-plus"></i>
                     <span>New Analysis</span>
                 </a>
+                <button onclick="loadHistory()" class="inline-flex items-center space-x-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 border border-gray-200 dark:border-gray-600">
+                    <i class="ph ph-arrow-clockwise"></i>
+                    <span>Refresh</span>
+                </button>
+                {% if not is_guest %}
                 <button onclick="clearHistory()" class="inline-flex items-center space-x-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm">
                     <i class="ph ph-trash"></i>
                     <span>Clear All</span>
                 </button>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -32,6 +38,16 @@
         <div class="w-20 h-20 mx-auto mb-6 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center border border-gray-200 dark:border-gray-700">
             <i class="ph ph-clock-counter-clockwise text-3xl text-gray-400 dark:text-gray-500"></i>
         </div>
+        {% if is_guest %}
+        <h3 class="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">History Available After Sign In</h3>
+        <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
+            Sign in with Google to save your analysis history and access it across all your devices.
+        </p>
+        <button onclick="document.getElementById('openLoginModal').click()" class="inline-flex items-center space-x-2 bg-green-700 hover:bg-green-800 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 shadow-sm">
+            <i class="ph ph-sign-in"></i>
+            <span>Sign In to Save History</span>
+        </button>
+        {% else %}
         <h3 class="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">No Analysis History</h3>
         <p class="text-gray-600 dark:text-gray-400 mb-6 max-w-md mx-auto">
             You haven't analyzed any meals yet. Start by uploading a meal photo to get personalized nutrition insights.
@@ -40,6 +56,7 @@
             <i class="ph ph-camera"></i>
             <span>Analyze Your First Meal</span>
         </a>
+        {% endif %}
     </div>
 
     <!-- Loading State -->
@@ -92,19 +109,48 @@ function loadHistory() {
     const emptyState = document.getElementById('emptyState');
     const loadingState = document.getElementById('loadingState');
     
-    // Simulate loading
-    setTimeout(() => {
+    // Ensure loading state is visible and others are hidden
+    loadingState.classList.remove('hidden');
+    emptyState.classList.add('hidden');
+    historyContainer.innerHTML = '';
+    
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+        console.warn('History loading timeout');
         loadingState.classList.add('hidden');
-        
-        // Load from localStorage
-        const historyData = JSON.parse(localStorage.getItem('nutritionHistory') || '[]');
-        
-        if (historyData && historyData.length > 0) {
-            displayHistory(historyData);
-        } else {
+        emptyState.classList.remove('hidden');
+        showNotification('Loading took too long. Please refresh the page.', 'error');
+    }, 10000); // 10 second timeout
+    
+    // Load from server API
+    fetch('/api/history', {
+        method: 'GET',
+        cache: 'no-cache',
+        credentials: 'same-origin'
+    })
+        .then(response => {
+            clearTimeout(timeoutId);
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(data => {
+            loadingState.classList.add('hidden');
+            
+            if (data.success && data.history && data.history.length > 0) {
+                displayHistory(data.history);
+            } else {
+                emptyState.classList.remove('hidden');
+            }
+        })
+        .catch(error => {
+            clearTimeout(timeoutId);
+            console.error('Error loading history:', error);
+            loadingState.classList.add('hidden');
             emptyState.classList.remove('hidden');
-        }
-    }, 500);
+            showNotification('Failed to load history. Please try refreshing the page.', 'error');
+        });
 }
 
 function displayHistory(analyses) {
@@ -122,7 +168,7 @@ function displayHistory(analyses) {
                             <i class="ph ph-fork-knife text-white"></i>
                         </div>
                         <div>
-                            <h3 class="font-semibold text-gray-900 dark:text-gray-100">${analysis.diet_goal.charAt(0).toUpperCase() + analysis.diet_goal.slice(1)} Diet Analysis</h3>
+                            <h3 class="font-semibold text-gray-900 dark:text-gray-100">${analysis.dietary_goal.charAt(0).toUpperCase() + analysis.dietary_goal.slice(1)} Diet Analysis</h3>
                             <p class="text-sm text-gray-500 dark:text-gray-400">${formatDate(analysis.timestamp)}</p>
                         </div>
                     </div>
@@ -175,7 +221,7 @@ function displayHistory(analyses) {
                         <div class="text-sm text-gray-600 dark:text-gray-400 line-clamp-3 leading-relaxed">
                             ${cleanAnalysisText(analysis.analysis).substring(0, 300)}${analysis.analysis.length > 300 ? '...' : ''}
                         </div>
-                        <button onclick="viewFullAnalysis('${analysis.id}')" class="mt-3 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 text-sm font-medium transition-colors duration-200">
+                        <button onclick="viewFullAnalysis('${analysis._id}')" class="mt-3 text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300 text-sm font-medium transition-colors duration-200">
                             View Full Analysis →
                         </button>
                     </div>
@@ -183,13 +229,13 @@ function displayHistory(analyses) {
                 
                 <!-- Actions -->
                 <div class="flex items-center space-x-2 ml-4">
-                    <button onclick="viewFullAnalysis('${analysis.id}')" class="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-lg transition-colors duration-200" title="View Full Analysis">
+                    <button onclick="viewFullAnalysis('${analysis._id}')" class="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-lg transition-colors duration-200" title="View Full Analysis">
                         <i class="ph ph-eye"></i>
                     </button>
-                    <button onclick="shareAnalysis('${analysis.id}')" class="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-lg transition-colors duration-200" title="Share Analysis">
+                    <button onclick="shareAnalysis('${analysis._id}')" class="p-2 text-gray-400 dark:text-gray-500 hover:text-green-600 dark:hover:text-green-400 hover:bg-green-50 dark:hover:bg-green-950/30 rounded-lg transition-colors duration-200" title="Share Analysis">
                         <i class="ph ph-share"></i>
                     </button>
-                    <button onclick="showDeleteModal('${analysis.id}')" class="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors duration-200" title="Delete Analysis">
+                    <button onclick="showDeleteModal('${analysis._id}')" class="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition-colors duration-200" title="Delete Analysis">
                         <i class="ph ph-trash"></i>
                     </button>
                 </div>
@@ -222,10 +268,23 @@ function formatDate(timestamp) {
 }
 
 function viewFullAnalysis(analysisId) {
-    const historyData = JSON.parse(localStorage.getItem('nutritionHistory') || '[]');
-    const analysis = historyData.find(item => item.id == analysisId);
-    
-    if (analysis) {
+    // Fetch analysis from server
+    fetch('/api/history')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.history) {
+                const analysis = data.history.find(item => item._id == analysisId);
+                if (analysis) {
+                    showAnalysisModal(analysis);
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching analysis:', error);
+        });
+}
+
+function showAnalysisModal(analysis) {
         // Create a modal to show full analysis
         const modal = document.createElement('div');
         modal.className = 'fixed inset-0 z-50 overflow-y-auto';
@@ -236,7 +295,7 @@ function viewFullAnalysis(analysisId) {
                 <div class="inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-6 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full sm:p-6 border border-gray-200 dark:border-gray-700">
                     <div class="flex justify-between items-start mb-4">
                         <div>
-                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">${analysis.diet_goal.charAt(0).toUpperCase() + analysis.diet_goal.slice(1)} Diet Analysis</h3>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900 dark:text-gray-100">${analysis.dietary_goal.charAt(0).toUpperCase() + analysis.dietary_goal.slice(1)} Diet Analysis</h3>
                             <p class="text-sm text-gray-500 dark:text-gray-400">${formatDate(analysis.timestamp)}</p>
                         </div>
                         <button onclick="this.closest('.fixed').remove()" class="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors duration-200">
@@ -253,7 +312,7 @@ function viewFullAnalysis(analysisId) {
                     </div>
                     
                     <div class="mt-6 flex justify-end space-x-3">
-                        <button onclick="shareAnalysis('${analysis.id}')" class="inline-flex items-center space-x-2 bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
+                        <button onclick="shareAnalysis('${analysis._id}')" class="inline-flex items-center space-x-2 bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
                             <i class="ph ph-share"></i>
                             <span>Share</span>
                         </button>
@@ -267,7 +326,6 @@ function viewFullAnalysis(analysisId) {
         
         document.body.appendChild(modal);
     }
-}
 
 function formatAnalysisForDisplay(text) {
     if (!text) return 'No analysis available';
@@ -281,26 +339,34 @@ function formatAnalysisForDisplay(text) {
 }
 
 function shareAnalysis(analysisId) {
-    const historyData = JSON.parse(localStorage.getItem('nutritionHistory') || '[]');
-    const analysis = historyData.find(item => item.id == analysisId);
-    
-    if (analysis) {
-        const shareText = `Check out my ${analysis.diet_goal} diet analysis from NutriAI!\n\n${cleanAnalysisText(analysis.analysis).substring(0, 200)}...`;
-        
-        if (navigator.share) {
-            navigator.share({
-                title: 'My Meal Analysis - NutriAI',
-                text: shareText,
-                url: window.location.origin
-            }).catch(console.error);
-        } else {
-            navigator.clipboard.writeText(shareText).then(() => {
-                alert('Analysis copied to clipboard!');
-            }).catch(() => {
-                alert(`Share this analysis:\n\n${shareText}`);
-            });
-        }
-    }
+    // Fetch analysis from server
+    fetch('/api/history')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.history) {
+                const analysis = data.history.find(item => item._id == analysisId);
+                if (analysis) {
+                    const shareText = `Check out my ${analysis.dietary_goal} diet analysis from NutriAI!\n\n${cleanAnalysisText(analysis.analysis).substring(0, 200)}...`;
+                    
+                    if (navigator.share) {
+                        navigator.share({
+                            title: 'My Meal Analysis - NutriAI',
+                            text: shareText,
+                            url: window.location.origin
+                        }).catch(console.error);
+                    } else {
+                        navigator.clipboard.writeText(shareText).then(() => {
+                            showNotification('Analysis copied to clipboard!', 'success');
+                        }).catch(() => {
+                            alert(`Share this analysis:\n\n${shareText}`);
+                        });
+                    }
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching analysis for sharing:', error);
+        });
 }
 
 function showDeleteModal(analysisId) {
@@ -316,51 +382,33 @@ function closeDeleteModal() {
 }
 
 function deleteAnalysis(analysisId) {
-    const historyData = JSON.parse(localStorage.getItem('nutritionHistory') || '[]');
-    const analysisToDelete = historyData.find(item => item.id == analysisId);
-    const updatedHistory = historyData.filter(item => item.id != analysisId);
-    
-    localStorage.setItem('nutritionHistory', JSON.stringify(updatedHistory));
-    closeDeleteModal();
-    
-    // Immediately update the UI
-    if (updatedHistory.length === 0) {
-        // No more items, show empty state
-        const historyContainer = document.getElementById('historyContainer');
-        const emptyState = document.getElementById('emptyState');
+    // Delete from database server
+    fetch(`/delete-analysis/${analysisId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+    })
+    .then(response => response.json())
+    .then(result => {
+        closeDeleteModal();
         
-        historyContainer.innerHTML = '';
-        emptyState.classList.remove('hidden');
-    } else {
-        // Re-display remaining items
-        displayHistory(updatedHistory);
-    }
-    
-    // Also delete from database using stored database_id
-    if (analysisToDelete && analysisToDelete.database_id) {
-        fetch(`/delete-analysis/${analysisToDelete.database_id}`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' }
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                console.log('Analysis also deleted from database');
-                showNotification('Analysis deleted from both history and database!', 'success');
-            } else {
-                console.error('Database delete failed:', result.error);
-                showNotification('Analysis deleted from history, but database delete failed', 'error');
-            }
-        })
-        .catch(error => {
-            console.error('Error deleting from database:', error);
-            showNotification('Analysis deleted from history, but database delete failed', 'error');
-        });
-    } else {
-        console.log('No database_id found, only deleted from localStorage');
-        showNotification('Analysis deleted from history only (no database ID)', 'success');
-    }
+        if (result.success) {
+            console.log('Analysis deleted from database');
+            showNotification('Analysis deleted successfully!', 'success');
+            
+            // Reload the history to reflect changes
+            loadHistory();
+        } else {
+            console.error('Database delete failed:', result.error);
+            showNotification('Failed to delete analysis: ' + result.error, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting from database:', error);
+        closeDeleteModal();
+        showNotification('Failed to delete analysis. Please try again.', 'error');
+    });
 }
+
 
 function clearHistory() {
     if (confirm('Are you sure you want to clear all analysis history? This action cannot be undone.')) {
@@ -377,21 +425,11 @@ function clearHistory() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Clear localStorage
-                localStorage.removeItem('nutritionHistory');
-                
-                // Immediately update the UI
-                const historyContainer = document.getElementById('historyContainer');
-                const emptyState = document.getElementById('emptyState');
-                const loadingState = document.getElementById('loadingState');
-                
-                // Hide loading and history, show empty state
-                loadingState.classList.add('hidden');
-                historyContainer.innerHTML = '';
-                emptyState.classList.remove('hidden');
-                
                 // Show success message
-                showNotification(`Database cleared successfully! ${data.message}`, 'success');
+                showNotification(`History cleared successfully! Deleted ${data.deleted_count} analyses.`, 'success');
+                
+                // Reload the history to reflect changes
+                loadHistory();
             } else {
                 showNotification(`Failed to clear history: ${data.error}`, 'error');
             }

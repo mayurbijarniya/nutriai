@@ -68,11 +68,15 @@ def auth_callback():
         resp = oauth.google.get('https://www.googleapis.com/oauth2/v2/userinfo')
         userinfo = resp.json()
 
-        # Upsert user
-        google_sub = userinfo.get('sub')
+        # Upsert user - Google returns 'id' field, not 'sub'
+        google_sub = userinfo.get('id') or userinfo.get('sub')  # Try both formats
         email = userinfo.get('email')
         name = userinfo.get('name')
         picture = userinfo.get('picture')
+        
+        if not google_sub:
+            print(f"❌ ERROR: google_sub is None! userinfo: {userinfo}")
+            return redirect(url_for('index'))
 
         now = datetime.utcnow()
         # Prefer picture from userinfo, fallback handled earlier
@@ -154,10 +158,69 @@ def profile():
     try:
         user_id = current_user.get_id()
         user_doc = db.users.find_one({'_id': ObjectId(user_id)})
-    except Exception:
+        
+        # Get recent login history (last 10 logins)
+        login_history = list(db.logins.find(
+            {'user_id': ObjectId(user_id)}
+        ).sort('when', -1).limit(10))
+        
+        # Format dates for display
+        if user_doc:
+            if 'created_at' in user_doc and user_doc['created_at']:
+                user_doc['created_at_formatted'] = user_doc['created_at'].strftime('%B %d, %Y')
+            else:
+                user_doc['created_at_formatted'] = 'Unknown'
+                
+            if 'last_login_at' in user_doc and user_doc['last_login_at']:
+                user_doc['last_login_at_formatted'] = user_doc['last_login_at'].strftime('%B %d, %Y at %I:%M %p')
+            else:
+                user_doc['last_login_at_formatted'] = 'Unknown'
+        
+        # Format login history
+        for login in login_history:
+            login['when_formatted'] = login['when'].strftime('%B %d, %Y at %I:%M %p')
+            login['ip'] = login.get('ip', 'Unknown')
+            login['user_agent_short'] = get_browser_info(login.get('user_agent', ''))
+        
+    except Exception as e:
+        print(f"Profile error: {e}")
         user_doc = None
+        login_history = []
 
-    return render_template('profile.html', user=user_doc)
+    return render_template('profile.html', user=user_doc, login_history=login_history)
+
+def get_browser_info(user_agent):
+    """Extract browser and OS info from user agent string"""
+    if not user_agent:
+        return 'Unknown Browser'
+    
+    # Simple browser detection
+    if 'Chrome' in user_agent:
+        browser = 'Chrome'
+    elif 'Firefox' in user_agent:
+        browser = 'Firefox'
+    elif 'Safari' in user_agent and 'Chrome' not in user_agent:
+        browser = 'Safari'
+    elif 'Edge' in user_agent:
+        browser = 'Edge'
+    else:
+        browser = 'Unknown'
+    
+    # Simple OS detection
+    if 'Windows' in user_agent:
+        os_name = 'Windows'
+    elif 'Macintosh' in user_agent or 'Mac OS' in user_agent:
+        os_name = 'macOS'
+    elif 'Linux' in user_agent:
+        os_name = 'Linux'
+    elif 'iPhone' in user_agent:
+        os_name = 'iOS'
+    elif 'Android' in user_agent:
+        os_name = 'Android'
+    else:
+        os_name = 'Unknown'
+    
+    return f'{browser} on {os_name}'
 
 
 @auth_bp.route('/api/me')

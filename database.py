@@ -41,20 +41,33 @@ class MongoDBManager:
             # Set database and collection
             self.db = self.client.diet_designer
             self.collection = self.db.analysis_history
-            # Users collection
+            # Additional collections
             self.users = self.db.users
+            self.logins = self.db.logins
+            self.usage = self.db.usage  # Usage tracking
+            self.share_links = self.db.share_links  # Shareable analysis links
 
             # Ensure indexes
             try:
+                # User indexes
                 self.users.create_index([('email', ASCENDING)], unique=True, sparse=True)
                 self.users.create_index([('google_sub', ASCENDING)], unique=True, sparse=True)
+                
+                # Analysis indexes
                 self.collection.create_index([('created_at', ASCENDING)])
                 self.collection.create_index([('user_id', ASCENDING)])
                 self.collection.create_index([('guest_session_id', ASCENDING)])
                 
-                # Create logins collection for tracking sign-ins
-                self.logins = self.db.logins
+                # Login tracking indexes
                 self.logins.create_index([('when', ASCENDING)])
+                
+                # Usage tracking indexes (compound index for scope + date)
+                self.usage.create_index([('scope', ASCENDING), ('date', ASCENDING)], unique=True)
+                
+                # Share links indexes
+                self.share_links.create_index([('token', ASCENDING)], unique=True)
+                self.share_links.create_index([('user_id', ASCENDING), ('is_active', ASCENDING)])
+                self.share_links.create_index([('expires_at', ASCENDING)])  # For cleanup
             except Exception as e:
                 print(f"⚠️  Index creation warning: {e}")
             

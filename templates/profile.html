@@ -3,56 +3,139 @@
 {% block title %}Profile - NutriAI{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-    <div class="bg-white dark:bg-gray-900 shadow-lg rounded-lg">
-        <div class="px-6 py-8">
+<div class="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+    <!-- Profile Header Card -->
+    <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-200/50 dark:border-gray-800/50 rounded-2xl shadow-xl mb-8">
+        <div class="px-8 py-8">
             <!-- Profile Header -->
             <div class="flex items-center space-x-6 mb-8">
                 <div class="flex-shrink-0">
                     {% if user.picture %}
-                        <img src="{{ user.picture }}" alt="Profile picture" class="w-20 h-20 rounded-full">
+                        <img src="{{ user.picture }}" alt="Profile picture" class="w-24 h-24 rounded-2xl shadow-lg">
                     {% else %}
-                        <div class="w-20 h-20 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center text-2xl font-semibold">
+                        <div class="w-24 h-24 rounded-2xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg">
                             {{ user.name[0] if user.name else 'U' }}
                         </div>
                     {% endif %}
                 </div>
                 <div>
-                    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100">{{ user.name or 'Unknown User' }}</h1>
-                    <p class="text-lg text-gray-600 dark:text-gray-400">{{ user.email }}</p>
+                    <h1 class="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">{{ user.name or 'Unknown User' }}</h1>
+                    <p class="text-lg text-gray-600 dark:text-gray-400 mb-1">{{ user.email }}</p>
+                    <div class="flex items-center space-x-2">
+                        <div class="w-2 h-2 bg-green-500 rounded-full"></div>
+                        <span class="text-sm text-green-600 dark:text-green-400 font-medium">Active</span>
+                    </div>
                 </div>
             </div>
 
-            <!-- Profile Details -->
+            <!-- Profile Stats -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Joined</h3>
-                    <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ user.created_at_formatted }}</p>
+                <div class="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30 p-6 rounded-xl border border-blue-200/50 dark:border-blue-800/50">
+                    <div class="flex items-center space-x-3 mb-2">
+                        <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center">
+                            <i class="ph ph-calendar text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium text-blue-700 dark:text-blue-300">Member Since</h3>
+                            <p class="text-lg font-bold text-blue-900 dark:text-blue-100">{{ user.created_at_formatted or 'Unknown' }}</p>
+                        </div>
+                    </div>
                 </div>
-                <div class="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg">
-                    <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400">Last Sign-in</h3>
-                    <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ user.last_login_at_formatted }}</p>
+                
+                <div class="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/30 dark:to-emerald-950/30 p-6 rounded-xl border border-green-200/50 dark:border-green-800/50">
+                    <div class="flex items-center space-x-3 mb-2">
+                        <div class="w-10 h-10 bg-green-500 rounded-xl flex items-center justify-center">
+                            <i class="ph ph-clock text-white"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-medium text-green-700 dark:text-green-300">Last Sign-in</h3>
+                            <p class="text-lg font-bold text-green-900 dark:text-green-100">{{ user.last_login_at_formatted or 'Unknown' }}</p>
+                        </div>
+                    </div>
                 </div>
             </div>
 
             <!-- Account Actions -->
-            <div class="border-t border-gray-200 dark:border-gray-700 pt-6">
-                <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-4">Account</h2>
+            <div class="border-t border-gray-200/50 dark:border-gray-700/50 pt-6">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-4">Account Settings</h2>
                 <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
-                    <a href="mailto:bijarniya.m@northeastern.edu" 
-                       class="inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-md shadow-sm text-sm font-medium text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+                    <button disabled class="inline-flex items-center px-6 py-3 border border-gray-300 dark:border-gray-600 rounded-xl shadow-sm text-sm font-medium text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 cursor-not-allowed">
                         <i class="ph ph-gear mr-2"></i>
-                        Manage Settings
-                    </a>
+                        Account Settings
+                        <span class="ml-2 text-xs bg-gray-200 dark:bg-gray-700 px-2 py-1 rounded-full">Coming Soon</span>
+                    </button>
                     <form method="post" action="{{ url_for('auth.logout') }}" class="inline">
                         <button type="submit" 
-                                class="inline-flex items-center px-4 py-2 border border-red-300 dark:border-red-600 rounded-md shadow-sm text-sm font-medium text-red-700 dark:text-red-400 bg-white dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-950/30 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500">
+                                class="inline-flex items-center px-6 py-3 border border-red-200 dark:border-red-800 rounded-xl shadow-sm text-sm font-medium text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-950/20 hover:bg-red-100 dark:hover:bg-red-950/40 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-all duration-200">
                             <i class="ph ph-sign-out mr-2"></i>
                             Sign Out
                         </button>
                     </form>
                 </div>
             </div>
+        </div>
+    </div>
+
+    <!-- Sign-in History Card -->
+    <div class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border border-gray-200/50 dark:border-gray-800/50 rounded-2xl shadow-xl">
+        <div class="px-8 py-8">
+            <div class="flex items-center justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-gray-900 dark:text-gray-100">Recent Sign-ins</h2>
+                    <p class="text-sm text-gray-600 dark:text-gray-400 mt-1">Your last 10 sign-in activities</p>
+                </div>
+                <div class="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
+                    <i class="ph ph-shield-check text-green-500"></i>
+                    <span>Secure</span>
+                </div>
+            </div>
+
+            {% if login_history %}
+            <div class="overflow-hidden">
+                <table class="min-w-full">
+                    <thead>
+                        <tr class="border-b border-gray-200/50 dark:border-gray-700/50">
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Date & Time</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Device & Browser</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">IP Address</th>
+                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-gray-200/50 dark:divide-gray-700/50">
+                        {% for login in login_history %}
+                        <tr class="hover:bg-gray-50/50 dark:hover:bg-gray-800/50 transition-colors">
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-medium text-gray-900 dark:text-gray-100">{{ login.when_formatted }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="flex items-center space-x-2">
+                                    <i class="ph ph-device-mobile text-gray-400"></i>
+                                    <span class="text-sm text-gray-900 dark:text-gray-100">{{ login.user_agent_short }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <div class="text-sm font-mono text-gray-600 dark:text-gray-400">{{ login.ip }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-950/30 text-green-800 dark:text-green-300">
+                                    <div class="w-1.5 h-1.5 bg-green-500 rounded-full mr-1"></div>
+                                    Successful
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="text-center py-12">
+                <div class="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center">
+                    <i class="ph ph-clock-counter-clockwise text-2xl text-gray-400"></i>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No Sign-in History</h3>
+                <p class="text-gray-600 dark:text-gray-400">Your recent sign-in activities will appear here.</p>
+            </div>
+            {% endif %}
         </div>
     </div>
 </div>

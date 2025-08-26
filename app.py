@@ -21,6 +21,9 @@ from bson import ObjectId
 # MongoDB import
 from database import get_db
 
+# Usage tracking import
+from usage_tracker import check_limit, track_usage, get_usage_summary
+
 # Load environment variables
 load_dotenv()
 
@@ -389,8 +392,20 @@ def index():
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
-    """Handle meal analysis requests - VERCEL VERSION"""
+    """Handle meal analysis requests with usage limits"""
     try:
+        # Check usage limits first
+        limit_check = check_limit('analyses')
+        if not limit_check['allowed']:
+            return jsonify({
+                'error': 'limit_exceeded',
+                'feature': 'analyze',
+                'limit': limit_check['limit'],
+                'current': limit_check['current'],
+                'user_type': limit_check['user_type'],
+                'message': f"Daily limit reached ({limit_check['current']}/{limit_check['limit']}). {'Sign in for higher limits.' if limit_check['user_type'] == 'guest' else 'Try again tomorrow.'}"
+            }), 429  # Too Many Requests
+        
         image_path = None
         
         # Handle file upload - VERCEL COMPATIBLE
@@ -436,8 +451,13 @@ def analyze():
         result = analyzer.analyze_meal(image_path, diet_goal, user_preferences)
         
         if result.get("success"):
-            # Save analysis to MongoDB
-            db_save_result = save_to_history(result["data"], None)
+            # Only save to database if user is signed in
+            db_save_result = None
+            if current_user and getattr(current_user, 'is_authenticated', False):
+                db_save_result = save_to_history(result["data"], None)
+            
+            # Track usage after successful analysis
+            track_usage('analyses')
             
             return jsonify({
                 "success": True,
@@ -456,14 +476,15 @@ def analyze():
 
 @app.route('/history')
 def history():
-    """Display analysis history from MongoDB"""
+    """Display analysis history from MongoDB - SIGNED IN USERS ONLY"""
     try:
-        # Return history for current identity
-        ident = current_identity()
-        if ident['type'] == 'user':
-            history_data = db.collection.find({'user_id': ObjectId(ident['id'])}).sort('created_at', -1).limit(20)
-        else:
-            history_data = db.collection.find({'guest_session_id': ident['id']}).sort('created_at', -1).limit(20)
+        # Only show history for signed-in users
+        if not (current_user and getattr(current_user, 'is_authenticated', False)):
+            # For guests, show empty history
+            return render_template('history.html', history=[], is_guest=True)
+        
+        # Get history for signed-in user only
+        history_data = db.collection.find({'user_id': ObjectId(current_user.id)}).sort('created_at', -1).limit(20)
 
         # Normalize docs
         history = []
@@ -472,66 +493,77 @@ def history():
             if 'created_at' in doc:
                 doc['timestamp'] = doc['created_at'].isoformat()
             history.append(doc)
-        return render_template('history.html', history=history)
+        return render_template('history.html', history=history, is_guest=False)
     except Exception as e:
         print(f"❌ History error: {e}")
-        return render_template('history.html', history=[])
+        return render_template('history.html', history=[], is_guest=True)
 
 @app.route('/api/history')
 def api_history():
-    """API endpoint to get analysis history with proper ObjectIds"""
+    """API endpoint to get analysis history - SIGNED IN USERS ONLY"""
     try:
-        ident = current_identity()
-        if ident['type'] == 'user':
-            cursor = db.collection.find({'user_id': ObjectId(ident['id'])}).sort('created_at', -1).limit(20)
-        else:
-            cursor = db.collection.find({'guest_session_id': ident['id']}).sort('created_at', -1).limit(20)
+        # Only return history for signed-in users
+        if not (current_user and getattr(current_user, 'is_authenticated', False)):
+            return jsonify({
+                "success": True,
+                "history": [],
+                "count": 0,
+                "is_guest": True
+            })
+        
+        # Get history for signed-in user only
+        cursor = db.collection.find({'user_id': ObjectId(current_user.id)}).sort('created_at', -1).limit(20)
 
         history = []
         for doc in cursor:
             doc['_id'] = str(doc['_id'])
+            if 'user_id' in doc:
+                doc['user_id'] = str(doc['user_id'])
             if 'created_at' in doc:
                 doc['timestamp'] = doc['created_at'].isoformat()
             history.append(doc)
-
+        
         return jsonify({
             "success": True,
             "history": history,
-            "count": len(history)
+            "count": len(history),
+            "is_guest": False,
+            "user_id": current_user.id
         })
     except Exception as e:
         print(f"❌ API History error: {e}")
         return jsonify({
             "success": False,
             "error": str(e),
-            "history": []
+            "history": [],
+            "is_guest": True
         })
 
 @app.route('/clear-history', methods=['POST'])
 def clear_history():
-    """Clear all analysis history from MongoDB"""
+    """Clear analysis history - SIGNED IN USERS ONLY"""
     try:
-        # Only clear history for current identity
-        ident = current_identity()
-        if ident['type'] == 'user':
-            res = db.collection.delete_many({'user_id': ObjectId(ident['id'])})
-        else:
-            res = db.collection.delete_many({'guest_session_id': ident['id']})
+        # Only allow signed-in users to clear history
+        if not (current_user and getattr(current_user, 'is_authenticated', False)):
+            return jsonify({"success": False, "error": "Must be signed in to clear history"})
+        
+        # Clear only current user's history
+        res = db.collection.delete_many({'user_id': ObjectId(current_user.id)})
         return jsonify({"success": True, "deleted_count": res.deleted_count})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
 @app.route('/delete-analysis/<analysis_id>', methods=['POST'])
 def delete_analysis(analysis_id):
-    """Delete specific analysis by MongoDB ID"""
+    """Delete specific analysis - SIGNED IN USERS ONLY"""
     try:
-        # Only delete if owned by current identity
-        ident = current_identity()
+        # Only allow signed-in users to delete analyses
+        if not (current_user and getattr(current_user, 'is_authenticated', False)):
+            return jsonify({"success": False, "error": "Must be signed in to delete analyses"})
+        
+        # Delete only if owned by current user
         obj_id = ObjectId(analysis_id)
-        if ident['type'] == 'user':
-            res = db.collection.delete_one({'_id': obj_id, 'user_id': ObjectId(ident['id'])})
-        else:
-            res = db.collection.delete_one({'_id': obj_id, 'guest_session_id': ident['id']})
+        res = db.collection.delete_one({'_id': obj_id, 'user_id': ObjectId(current_user.id)})
 
         if res.deleted_count > 0:
             return jsonify({"success": True, "message": "Analysis deleted successfully"})
@@ -585,6 +617,37 @@ def api_me():
             signed = serializer.dumps(gid)
             resp.set_cookie(GUEST_COOKIE_NAME, signed, httponly=True, samesite='Lax', secure=bool(os.getenv('PRODUCTION')))
         return resp
+
+
+@app.route('/api/usage')
+def api_usage():
+    """Get current usage status and limits"""
+    from usage_tracker import get_current_scope, get_user_type, LIMITS
+    
+    user_type = get_user_type()
+    scope = get_current_scope()
+    usage_summary = get_usage_summary(scope)
+    
+    limits = LIMITS[user_type]
+    
+    # Calculate usage percentages and warnings
+    usage_status = {}
+    for feature, limit in limits.items():
+        current = usage_summary.get(feature, 0)
+        usage_status[feature] = {
+            'current': current,
+            'limit': limit,
+            'percentage': (current / limit * 100) if limit > 0 else 0,
+            'near_limit': current >= (limit * 0.8) if limit > 0 else False,
+            'at_limit': current >= limit if limit > 0 else False
+        }
+    
+    return jsonify({
+        'user_type': user_type,
+        'scope': scope,
+        'usage': usage_status,
+        'raw_usage': usage_summary
+    })
         
         
 @app.route('/test-auth')
@@ -611,6 +674,86 @@ def test():
         "mongodb_uri_exists": bool(os.getenv('MONGODB_URI')),
         "upload_folder": app.config['UPLOAD_FOLDER']
     })
+
+@app.route('/debug-db-analyses')
+def debug_db_analyses():
+    """Debug route to check what's in the database"""
+    try:
+        # Get all analyses with user_id
+        cursor = db.collection.find({'user_id': {'$exists': True}}).limit(10)
+        analyses = []
+        for doc in cursor:
+            analyses.append({
+                '_id': str(doc['_id']),
+                'user_id': str(doc.get('user_id', 'no_user_id')),
+                'dietary_goal': doc.get('dietary_goal', 'no_goal'),
+                'created_at': doc.get('created_at', 'no_date'),
+                'has_analysis': bool(doc.get('analysis'))
+            })
+        
+        return jsonify({
+            "success": True,
+            "total_analyses": len(analyses),
+            "analyses": analyses,
+            "current_user_id": str(current_user.id) if current_user and getattr(current_user, 'is_authenticated', False) else 'not_authenticated'
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+
+@app.route('/debug-users')
+def debug_users():
+    """Debug route to check all users in the database"""
+    try:
+        # Get all users
+        cursor = db.users.find({}).limit(10)
+        users = []
+        for doc in cursor:
+            users.append({
+                '_id': str(doc['_id']),
+                'email': doc.get('email', 'no_email'),
+                'name': doc.get('name', 'no_name'),
+                'google_sub': doc.get('google_sub', 'no_google_sub'),
+                'created_at': doc.get('created_at', 'no_date'),
+                'last_login_at': doc.get('last_login_at', 'no_login')
+            })
+        
+        return jsonify({
+            "success": True,
+            "total_users": len(users),
+            "users": users
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+
+@app.route('/fix-users', methods=['POST'])
+def fix_users():
+    """Fix corrupted users with null google_sub"""
+    try:
+        # Find users with null or missing google_sub
+        bad_users = list(db.users.find({'$or': [{'google_sub': None}, {'google_sub': {'$exists': False}}]}))
+        
+        if not bad_users:
+            return jsonify({"success": True, "message": "No bad users found"})
+        
+        # Delete bad users (they'll be recreated properly on next login)
+        result = db.users.delete_many({'$or': [{'google_sub': None}, {'google_sub': {'$exists': False}}]})
+        
+        return jsonify({
+            "success": True, 
+            "message": f"Deleted {result.deleted_count} corrupted users. They will be recreated properly on next login.",
+            "deleted_users": [{'email': u.get('email'), '_id': str(u['_id'])} for u in bad_users]
+        })
+    except Exception as e:
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
 
 @app.route('/debug-db')
 def debug_db():
