@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, flash, redirect, url_for
+from flask import Flask, render_template, request, jsonify, flash, redirect, url_for, make_response, current_app, session
 import google.generativeai as genai
 from PIL import Image, ImageEnhance
 import requests
@@ -12,6 +12,12 @@ from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 import tempfile
 
+# Auth-related imports
+from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
+from itsdangerous import URLSafeSerializer
+from authlib.integrations.flask_client import OAuth
+from bson import ObjectId
+
 # MongoDB import
 from database import get_db
 
@@ -19,7 +25,7 @@ from database import get_db
 load_dotenv()
 
 app = Flask(__name__)
-app.secret_key = 'diet-designer-secret-key-2024'
+app.secret_key = os.getenv('FLASK_SECRET_KEY', 'diet-designer-secret-key-2024')
 
 # VERCEL FIX: Use /tmp directory for uploads (only writable directory)
 app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
@@ -46,6 +52,96 @@ else:
 
 # Initialize MongoDB database
 db = get_db()
+
+# Flask-Login setup
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+# Serializer for guest session cookie
+GUEST_COOKIE_NAME = 'guest_session'
+serializer = URLSafeSerializer(app.secret_key, salt='guest-session')
+
+# OAuth client will be configured in auth blueprint
+
+class User(UserMixin):
+    def __init__(self, user_doc):
+        self.id = str(user_doc.get('_id'))
+        self.google_sub = user_doc.get('google_sub')
+        self.email = user_doc.get('email')
+        self.name = user_doc.get('name')
+        self.picture = user_doc.get('picture')
+
+    def get_id(self):
+        return self.id
+        
+    @property
+    def is_authenticated(self):
+        """Always return True for authenticated users"""
+        return True
+        
+    @property 
+    def is_active(self):
+        """Always return True - all users are active"""
+        return True
+        
+    @property
+    def is_anonymous(self):
+        """Always return False for authenticated users"""
+        return False
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    try:
+        user_doc = db.users.find_one({'_id': ObjectId(user_id)})
+        if user_doc:
+            return User(user_doc)
+    except Exception:
+        return None
+
+
+@app.context_processor
+def inject_user():
+    """Make current_user available in all templates"""
+    from flask_login import current_user as _current_user
+    return dict(current_user=_current_user)
+
+
+# Register auth blueprint after User class is defined
+from auth import auth_bp, init_oauth
+init_oauth(app)  # Initialize OAuth with the Flask app
+app.register_blueprint(auth_bp)
+
+
+def ensure_guest_cookie(response=None):
+    """Ensure guest_session cookie exists for anonymous visitors."""
+    cookie = request.cookies.get(GUEST_COOKIE_NAME)
+    if not cookie:
+        gid = str(uuid.uuid4())
+        signed = serializer.dumps(gid)
+        if response is None:
+            response = make_response()
+        response.set_cookie(GUEST_COOKIE_NAME, signed, httponly=True, samesite='Lax', secure=bool(os.getenv('PRODUCTION')))
+    return response
+
+
+def current_identity():
+    """Return dict with identity type and id: {'type':'user','id':...} or {'type':'guest','id':...}"""
+    if current_user and getattr(current_user, 'is_authenticated', False):
+        return {'type': 'user', 'id': current_user.get_id()}
+    # else guest
+    cookie = request.cookies.get(GUEST_COOKIE_NAME)
+    if cookie:
+        try:
+            gid = serializer.loads(cookie)
+            return {'type': 'guest', 'id': gid}
+        except Exception:
+            # invalid cookie - create a new one
+            gid = str(uuid.uuid4())
+            return {'type': 'guest', 'id': gid}
+    # fallback
+    gid = str(uuid.uuid4())
+    return {'type': 'guest', 'id': gid}
 
 class DietAnalyzer:
     def __init__(self):
@@ -286,7 +382,10 @@ analyzer = DietAnalyzer()
 @app.route('/')
 def index():
     """Main page with meal analysis form"""
-    return render_template('index.html')
+    # Ensure guest cookie for anonymous users
+    resp = make_response(render_template('index.html'))
+    ensure_guest_cookie(resp)
+    return resp
 
 @app.route('/analyze', methods=['POST'])
 def analyze():
@@ -359,8 +458,21 @@ def analyze():
 def history():
     """Display analysis history from MongoDB"""
     try:
-        history_data = db.get_history(20)
-        return render_template('history.html', history=history_data)
+        # Return history for current identity
+        ident = current_identity()
+        if ident['type'] == 'user':
+            history_data = db.collection.find({'user_id': ObjectId(ident['id'])}).sort('created_at', -1).limit(20)
+        else:
+            history_data = db.collection.find({'guest_session_id': ident['id']}).sort('created_at', -1).limit(20)
+
+        # Normalize docs
+        history = []
+        for doc in history_data:
+            doc['_id'] = str(doc['_id'])
+            if 'created_at' in doc:
+                doc['timestamp'] = doc['created_at'].isoformat()
+            history.append(doc)
+        return render_template('history.html', history=history)
     except Exception as e:
         print(f"❌ History error: {e}")
         return render_template('history.html', history=[])
@@ -369,11 +481,23 @@ def history():
 def api_history():
     """API endpoint to get analysis history with proper ObjectIds"""
     try:
-        history_data = db.get_history(20)
+        ident = current_identity()
+        if ident['type'] == 'user':
+            cursor = db.collection.find({'user_id': ObjectId(ident['id'])}).sort('created_at', -1).limit(20)
+        else:
+            cursor = db.collection.find({'guest_session_id': ident['id']}).sort('created_at', -1).limit(20)
+
+        history = []
+        for doc in cursor:
+            doc['_id'] = str(doc['_id'])
+            if 'created_at' in doc:
+                doc['timestamp'] = doc['created_at'].isoformat()
+            history.append(doc)
+
         return jsonify({
             "success": True,
-            "history": history_data,
-            "count": len(history_data)
+            "history": history,
+            "count": len(history)
         })
     except Exception as e:
         print(f"❌ API History error: {e}")
@@ -387,8 +511,13 @@ def api_history():
 def clear_history():
     """Clear all analysis history from MongoDB"""
     try:
-        result = db.clear_all_history()
-        return jsonify(result)
+        # Only clear history for current identity
+        ident = current_identity()
+        if ident['type'] == 'user':
+            res = db.collection.delete_many({'user_id': ObjectId(ident['id'])})
+        else:
+            res = db.collection.delete_many({'guest_session_id': ident['id']})
+        return jsonify({"success": True, "deleted_count": res.deleted_count})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
@@ -396,8 +525,18 @@ def clear_history():
 def delete_analysis(analysis_id):
     """Delete specific analysis by MongoDB ID"""
     try:
-        result = db.delete_analysis(analysis_id)
-        return jsonify(result)
+        # Only delete if owned by current identity
+        ident = current_identity()
+        obj_id = ObjectId(analysis_id)
+        if ident['type'] == 'user':
+            res = db.collection.delete_one({'_id': obj_id, 'user_id': ObjectId(ident['id'])})
+        else:
+            res = db.collection.delete_one({'_id': obj_id, 'guest_session_id': ident['id']})
+
+        if res.deleted_count > 0:
+            return jsonify({"success": True, "message": "Analysis deleted successfully"})
+        else:
+            return jsonify({"success": False, "error": "Analysis not found or not owned by you"})
     except Exception as e:
         return jsonify({"success": False, "error": str(e)})
 
@@ -409,6 +548,58 @@ def stats():
         return jsonify(stats)
     except Exception as e:
         return jsonify({"error": str(e)})
+
+@app.route('/debug-auth')
+def debug_auth():
+    """Debug authentication status"""
+    debug_info = {
+        "current_user_exists": current_user is not None,
+        "is_authenticated": getattr(current_user, 'is_authenticated', False),
+        "user_id": getattr(current_user, 'id', None),
+        "user_email": getattr(current_user, 'email', None),
+        "user_name": getattr(current_user, 'name', None),
+        "user_picture": getattr(current_user, 'picture', None),
+        "session_keys": list(session.keys()) if session else [],
+    }
+    return jsonify(debug_info)
+
+@app.route('/api/me')
+def api_me():
+    """Get current user info"""
+    if current_user and getattr(current_user, 'is_authenticated', False):
+        return jsonify({
+            'authenticated': True,
+            'user': {
+                'id': current_user.id,
+                'email': current_user.email,
+                'name': current_user.name,
+                'picture': current_user.picture
+            }
+        })
+    else:
+        # Ensure guest cookie exists
+        cookie = request.cookies.get(GUEST_COOKIE_NAME)
+        resp = make_response(jsonify({'authenticated': False, 'user': None}))
+        if not cookie:
+            gid = str(uuid.uuid4())
+            signed = serializer.dumps(gid)
+            resp.set_cookie(GUEST_COOKIE_NAME, signed, httponly=True, samesite='Lax', secure=bool(os.getenv('PRODUCTION')))
+        return resp
+        
+        
+@app.route('/test-auth')
+def test_auth():
+    """Simple test page to verify authentication"""
+    return f"""
+    <h1>Authentication Test</h1>
+    <p>current_user: {current_user}</p>
+    <p>is_authenticated: {getattr(current_user, 'is_authenticated', 'N/A')}</p>
+    <p>email: {getattr(current_user, 'email', 'N/A')}</p>
+    <p>name: {getattr(current_user, 'name', 'N/A')}</p>
+    <p>Session: {dict(session)}</p>
+    <p><a href="/login">Login with Google</a></p>
+    <p><a href="/">Back to Home</a></p>
+    """
 
 @app.route('/test')
 def test():
@@ -467,7 +658,15 @@ def save_to_history(analysis_data, chart_path):
     try:
         if chart_path:
             analysis_data['chart_path'] = chart_path
-        
+        # Attach ownership based on current identity
+        ident = current_identity()
+        if ident['type'] == 'user':
+            analysis_data['user_id'] = ObjectId(ident['id'])
+            analysis_data['guest_session_id'] = None
+        else:
+            analysis_data['guest_session_id'] = ident['id']
+            analysis_data['user_id'] = None
+
         result = db.save_analysis(analysis_data)
         if result["success"]:
             print(f"💾 Analysis saved to MongoDB with ID: {result['id']}")

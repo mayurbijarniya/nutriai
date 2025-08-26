@@ -5,6 +5,7 @@ from datetime import datetime
 import json
 from bson import ObjectId
 from dotenv import load_dotenv
+from pymongo import ASCENDING
 
 # Load environment variables
 load_dotenv()
@@ -40,6 +41,22 @@ class MongoDBManager:
             # Set database and collection
             self.db = self.client.diet_designer
             self.collection = self.db.analysis_history
+            # Users collection
+            self.users = self.db.users
+
+            # Ensure indexes
+            try:
+                self.users.create_index([('email', ASCENDING)], unique=True, sparse=True)
+                self.users.create_index([('google_sub', ASCENDING)], unique=True, sparse=True)
+                self.collection.create_index([('created_at', ASCENDING)])
+                self.collection.create_index([('user_id', ASCENDING)])
+                self.collection.create_index([('guest_session_id', ASCENDING)])
+                
+                # Create logins collection for tracking sign-ins
+                self.logins = self.db.logins
+                self.logins.create_index([('when', ASCENDING)])
+            except Exception as e:
+                print(f"⚠️  Index creation warning: {e}")
             
             # Test connection with ping
             print("🔄 Testing MongoDB connection...")
@@ -83,6 +100,10 @@ class MongoDBManager:
             
             # Add created_at for sorting
             analysis_data['created_at'] = datetime.now()
+
+            # Ensure ownership fields exist (nullable)
+            analysis_data.setdefault('user_id', None)
+            analysis_data.setdefault('guest_session_id', None)
             
             print(f"💾 Attempting to save analysis to MongoDB...")
             
