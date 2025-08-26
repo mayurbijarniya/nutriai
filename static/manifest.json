@@ -12,33 +12,40 @@
   "categories": ["health", "fitness", "food", "productivity"],
   "icons": [
     {
-      "src": "favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "nutri-ai-logo.svg",
-      "sizes": "120x120",
-      "type": "image/svg+xml"
-    },
-    {
-      "src": "/static/android-chrome-192x192.png",
-      "sizes": "192x192",
+      "src": "/static/icon16.png",
+      "sizes": "16x16",
       "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/static/android-chrome-512x512.png",
+      "src": "/static/icon32.png",
+      "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icon64.png",
+      "sizes": "64x64",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icon128.png",
+      "sizes": "128x128",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icon256.png",
+      "sizes": "256x256",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/static/icon512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "/static/apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
+      "purpose": "any maskable"
     }
   ],
   "shortcuts": [
@@ -47,14 +54,14 @@
       "short_name": "Analyze",
       "description": "Start nutrition analysis with AI robot assistant",
       "url": "/",
-      "icons": [{"src": "favicon.svg", "sizes": "32x32"}]
+      "icons": [{"src": "/static/icon32.png", "sizes": "32x32"}]
     },
     {
       "name": "View History",
       "short_name": "History",
       "description": "View past nutrition analyses",
       "url": "/?tab=history",
-      "icons": [{"src": "favicon.svg", "sizes": "32x32"}]
+      "icons": [{"src": "/static/icon32.png", "sizes": "32x32"}]
     }
   ],
   "screenshots": [

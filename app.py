@@ -832,37 +832,37 @@ def allowed_file(filename):
 @app.route('/favicon.ico')
 def favicon():
     """Serve favicon"""
-    return app.send_static_file('favicon.svg')
+    return app.send_static_file('icon32.png')
 
 @app.route('/apple-touch-icon.png')
 def apple_touch_icon():
     """Serve Apple touch icon"""
-    return app.send_static_file('favicon.svg')
+    return app.send_static_file('icon256.png')
 
 @app.route('/android-chrome-192x192.png')
 def android_chrome_192():
     """Serve Android Chrome icon 192x192"""
-    return app.send_static_file('favicon.svg')
+    return app.send_static_file('icon256.png')
 
 @app.route('/android-chrome-512x512.png')
 def android_chrome_512():
     """Serve Android Chrome icon 512x512"""
-    return app.send_static_file('favicon.svg')
+    return app.send_static_file('icon512.png')
 
 @app.route('/favicon-16x16.png')
 def favicon_16():
     """Serve 16x16 favicon"""
-    return app.send_static_file('favicon.svg')
+    return app.send_static_file('icon16.png')
 
 @app.route('/favicon-32x32.png')
 def favicon_32():
     """Serve 32x32 favicon"""
-    return app.send_static_file('favicon.svg')
+    return app.send_static_file('icon32.png')
 
 @app.route('/safari-pinned-tab.svg')
 def safari_pinned_tab():
     """Serve Safari pinned tab icon"""
-    return app.send_static_file('favicon.svg')
+    return app.send_static_file('icon512.png')
 
 @app.route('/manifest.json')
 def manifest():
@@ -874,11 +874,16 @@ def browserconfig():
     """Serve browser config for Windows"""
     return app.send_static_file('browserconfig.xml')
 
-# Catch-all for missing PNG favicons - serve SVG instead
+# Catch-all for missing PNG favicons - serve appropriate icon
 @app.route('/mstile-<size>.png')
 def mstile_fallback(size):
-    """Serve SVG for missing MS tile icons"""
-    return app.send_static_file('favicon.svg')
+    """Serve appropriate icon for missing MS tile icons"""
+    if size in ['70x70', '150x150']:
+        return app.send_static_file('icon128.png')
+    elif size in ['310x310', '310x150']:
+        return app.send_static_file('icon256.png')
+    else:
+        return app.send_static_file('icon128.png')
 
 if __name__ == '__main__':
     print("🍽️  Diet Designer Web App Starting...")
