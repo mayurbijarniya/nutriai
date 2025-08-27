@@ -49,7 +49,7 @@
                 
                 <!-- Diet Selection Dropdown (old UI restored, now dynamic) -->
                 <div class="relative">
-                    <button id="dietDropdownBtn" class="inline-flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 border border-gray-200 dark:border-gray-600">
+                    <button id="dietDropdownBtn" type="button" class="inline-flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 border border-gray-200 dark:border-gray-600">
                         <span id="selectedDietIcon">🍽️</span>
                         <span id="selectedDietText">Standard American</span>
                         <i class="ph ph-caret-down"></i>
@@ -137,6 +137,33 @@
 
                 <!-- Personal Preferences -->
                 <div class="space-y-3">
+                    <!-- Meal Context -->
+                    <div class="flex items-center space-x-2">
+                        <i class="ph ph-bowl-food text-green-500"></i>
+                        <h4 class="font-medium text-gray-900 dark:text-gray-100">Meal Context</h4>
+                        <span class="text-xs text-gray-500 dark:text-gray-400">(Optional)</span>
+                    </div>
+                    <div class="relative">
+                        <button id="mealContextBtn" type="button" class="inline-flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 border border-gray-200 dark:border-gray-600">
+                            <span id="mealContextText">Meal Context</span>
+                            <i class="ph ph-caret-down"></i>
+                        </button>
+                        <div id="mealContextDropdown" class="hidden absolute left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                            <div class="py-1">
+                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="">None</button>
+                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="pre_workout">Pre-workout</button>
+                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="post_workout">Post-workout</button>
+                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="breakfast">Breakfast</button>
+                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="lunch">Lunch</button>
+                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="dinner">Dinner</button>
+                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="study_snack">Study snack</button>
+                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="social_meal">Social meal</button>
+                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="stress_eating">Stress eating</button>
+                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="late_night_snack">Late-night snack</button>
+                            </div>
+                        </div>
+                        <input type="hidden" id="mealContext" name="meal_context" value="">
+                    </div>
                     <div class="flex items-center space-x-2">
                         <i class="ph ph-user-gear text-green-500"></i>
                         <h4 class="font-medium text-gray-900 dark:text-gray-100">Personal Preferences</h4>
@@ -233,6 +260,12 @@ Examples:
 
 {% block scripts %}
 <script>
+// Markdown renderer (loaded lazily if not present)
+if (typeof marked === 'undefined') {
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+    document.head.appendChild(s);
+}
 document.addEventListener('DOMContentLoaded', function() {
     // Diet dropdown UI (old style)
     const dietGoalInput = document.getElementById('dietGoal');
@@ -266,7 +299,11 @@ document.addEventListener('DOMContentLoaded', function() {
             'dash_diet': '🧂',
             'intermittent_fasting_16_8': '⏰',
             'low_fodmap': '🧬',
-            'low_carb': '⚖️'
+            'low_carb': '⚖️',
+            'flexitarian': '🥗',
+            'gluten_free': '🚫🌾',
+            'whole30': '🧭',
+            'anti_inflammatory': '🫐'
         };
         return map[slug] || '🍽️';
     }
@@ -415,7 +452,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         addChatMessage('assistant', 'Analyzing your meal with AI...');
         
-        fetch('/analyze', {
+        // Choose endpoint: if user is signed in and has profile, use profile-aware API; else fallback
+        // We optimistically call profile-aware endpoint; backend will still work for guests
+        fetch('/api/analyze-with-profile', {
             method: 'POST',
             body: formData
         })
@@ -515,27 +554,72 @@ document.addEventListener('DOMContentLoaded', function() {
 
     function displayResults(data) {
         addChatMessage('assistant', 'Analysis complete! Your detailed results are shown below:');
-        
         const resultsSection = document.getElementById('resultsSection');
         const analysisResult = document.getElementById('analysisResult');
-        
-        // Clean the analysis text from markdown formatting
+
+        // Prefer markdown coming from backend
         let cleanAnalysis = data.analysis || 'Analysis not available';
-        cleanAnalysis = cleanAnalysis
-            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Convert **text** to <strong>text</strong>
-            .replace(/\*(.*?)\*/g, '<em>$1</em>') // Convert *text* to <em>text</em>
-            .replace(/\n/g, '<br>') // Convert line breaks
-            .replace(/^\s*[\*\-\+]\s+/gm, '• ') // Convert markdown bullets to •
-            .replace(/^#+\s+(.*$)/gm, '<h3 class="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">$1</h3>'); // Convert headers
-        
-        analysisResult.innerHTML = `
+        // Strip any visible fenced code blocks (DATA_PAYLOAD or others)
+        cleanAnalysis = cleanAnalysis.replace(/```[\s\S]*?```/g, '').trim();
+        // Promote common all-caps headings if present
+        const headingCaps = [
+            'MEAL IDENTIFICATION','NUTRITIONAL ESTIMATION','DIET COMPATIBILITY SCORE',
+            'POSITIVE ASPECTS','AREAS FOR IMPROVEMENT','PERSONALIZED RECOMMENDATIONS',
+            'OVERALL HEALTH SCORE','PERSONALIZED ADVICE','SUMMARY','MEAL BREAKDOWN','MACROS & KEY NUTRIENTS'
+        ];
+        headingCaps.forEach(h => {
+            const re = new RegExp('(^|\\n)'+h+':', 'g');
+            cleanAnalysis = cleanAnalysis.replace(re, `\n\n### ${h.replace(/_/g,' ')}\n`);
+        });
+
+        // Render markdown (fallback to light HTML)
+        function renderAsHTML(text) {
+            if (/•/.test(text)) text = text.replace(/\s*•\s*/g, '\n- ');
+            text = text.replace(/^•\s+/gm, '- ');
+            const paragraphs = text.split(/\n\n+/).map(p => p.trim());
+            let html = '';
+            const hRe = /^###\s+(.*)$/i;
+            paragraphs.forEach(p => {
+                if (!p) return;
+                if (hRe.test(p)) {
+                    const m = p.match(hRe);
+                    html += `<h3 class="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-100">${m[1]}</h3>`;
+                } else if (/^\-\s+/.test(p) || /\n\-\s+/.test('\n'+p)) {
+                    const items = p.split(/\n/).filter(x=>/^\-\s+/.test(x)).map(x=>x.replace(/^\-\s+/,''));
+                    html += `<ul class="list-disc pl-6 space-y-1 text-gray-700 dark:text-gray-300">${items.map(i=>`<li>${i}</li>`).join('')}</ul>`;
+                } else {
+                    const colonBold = p.replace(/(^|\n)([A-Za-z][A-Za-z\s]+:)\s/g, (m,g1,g2)=>`${g1}<strong class=\"text-gray-900 dark:text-gray-100\">${g2}</strong> `);
+                    html += `<p class="mb-3 leading-relaxed text-gray-700 dark:text-gray-300">${colonBold}</p>`;
+                }
+            });
+            return html;
+        }
+        let renderedMarkdown = '';
+        try {
+            if (typeof marked !== 'undefined') {
+                renderedMarkdown = marked.parse(cleanAnalysis);
+            } else {
+                renderedMarkdown = renderAsHTML(cleanAnalysis);
+            }
+        } catch(e) { renderedMarkdown = renderAsHTML(cleanAnalysis) }
+
+        // Enhance tables globally: add borders/striping via wrapper CSS classes
+        const prose = `
+            <style>
+              #analysisResult table { border-collapse: separate; border-spacing: 0; width: 100%; }
+              #analysisResult thead th { border-bottom: 1px solid var(--tw-prose-borders, #e5e7eb); }
+              #analysisResult td, #analysisResult th { border-right: 1px solid #e5e7eb; padding: 0.5rem 0.75rem; }
+              #analysisResult tr > *:last-child { border-right: 0 }
+              #analysisResult tbody tr { border-bottom: 1px solid #e5e7eb }
+              .dark #analysisResult thead th, .dark #analysisResult tbody tr { border-color: #374151 }
+              .dark #analysisResult td, .dark #analysisResult th { border-color: #374151 }
+            </style>`;
+
+        analysisResult.innerHTML = `${prose}
             <div class="prose prose-sm max-w-none dark:prose-invert">
-                <div class="text-gray-700 dark:text-gray-300 leading-relaxed">
-                    ${cleanAnalysis}
-                </div>
-            </div>
-        `;
-        
+                <div class="text-gray-700 dark:text-gray-300 leading-relaxed space-y-3">${renderedMarkdown}</div>
+            </div>`;
+
         resultsSection.classList.remove('hidden');
         resultsSection.scrollIntoView({ behavior: 'smooth' });
     }
@@ -681,6 +765,30 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         } catch(_){}
     })();
+
+    // Meal context dropdown logic
+    const mealContextBtn = document.getElementById('mealContextBtn');
+    const mealContextDropdown = document.getElementById('mealContextDropdown');
+    const mealContextHidden = document.getElementById('mealContext');
+    const mealContextText = document.getElementById('mealContextText');
+    if (mealContextBtn) {
+        mealContextBtn.addEventListener('click', () => {
+            mealContextDropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!mealContextBtn.contains(e.target) && !mealContextDropdown.contains(e.target)) {
+                mealContextDropdown.classList.add('hidden');
+            }
+        });
+        mealContextDropdown.querySelectorAll('button[data-context]').forEach(b => {
+            b.addEventListener('click', () => {
+                const val = b.getAttribute('data-context');
+                mealContextHidden.value = val;
+                mealContextText.textContent = val ? b.textContent : 'Meal Context';
+                mealContextDropdown.classList.add('hidden');
+            });
+        });
+    }
 
     // Initialize with welcome message
     addChatMessage('assistant', 'Welcome! I\'m your AI nutrition analyst. Please select your diet goal from the dropdown above, then upload a meal photo or paste an image URL to get started.');

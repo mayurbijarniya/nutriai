@@ -345,6 +345,98 @@ Please be specific with numbers, practical with suggestions, and format the resp
         except Exception as e:
             print(f"❌ Analysis error: {str(e)}")
             return {"error": f"Analysis failed: {str(e)}"}
+
+    def analyze_meal_with_profile(self, image_path, user_context, meal_context: str = ""):
+        """Analyze meal using full user profile and return structured JSON.
+        user_context keys expected: age, gender, weight_kg, height_cm, activity_level, diet_type,
+        daily_calorie_target, protein_target, carb_target, fat_target, allergies, health_conditions, restrictions
+        """
+        if not self.model:
+            return {"error": "Gemini API not configured. Please set GEMINI_API_KEY in .env file"}
+
+        try:
+            img = Image.open(image_path)
+            img = self.enhance_image(img)
+            processed_path = image_path.replace('.', '_processed.')
+            if not processed_path.lower().endswith(('.jpg', '.jpeg')):
+                processed_path = processed_path + '.jpg'
+            img.save(processed_path, 'JPEG', quality=90)
+
+            # Build prompt to produce Markdown + DATA_PAYLOAD tail
+            uc = user_context or {}
+            system_profile = f"""
+You are a professional nutritionist. Analyze the MEAL IMAGE with the USER PROFILE below and output
+ONLY: (1) a clean Markdown report and (2) a fenced JSON code block labeled DATA_PAYLOAD.
+
+USER PROFILE:
+- Age: {uc.get('age','N/A')}, Gender: {uc.get('gender','N/A')}
+- Weight: {uc.get('weight_kg','N/A')}kg, Height: {uc.get('height_cm','N/A')}cm
+- Activity: {uc.get('activity_level','N/A')}
+- Diet Type: {uc.get('diet_type','N/A')}
+- Daily Targets: {uc.get('daily_calorie_target','N/A')} cal, {uc.get('protein_target','N/A')}g protein, {uc.get('carb_target','N/A')}g carbs, {uc.get('fat_target','N/A')}g fat
+- Allergies: {', '.join(uc.get('allergies',[]) or []) or 'None'}
+- Health Conditions: {', '.join(uc.get('health_conditions',[]) or []) or 'None'}
+- Food Restrictions: {', '.join(uc.get('restrictions',[]) or []) or 'None'}
+- Meal Context: {meal_context or 'general'}
+
+STRICT OUTPUT CONTRACT:
+- Markdown sections (exact order):
+  1) # <Diet Type> Diet Analysis
+  2) **Meal Breakdown** table (Item | Portion | Method | Notes)
+  3) **Macros & Key Nutrients** table (Total Calories | Carbs (g) | Protein (g) | Fat (g) | Fiber (g) | Sodium (mg))
+     - Add sodium/fiber notes when applicable
+  4) **Diet Compatibility Score** bold (e.g., **Score: 5/10**)
+  5) **Positives**
+  6) **Areas for Improvement**
+  7) **Personalized Recommendations** with three bold sublists:
+     - **Ingredient Swaps**, **Portion Tweaks**, **Cooking Methods** (3–5 bullets each)
+  8) **Overall Health Score** (1–2 sentences)
+- Do NOT include dates/timestamps anywhere in the markdown.
+- After the markdown, append a fenced code block named DATA_PAYLOAD with keys:
+  {"diet_type","calories_kcal","carbs_g","protein_g","fat_g","fiber_g","sodium_mg","adherence_score","flags","top_violations","top_suggestions"}
+- No extra commentary; keep lines under ~100 chars.
+"""
+
+            response = self.model.generate_content([system_profile, img])
+            # Robust text extraction for multi-part responses
+            raw = ""
+            try:
+                if hasattr(response, 'text') and response.text:
+                    raw = response.text
+                elif getattr(response, 'candidates', None):
+                    parts = getattr(response.candidates[0].content, 'parts', [])
+                    texts = []
+                    for p in parts:
+                        t = getattr(p, 'text', None)
+                        if t:
+                            texts.append(t)
+                    raw = "\n".join(texts)
+            except Exception:
+                raw = ""
+
+            # Extract DATA_PAYLOAD and markdown
+            import re
+            md = raw or ""
+            payload = {}
+            m = re.search(r"```\s*DATA_PAYLOAD\s*\n([\s\S]*?)```", raw or "")
+            if m:
+                json_part = m.group(1)
+                try:
+                    payload = json.loads(json_part)
+                except Exception:
+                    payload = {}
+                md = (raw[:m.start()]).strip()
+            
+            # Remove any remaining fenced code blocks (e.g., unlabeled JSON)
+            md = re.sub(r"```[\s\S]*?```", "", md).strip()
+            # Remove standalone ISO-like date lines if any slipped in
+            md = "\n".join([ln for ln in md.splitlines() if not re.match(r"^\s*20\d{2}[-/].*", ln)]).strip()
+
+            return {"success": True, "markdown": md, "data_payload": payload, "processed_image": processed_path}
+
+        except Exception as e:
+            print(f"❌ Profile analysis error: {str(e)}")
+            return {"error": f"Profile analysis failed: {str(e)}"}
     
     def extract_nutrition_data(self, analysis_text):
         """Extract key numerical data for display cards"""
@@ -679,6 +771,138 @@ def api_usage():
         'usage': usage_status,
         'raw_usage': usage_summary
     })
+
+
+@app.route('/api/analyze-with-profile', methods=['POST'])
+def api_analyze_with_profile():
+    """Analyze meal with full user profile context. Requires image and uses current user's saved data.
+    If guest, falls back to standard analysis prompt without profile-specific targets.
+    """
+    try:
+        # Validate image input
+        image_path = None
+        if 'image_file' in request.files and request.files['image_file'].filename:
+            file = request.files['image_file']
+            if file and allowed_file(file.filename):
+                filename = secure_filename(file.filename)
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                filename_base = os.path.splitext(filename)[0]
+                filename = f"{timestamp}_{filename_base}.jpg"
+                image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(image_path)
+        elif request.form.get('image_url'):
+            response = requests.get(request.form.get('image_url'), timeout=15)
+            response.raise_for_status()
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            filename = f"url_image_{timestamp}.jpg"
+            image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            img = Image.open(BytesIO(response.content))
+            img = analyzer.enhance_image(img)
+            img.save(image_path, 'JPEG', quality=90)
+        else:
+            return jsonify({"success": False, "error": "Please provide an image"}), 400
+
+        # Build user context if authenticated
+        meal_context = request.form.get('meal_context', '')
+        user_context = {}
+        if current_user and getattr(current_user, 'is_authenticated', False):
+            # Load user-specific data
+            prefs = db.diet_preferences.find_one({'user_id': ObjectId(current_user.id)}) or {}
+            prof = db.user_profiles.find_one({'user_id': ObjectId(current_user.id)}) or {}
+            goals = db.nutrition_goals.find_one({'user_id': ObjectId(current_user.id)}) or {}
+            user_context = {
+                'age': prof.get('age'),
+                'gender': prof.get('biological_sex'),
+                'weight_kg': prof.get('weight_kg'),
+                'height_cm': prof.get('height_cm'),
+                'activity_level': prof.get('activity_level'),
+                'diet_type': (prefs.get('diet_type') or 'standard_american'),
+                'allergies': prefs.get('allergies', []),
+                'health_conditions': prof.get('health_conditions', []),
+                'daily_calorie_target': goals.get('daily_calories'),
+                'protein_target': goals.get('protein_grams'),
+                'carb_target': goals.get('carbs_grams'),
+                'fat_target': goals.get('fat_grams'),
+                'restrictions': prefs.get('food_restrictions', []),
+            }
+
+        result = analyzer.analyze_meal_with_profile(image_path, user_context, meal_context)
+        if not result.get('success'):
+            return jsonify(result), 500
+
+        # If model returned markdown + payload, use that; else use previous fallback path
+        markdown = result.get('markdown')
+        payload = result.get('data_payload') or {}
+
+        analysis_text = None
+        if markdown:
+            analysis_text = markdown
+        structured = {}
+        if payload:
+            structured = payload
+
+        if not analysis_text:
+            # previous fallback path
+            structured = result.get('structured', {}) or {}
+            raw_text = (result.get('raw_text') or '').strip()
+            analysis_text = ''
+            if not structured or raw_text in ('', '{}'):
+                classic_goal = user_context.get('diet_type', 'standard_american')
+                user_prefs_text = request.form.get('user_preferences', '').strip()
+                classic = analyzer.analyze_meal(image_path, classic_goal, user_prefs_text)
+                if classic.get('success'):
+                    analysis_text = classic.get('analysis', '')
+                else:
+                    analysis_text = raw_text or 'Analysis not available'
+            else:
+                parts = []
+                mi = structured.get('meal_identification')
+                if mi:
+                    parts.append(f"Meal Identification: {mi}")
+                tn = structured.get('total_nutrition') or {}
+                if tn:
+                    cal = tn.get('calories'); pro = tn.get('protein'); carb = tn.get('carbs'); fat = tn.get('fat')
+                    summary = 'Totals: '
+                    if cal is not None:
+                        summary += f"Calories {cal} ";
+                    if pro is not None:
+                        summary += f"Protein {pro}g ";
+                    if carb is not None:
+                        summary += f"Carbs {carb}g ";
+                    if fat is not None:
+                        summary += f"Fat {fat}g"
+                    parts.append(summary.strip())
+                score = structured.get('diet_adherence_score')
+                if score is not None:
+                    parts.append(f"Diet adherence: {score}/10")
+                feedback = structured.get('personalized_feedback')
+                if feedback:
+                    parts.append(f"Feedback: {feedback}")
+                analysis_text = '\n'.join(parts) or (raw_text or 'Analysis not available')
+
+        # Attach ownership and save result
+        save_payload = {
+            'timestamp': datetime.now().isoformat(),
+            'dietary_goal': user_context.get('diet_type', 'standard_american'),
+            'analysis': analysis_text,
+            'analysis_json': structured,
+            'image_path': result.get('processed_image'),
+            'meal_context': meal_context
+        }
+        db_result = None
+        if current_user and getattr(current_user, 'is_authenticated', False):
+            db_result = save_to_history(save_payload, None)
+
+        return jsonify({
+            'success': True,
+            'structured': structured,
+            'analysis': analysis_text,
+            'database_id': db_result.get('id') if db_result and db_result.get('success') else None
+        })
+
+    except Exception as e:
+        print(f"❌ analyze-with-profile error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
         
         
 @app.route('/test-auth')

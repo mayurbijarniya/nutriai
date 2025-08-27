@@ -15,6 +15,50 @@ DIETS: Dict[str, Dict[str, Any]] = {
         "timeline": "2-4 weeks for noticeable improvements",
         "student_notes": "Good default. Campus dining friendly."
     },
+    "flexitarian": {
+        "label": "Flexitarian",
+        "macros": {"carbs_pct": (0.45, 0.55), "protein_pct": (0.15, 0.20), "fat_pct": (0.30, 0.35)},
+        "focus": "Mostly plant-based with occasional meat",
+        "restrictions": [],
+        "recommended": ["Plants", "Occasional lean meats"],
+        "good_for": ["general_health"],
+        "difficulty": "easy",
+        "timeline": "2-4 weeks",
+        "student_notes": "Flexible with campus options."
+    },
+    "gluten_free": {
+        "label": "Gluten-Free",
+        "macros": {"carbs_pct": (0.45, 0.50), "protein_pct": (0.18, 0.20), "fat_pct": (0.30, 0.35)},
+        "focus": "Avoid gluten-containing grains",
+        "restrictions": ["Wheat", "Barley", "Rye"],
+        "recommended": ["Rice", "Corn", "Quinoa", "Potatoes"],
+        "good_for": ["celiac", "gluten_sensitivity"],
+        "difficulty": "medium",
+        "timeline": "2-4 weeks",
+        "student_notes": "Check labels and cross-contamination."
+    },
+    "whole30": {
+        "label": "Whole30",
+        "macros": {"carbs_pct": (0.25, 0.35), "protein_pct": (0.25, 0.35), "fat_pct": (0.35, 0.45)},
+        "focus": "30-day elimination of sugar, grains, legumes, dairy",
+        "restrictions": ["Added sugar", "Alcohol", "Grains", "Legumes", "Dairy"],
+        "recommended": ["Meat", "Vegetables", "Fruits", "Nuts"],
+        "good_for": ["reset"],
+        "difficulty": "hard",
+        "timeline": "30 days",
+        "student_notes": "Plan meals ahead."
+    },
+    "anti_inflammatory": {
+        "label": "Anti-Inflammatory",
+        "macros": {"carbs_pct": (0.45, 0.50), "protein_pct": (0.18, 0.20), "fat_pct": (0.30, 0.35)},
+        "focus": "Emphasize omega-3s, colorful vegetables, whole foods",
+        "restrictions": ["Refined sugar", "Trans fats"],
+        "recommended": ["Fatty fish", "Olive oil", "Berries", "Leafy greens"],
+        "good_for": ["general_health"],
+        "difficulty": "medium",
+        "timeline": "3-6 weeks",
+        "student_notes": "Choose anti-inflammatory options at salad/grill."
+    },
     "mediterranean": {
         "label": "Mediterranean Diet",
         "macros": {"carbs_pct": (0.45, 0.50), "protein_pct": (0.15, 0.20), "fat_pct": (0.35, 0.40)},
