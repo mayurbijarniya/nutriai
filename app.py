@@ -23,6 +23,7 @@ from database import get_db
 
 # Usage tracking import
 from usage_tracker import check_limit, track_usage, get_usage_summary
+from diet_config import score_meal_adherence
 
 # Load environment variables
 load_dotenv()
@@ -375,6 +376,11 @@ Please be specific with numbers, practical with suggestions, and format the resp
             health_match = re.search(r'health.*?score.*?(\d+)/10', analysis_text, re.IGNORECASE)
             if health_match:
                 nutrition_data['health_score'] = int(health_match.group(1))
+
+            # Extract sodium level if present (Low/Medium/High)
+            sodium_match = re.search(r'sodium\s+level:\s*(low|medium|high)', analysis_text, re.IGNORECASE)
+            if sodium_match:
+                nutrition_data['sodium_level'] = sodium_match.group(1).lower()
             
             print(f"📊 Extracted nutrition data: {nutrition_data}")
             
@@ -463,12 +469,33 @@ def analyze():
             # Track usage after successful analysis
             track_usage('analyses')
             
+            # Compute adherence score to selected diet
+            extracted = analyzer.extract_nutrition_data(result["analysis"])
+            adherence = None
+            try:
+                from profile import db as _db
+                if current_user and getattr(current_user, 'is_authenticated', False):
+                    prefs = _db.diet_preferences.find_one({'user_id': ObjectId(current_user.id)}) or {}
+                    diet_slug = prefs.get('diet_type') or 'standard_american'
+                else:
+                    diet_slug = 'standard_american'
+                adherence = score_meal_adherence({
+                    'carbs': extracted.get('carbs'),
+                    'protein': extracted.get('protein'),
+                    'fat': extracted.get('fat'),
+                    'sodium_mg': None,
+                    'sodium_level': extracted.get('sodium_level')
+                }, diet_slug)
+            except Exception as _:
+                adherence = None
+
             return jsonify({
                 "success": True,
                 "analysis": result["analysis"],
                 "chart_url": None,
-                "nutrition_data": analyzer.extract_nutrition_data(result["analysis"]),
+                "nutrition_data": extracted,
                 "diet_info": analyzer.get_diet_info(diet_goal),
+                "adherence": adherence,
                 "database_id": db_save_result.get("id") if db_save_result and db_save_result.get("success") else None
             })
         else:

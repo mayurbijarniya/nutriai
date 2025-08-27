@@ -47,52 +47,16 @@
                     </div>
                 </div>
                 
-                <!-- Diet Selection Dropdown -->
+                <!-- Diet Selection Dropdown (old UI restored, now dynamic) -->
                 <div class="relative">
                     <button id="dietDropdownBtn" class="inline-flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 border border-gray-200 dark:border-gray-600">
-                        <span id="selectedDietIcon">🥑</span>
-                        <span id="selectedDietText">Keto Diet</span>
+                        <span id="selectedDietIcon">🍽️</span>
+                        <span id="selectedDietText">Standard American</span>
                         <i class="ph ph-caret-down"></i>
                     </button>
                     
-                    <div id="dietDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
-                        <div class="py-1">
-                            <button class="diet-option w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-diet="keto" data-icon="🥑" data-name="Keto Diet">
-                                <span>🥑</span>
-                                <div class="text-left">
-                                    <div class="font-medium">Keto Diet</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Low carb, high fat</div>
-                                </div>
-                            </button>
-                            <button class="diet-option w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-diet="vegan" data-icon="🌱" data-name="Vegan Diet">
-                                <span>🌱</span>
-                                <div class="text-left">
-                                    <div class="font-medium">Vegan Diet</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Plant-based only</div>
-                                </div>
-                            </button>
-                            <button class="diet-option w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-diet="paleo" data-icon="🥩" data-name="Paleo Diet">
-                                <span>🥩</span>
-                                <div class="text-left">
-                                    <div class="font-medium">Paleo Diet</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Whole foods only</div>
-                                </div>
-                            </button>
-                            <button class="diet-option w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-diet="mediterranean" data-icon="🫒" data-name="Mediterranean Diet">
-                                <span>🫒</span>
-                                <div class="text-left">
-                                    <div class="font-medium">Mediterranean Diet</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Heart healthy</div>
-                                </div>
-                            </button>
-                            <button class="diet-option w-full flex items-center space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors" data-diet="low-carb" data-icon="⚖️" data-name="Low Carb Diet">
-                                <span>⚖️</span>
-                                <div class="text-left">
-                                    <div class="font-medium">Low Carb Diet</div>
-                                    <div class="text-xs text-gray-500 dark:text-gray-400">Reduced carbs</div>
-                                </div>
-                            </button>
-                        </div>
+                    <div id="dietDropdown" class="hidden absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
+                        <div id="dietDropdownList" class="py-1"></div>
                     </div>
                 </div>
             </div>
@@ -211,7 +175,7 @@ Examples:
                     <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">This may take 10-15 seconds</p>
                 </div>
 
-                <input type="hidden" id="dietGoal" name="diet_goal" value="keto">
+                <input type="hidden" id="dietGoal" name="diet_goal" value="standard_american">
             </form>
         </div>
     </div>
@@ -270,40 +234,90 @@ Examples:
 {% block scripts %}
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Diet dropdown functionality
+    // Diet dropdown UI (old style)
+    const dietGoalInput = document.getElementById('dietGoal');
     const dietDropdownBtn = document.getElementById('dietDropdownBtn');
     const dietDropdown = document.getElementById('dietDropdown');
+    const dietDropdownList = document.getElementById('dietDropdownList');
     const selectedDietIcon = document.getElementById('selectedDietIcon');
     const selectedDietText = document.getElementById('selectedDietText');
-    const dietGoalInput = document.getElementById('dietGoal');
+    let dietsData = [];
 
-    dietDropdownBtn.addEventListener('click', () => {
-        dietDropdown.classList.toggle('hidden');
-    });
+    async function loadDiets() {
+        try {
+            const res = await fetch('/profile/api/diets');
+            const data = await res.json();
+            if (data.success) {
+                dietsData = data.diets;
+                buildDietDropdown(dietsData);
+            }
+        } catch {}
+    }
 
-    // Close dropdown when clicking outside
-    document.addEventListener('click', (e) => {
-        if (!dietDropdownBtn.contains(e.target) && !dietDropdown.contains(e.target)) {
-            dietDropdown.classList.add('hidden');
+    function emojiFor(slug) {
+        const map = {
+            'standard_american': '🍽️',
+            'mediterranean': '🫒',
+            'ketogenic': '🥑',
+            'paleo': '🥩',
+            'plant_based_vegan': '🌱',
+            'vegetarian': '🥚',
+            'pescatarian': '🐟',
+            'dash_diet': '🧂',
+            'intermittent_fasting_16_8': '⏰',
+            'low_fodmap': '🧬',
+            'low_carb': '⚖️'
+        };
+        return map[slug] || '🍽️';
+    }
+
+    function buildDietDropdown(diets) {
+        if (!dietDropdownList) return;
+        const current = dietGoalInput.value || 'standard_american';
+        dietDropdownList.innerHTML = diets.map(d => `
+            <button data-slug="${d.slug}" class="w-full flex items-start space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                <span>${emojiFor(d.slug)}</span>
+                <div class="text-left">
+                    <div class="font-medium">${d.label}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">${d.focus || ''}</div>
+                </div>
+            </button>
+        `).join('');
+
+        // Set current selection label
+        const currentDiet = diets.find(x => x.slug === current) || diets[0];
+        if (currentDiet) {
+            selectedDietIcon.textContent = emojiFor(currentDiet.slug);
+            selectedDietText.textContent = currentDiet.label;
         }
-    });
 
-    // Diet option selection
-    document.querySelectorAll('.diet-option').forEach(option => {
-        option.addEventListener('click', () => {
-            const diet = option.dataset.diet;
-            const icon = option.dataset.icon;
-            const name = option.dataset.name;
-            
-            selectedDietIcon.textContent = icon;
-            selectedDietText.textContent = name;
-            dietGoalInput.value = diet;
-            dietDropdown.classList.add('hidden');
-            
-            addChatMessage('user', `I've selected the ${name}.`);
-            addChatMessage('assistant', `Great choice! The ${name} is selected. Now upload your meal photo for analysis.`);
+        dietDropdownList.querySelectorAll('button[data-slug]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const slug = btn.getAttribute('data-slug');
+                dietGoalInput.value = slug;
+                const diet = diets.find(x => x.slug === slug);
+                if (diet) {
+                    selectedDietIcon.textContent = emojiFor(slug);
+                    selectedDietText.textContent = diet.label;
+                }
+                dietDropdown.classList.add('hidden');
+                addChatMessage('user', `I've selected the ${diet.label}.`);
+                addChatMessage('assistant', 'Great choice! Now upload your meal photo for analysis.');
+            });
         });
-    });
+    }
+
+    // Toggle dropdown
+    if (dietDropdownBtn) {
+        dietDropdownBtn.addEventListener('click', () => {
+            dietDropdown.classList.toggle('hidden');
+        });
+        document.addEventListener('click', (e) => {
+            if (!dietDropdownBtn.contains(e.target) && !dietDropdown.contains(e.target)) {
+                dietDropdown.classList.add('hidden');
+            }
+        });
+    }
 
     // Tab switching
     const uploadTabBtn = document.getElementById('uploadTab');
@@ -646,8 +660,27 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
 
-    // Load usage status on page load
+    // Load usage status and diet list on page load
     loadUsageStatus();
+    loadDiets();
+
+    // Set default from user's saved diet preference
+    (async function setDefaultDietFromProfile(){
+        try {
+            const res = await fetch('/profile/api/load');
+            const data = await res.json();
+            if (data.success && data.data && data.data.preferences && data.data.preferences.diet_type) {
+                const savedSlug = data.data.preferences.diet_type;
+                dietGoalInput.value = savedSlug;
+                // Update button label when diets are already loaded
+                const diet = (dietsData || []).find(x => x.slug === savedSlug);
+                if (diet) {
+                    selectedDietIcon.textContent = emojiFor(savedSlug);
+                    selectedDietText.textContent = diet.label;
+                }
+            }
+        } catch(_){}
+    })();
 
     // Initialize with welcome message
     addChatMessage('assistant', 'Welcome! I\'m your AI nutrition analyst. Please select your diet goal from the dropdown above, then upload a meal photo or paste an image URL to get started.');

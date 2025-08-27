@@ -4,6 +4,11 @@ from flask_login import login_required, current_user
 from datetime import datetime, timezone
 from bson import ObjectId
 from database import get_db
+from diet_config import (
+    DIETS,
+    calculate_daily_targets,
+    generate_transition_plan,
+)
 import json
 
 profile_bp = Blueprint('profile', __name__, url_prefix='/profile')
@@ -290,62 +295,77 @@ def calculate_daily_calories(bmr, activity_level):
 def calculate_nutritional_needs():
     """Calculate personalized nutritional needs based on profile"""
     try:
-        data = request.get_json()
-        
-        # Extract data
+        data = request.get_json() or {}
+
+        # Extract overrides if provided
         weight_kg = float(data.get('weight_kg', 0))
         height_cm = float(data.get('height_cm', 0))
         age = int(data.get('age', 0))
-        biological_sex = data.get('biological_sex', 'female')
-        activity_level = data.get('activity_level', 'sedentary')
-        goal_type = data.get('goal_type', 'maintain_weight')
-        
-        # Calculate BMR and daily calories
-        bmr = calculate_bmr(weight_kg, height_cm, age, biological_sex)
-        maintenance_calories = calculate_daily_calories(bmr, activity_level)
-        
-        # Adjust calories based on goal
-        calorie_adjustments = {
-            'lose_weight_slow': -250,
-            'lose_weight_moderate': -500,
-            'lose_weight_fast': -750,
-            'maintain_weight': 0,
-            'gain_weight_slow': 250,
-            'gain_weight_moderate': 500,
-            'build_muscle': 300
-        }
-        
-        target_calories = maintenance_calories + calorie_adjustments.get(goal_type, 0)
-        
-        # Calculate macronutrient distribution (standard balanced approach)
-        protein_grams = int(weight_kg * 1.6)  # 1.6g per kg body weight
-        protein_calories = protein_grams * 4
-        
-        fat_calories = int(target_calories * 0.25)  # 25% from fat
-        fat_grams = int(fat_calories / 9)
-        
-        carb_calories = target_calories - protein_calories - fat_calories
-        carb_grams = int(carb_calories / 4)
-        
-        # Calculate other nutrients
-        fiber_grams = max(25, int(target_calories / 1000 * 14))  # 14g per 1000 calories
-        sodium_mg = 2300  # Standard recommendation
-        sugar_grams = int(target_calories * 0.1 / 4)  # 10% of calories from added sugar max
-        
-        return jsonify({
-            'success': True,
-            'calculations': {
-                'bmr': int(bmr),
-                'maintenance_calories': maintenance_calories,
-                'target_calories': target_calories,
-                'protein_grams': protein_grams,
-                'carbs_grams': carb_grams,
-                'fat_grams': fat_grams,
-                'fiber_grams': fiber_grams,
-                'sodium_mg': sodium_mg,
-                'sugar_grams': sugar_grams
-            }
-        })
+        biological_sex = data.get('biological_sex')
+        activity_level = data.get('activity_level')
+        goal_type = data.get('goal_type') or 'maintain_weight'
+        diet_type = data.get('diet_type')
+
+        # Fallback to saved profile/preferences if fields missing
+        user_id = ObjectId(current_user.id)
+        prof = db.user_profiles.find_one({'user_id': user_id}) or {}
+        prefs = db.diet_preferences.find_one({'user_id': user_id}) or {}
+        goals = db.nutrition_goals.find_one({'user_id': user_id}) or {}
+
+        if not age:
+            age = int(prof.get('age') or 0)
+        if not height_cm:
+            height_cm = float(prof.get('height_cm') or 0)
+        if not weight_kg:
+            weight_kg = float(prof.get('weight_kg') or 0)
+        if not biological_sex:
+            biological_sex = prof.get('biological_sex') or 'female'
+        if not activity_level:
+            activity_level = prof.get('activity_level') or 'sedentary'
+        if not diet_type:
+            diet_type = prefs.get('diet_type') or 'standard_american'
+        if not goal_type:
+            goal_type = goals.get('goal_type') or 'maintain_weight'
+
+        calcs = calculate_daily_targets(
+            age=age,
+            sex=biological_sex,
+            weight_kg=weight_kg,
+            height_cm=height_cm,
+            activity_level=activity_level,
+            goal_type=goal_type,
+            diet_slug=diet_type,
+        )
+
+        return jsonify({'success': True, 'calculations': calcs, 'diet_type': diet_type})
         
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@profile_bp.route('/api/diets')
+@login_required
+def list_diets():
+    """Expose diet configurations for UI (labels, tags, descriptions)."""
+    result = []
+    for slug, cfg in DIETS.items():
+        result.append({
+            'slug': slug,
+            'label': cfg.get('label'),
+            'focus': cfg.get('focus'),
+            'good_for': cfg.get('good_for', []),
+            'difficulty': cfg.get('difficulty'),
+            'timeline': cfg.get('timeline'),
+            'student_notes': cfg.get('student_notes'),
+        })
+    return jsonify({'success': True, 'diets': result})
+
+
+@profile_bp.route('/api/transition-plan', methods=['POST'])
+@login_required
+def transition_plan():
+    data = request.get_json() or {}
+    current = data.get('from') or 'standard_american'
+    target = data.get('to') or 'standard_american'
+    plan = generate_transition_plan(current, target)
+    return jsonify({'success': True, 'plan': plan})
