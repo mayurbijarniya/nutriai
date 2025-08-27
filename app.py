@@ -115,6 +115,10 @@ from auth import auth_bp, init_oauth
 init_oauth(app)  # Initialize OAuth with the Flask app
 app.register_blueprint(auth_bp)
 
+# Register profile blueprint
+from profile import profile_bp
+app.register_blueprint(profile_bp)
+
 
 def ensure_guest_cookie(response=None):
     """Ensure guest_session cookie exists for anonymous visitors."""

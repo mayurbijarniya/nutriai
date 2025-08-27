@@ -1,0 +1,1013 @@
+{% extends "base.html" %}
+
+{% block title %}Profile Setup - NutriAI{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="text-center mb-8">
+        <div class="inline-flex items-center space-x-2 bg-green-50 dark:bg-green-950/50 text-green-600 dark:text-green-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
+            <i class="ph ph-user-gear"></i>
+            <span>Personalized Nutrition Profile</span>
+        </div>
+        
+        <h1 class="text-3xl font-bold tracking-tight mb-4 text-gray-900 dark:text-gray-100">Complete Your Profile</h1>
+        <p class="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
+            Help us provide personalized nutrition recommendations by sharing some information about yourself.
+        </p>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="mb-8">
+        <div class="flex items-center justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
+            <span>Progress</span>
+            <span id="progressText">Step 1 of 5</span>
+        </div>
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+            <div id="progressBar" class="bg-gradient-to-r from-green-600 to-emerald-600 h-2 rounded-full transition-all duration-300" style="width: 20%"></div>
+        </div>
+    </div>
+
+    <!-- Main Form -->
+    <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <form id="profileForm" class="space-y-6">
+            <!-- Section 1: Basic Information -->
+            <div id="section1" class="form-section p-8">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-green-100 dark:bg-green-950/30 rounded-lg flex items-center justify-center">
+                        <i class="ph ph-user text-green-600 dark:text-green-400"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Basic Information</h2>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Tell us about yourself to get started</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Age -->
+                    <div>
+                        <label for="age" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Age <span class="text-red-500">*</span>
+                        </label>
+                        <input type="number" id="age" name="age" min="13" max="120" required
+                               class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100"
+                               placeholder="Enter your age">
+                    </div>
+
+                    <!-- Biological Sex -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Biological Sex <span class="text-red-500">*</span>
+                        </label>
+                        <div class="space-y-2">
+                            {% for sex in constants.biological_sex_options %}
+                            <label class="flex items-center">
+                                <input type="radio" name="biological_sex" value="{{ sex }}" required
+                                       class="mr-3 text-green-600 focus:ring-green-500">
+                                <span class="text-gray-900 dark:text-gray-100 capitalize">{{ sex.replace('_', ' ') }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Height -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Height <span class="text-red-500">*</span>
+                        </label>
+                        <div class="flex space-x-2">
+                            <div class="flex-1">
+                                <select id="heightFeet" name="height_feet" required
+                                        class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100">
+                                    <option value="">Feet</option>
+                                    {% for i in range(3, 9) %}
+                                    <option value="{{ i }}">{{ i }} ft</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="flex-1">
+                                <select id="heightInches" name="height_inches" required
+                                        class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100">
+                                    <option value="">Inches</option>
+                                    {% for i in range(0, 12) %}
+                                    <option value="{{ i }}">{{ i }} in</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Height in cm: <span id="heightCm">-</span>
+                        </p>
+                    </div>
+
+                    <!-- Weight -->
+                    <div>
+                        <label for="weight" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Weight <span class="text-red-500">*</span>
+                        </label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="weight" name="weight" min="30" max="600" step="0.1" required
+                                   class="flex-1 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100"
+                                   placeholder="Enter weight">
+                            <select id="weightUnit" name="weight_unit"
+                                    class="px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100">
+                                <option value="lbs">lbs</option>
+                                <option value="kg">kg</option>
+                            </select>
+                        </div>
+                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                            Weight in kg: <span id="weightKg">-</span>
+                        </p>
+                    </div>
+
+                    <!-- Activity Level -->
+                    <div class="md:col-span-2">
+                        <label for="activity_level" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Activity Level <span class="text-red-500">*</span>
+                        </label>
+                        <select id="activity_level" name="activity_level" required
+                                class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100">
+                            <option value="">Select your activity level</option>
+                            <option value="sedentary">Sedentary (little or no exercise, desk job)</option>
+                            <option value="lightly_active">Lightly Active (light exercise 1-3 days/week)</option>
+                            <option value="moderately_active">Moderately Active (moderate exercise 3-5 days/week)</option>
+                            <option value="very_active">Very Active (hard exercise 6-7 days/week)</option>
+                            <option value="extremely_active">Extremely Active (very hard exercise, physical job)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 2: Health Information -->
+            <div id="section2" class="form-section p-8 hidden">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-red-100 dark:bg-red-950/30 rounded-lg flex items-center justify-center">
+                        <i class="ph ph-heart text-red-600 dark:text-red-400"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Health Information</h2>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Help us provide safe recommendations</p>
+                    </div>
+                </div>
+
+                <!-- Health Conditions -->
+                <div class="mb-6">
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                        Health Conditions
+                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">(Select all that apply)</span>
+                    </label>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        {% for condition in constants.health_conditions %}
+                        <label class="flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                            <input type="checkbox" name="health_conditions" value="{{ condition }}"
+                                   class="mr-3 text-green-600 focus:ring-green-500">
+                            <span class="text-gray-900 dark:text-gray-100 text-sm">
+                                {% if condition == 'diabetes_type1' %}Type 1 Diabetes
+                                {% elif condition == 'diabetes_type2' %}Type 2 Diabetes
+                                {% elif condition == 'hypertension' %}High Blood Pressure
+                                {% elif condition == 'heart_disease' %}Heart Disease
+                                {% elif condition == 'kidney_disease' %}Kidney Disease
+                                {% elif condition == 'celiac' %}Celiac Disease
+                                {% elif condition == 'ibs' %}Irritable Bowel Syndrome
+                                {% elif condition == 'food_allergies' %}Food Allergies
+                                {% elif condition == 'thyroid_issues' %}Thyroid Issues
+                                {% elif condition == 'none' %}None of the above
+                                {% else %}{{ condition.replace('_', ' ').title() }}
+                                {% endif %}
+                            </span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Medications -->
+                <div class="mb-6">
+                    <label for="medications" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Current Medications
+                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">(Optional)</span>
+                    </label>
+                    <textarea id="medications" name="medications" rows="3"
+                              class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100 resize-none"
+                              placeholder="List any medications that might affect nutrition..."></textarea>
+                </div>
+
+                <!-- Supplements -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                        Current Supplements
+                        <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">(Select all that apply)</span>
+                    </label>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {% for supplement in ['Multivitamin', 'Protein Powder', 'Omega-3', 'Vitamin D', 'Iron', 'B12', 'Calcium', 'Magnesium', 'Probiotics'] %}
+                        <label class="flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                            <input type="checkbox" name="supplements" value="{{ supplement.lower().replace(' ', '_') }}"
+                                   class="mr-3 text-green-600 focus:ring-green-500">
+                            <span class="text-gray-900 dark:text-gray-100 text-sm">{{ supplement }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 3: Goals & Targets -->
+            <div id="section3" class="form-section p-8 hidden">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-blue-100 dark:bg-blue-950/30 rounded-lg flex items-center justify-center">
+                        <i class="ph ph-target text-blue-600 dark:text-blue-400"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Goals & Targets</h2>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">What would you like to achieve?</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Primary Goal -->
+                    <div class="md:col-span-2">
+                        <label for="goal_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Primary Goal <span class="text-red-500">*</span>
+                        </label>
+                        <select id="goal_type" name="goal_type" required
+                                class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100">
+                            <option value="">Select your primary goal</option>
+                            <option value="lose_weight_slow">Lose Weight (Slow & Sustainable - 0.5-1 lb/week)</option>
+                            <option value="lose_weight_moderate">Lose Weight (Moderate - 1-2 lbs/week)</option>
+                            <option value="lose_weight_fast">Lose Weight (Fast - 2+ lbs/week)</option>
+                            <option value="maintain_weight">Maintain Current Weight</option>
+                            <option value="gain_weight_slow">Gain Weight (Slow - 0.5-1 lb/week)</option>
+                            <option value="gain_weight_moderate">Gain Weight (Moderate - 1-2 lbs/week)</option>
+                            <option value="build_muscle">Build Muscle & Strength</option>
+                            <option value="improve_health">Improve Overall Health</option>
+                            <option value="manage_diabetes">Manage Diabetes</option>
+                            <option value="lower_cholesterol">Lower Cholesterol</option>
+                        </select>
+                    </div>
+
+                    <!-- Target Weight -->
+                    <div id="targetWeightDiv" class="hidden">
+                        <label for="target_weight" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Target Weight
+                        </label>
+                        <div class="flex space-x-2">
+                            <input type="number" id="target_weight" name="target_weight" min="30" max="600" step="0.1"
+                                   class="flex-1 px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100"
+                                   placeholder="Target weight">
+                            <span class="px-4 py-3 bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-700 dark:text-gray-300 text-sm flex items-center" id="targetWeightUnit">lbs</span>
+                        </div>
+                    </div>
+
+                    <!-- Timeline -->
+                    <div>
+                        <label for="timeline_weeks" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Timeline
+                        </label>
+                        <select id="timeline_weeks" name="timeline_weeks"
+                                class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100">
+                            <option value="">Select timeline</option>
+                            <option value="4">4 weeks (1 month)</option>
+                            <option value="8">8 weeks (2 months)</option>
+                            <option value="12">12 weeks (3 months)</option>
+                            <option value="16">16 weeks (4 months)</option>
+                            <option value="24">24 weeks (6 months)</option>
+                            <option value="52">1 year</option>
+                        </select>
+                    </div>
+
+                    <!-- Secondary Goals -->
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                            Secondary Goals
+                            <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">(Select all that apply)</span>
+                        </label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {% for goal in ['More energy', 'Better sleep', 'Clearer skin', 'Improved athletic performance', 'Better digestion', 'Stress management', 'Improved focus', 'Better mood'] %}
+                            <label class="flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                <input type="checkbox" name="secondary_goals" value="{{ goal.lower().replace(' ', '_') }}"
+                                       class="mr-3 text-green-600 focus:ring-green-500">
+                                <span class="text-gray-900 dark:text-gray-100 text-sm">{{ goal }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Nutritional Targets (Auto-calculated) -->
+                    <div id="nutritionalTargets" class="md:col-span-2 mt-6 p-4 bg-green-50 dark:bg-green-950/30 rounded-lg hidden">
+                        <h3 class="text-lg font-medium text-green-800 dark:text-green-200 mb-3">Recommended Daily Targets</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-600 dark:text-green-400" id="targetCalories">-</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Calories</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-600 dark:text-green-400" id="targetProtein">-</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Protein (g)</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-600 dark:text-green-400" id="targetCarbs">-</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Carbs (g)</div>
+                            </div>
+                            <div class="text-center">
+                                <div class="text-2xl font-bold text-green-600 dark:text-green-400" id="targetFat">-</div>
+                                <div class="text-sm text-gray-600 dark:text-gray-400">Fat (g)</div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-gray-600 dark:text-gray-400 mt-3 text-center">
+                            These are calculated based on your profile and can be adjusted later.
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Diet Preferences -->
+            <div id="section4" class="form-section p-8 hidden">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-purple-100 dark:bg-purple-950/30 rounded-lg flex items-center justify-center">
+                        <i class="ph ph-fork-knife text-purple-600 dark:text-purple-400"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Diet Preferences</h2>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Tell us about your dietary preferences</p>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Diet Type -->
+                    <div>
+                        <label for="diet_type" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Preferred Diet Type
+                        </label>
+                        <select id="diet_type" name="diet_type"
+                                class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100">
+                            <option value="">Select diet type</option>
+                            <option value="standard_american">Standard American Diet</option>
+                            <option value="mediterranean">Mediterranean Diet</option>
+                            <option value="ketogenic">Ketogenic (Keto)</option>
+                            <option value="paleo">Paleo</option>
+                            <option value="plant_based_vegan">Plant-Based Vegan</option>
+                            <option value="vegetarian">Vegetarian</option>
+                            <option value="pescatarian">Pescatarian</option>
+                            <option value="flexitarian">Flexitarian</option>
+                            <option value="intermittent_fasting_16_8">Intermittent Fasting (16:8)</option>
+                            <option value="intermittent_fasting_18_6">Intermittent Fasting (18:6)</option>
+                            <option value="dash_diet">DASH Diet</option>
+                            <option value="low_carb">Low Carb</option>
+                            <option value="gluten_free">Gluten-Free</option>
+                            <option value="low_fodmap">Low FODMAP</option>
+                            <option value="whole30">Whole30</option>
+                            <option value="anti_inflammatory">Anti-Inflammatory</option>
+                        </select>
+                    </div>
+
+                    <!-- Food Allergies -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                            Food Allergies
+                            <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">(Select all that apply)</span>
+                        </label>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            {% for allergy in constants.food_allergies %}
+                            <label class="flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                <input type="checkbox" name="allergies" value="{{ allergy }}"
+                                       class="mr-3 text-green-600 focus:ring-green-500">
+                                <span class="text-gray-900 dark:text-gray-100 text-sm capitalize">{{ allergy }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Food Restrictions -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                            Religious/Cultural Food Restrictions
+                            <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">(Select all that apply)</span>
+                        </label>
+                        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                            {% for restriction in constants.food_restrictions %}
+                            <label class="flex items-center p-3 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                                <input type="checkbox" name="food_restrictions" value="{{ restriction }}"
+                                       class="mr-3 text-green-600 focus:ring-green-500">
+                                <span class="text-gray-900 dark:text-gray-100 text-sm">
+                                    {% if restriction == 'no_pork' %}No Pork
+                                    {% elif restriction == 'no_beef' %}No Beef
+                                    {% elif restriction == 'no_alcohol' %}No Alcohol
+                                    {% elif restriction == 'organic_only' %}Organic Only
+                                    {% else %}{{ restriction.title() }}
+                                    {% endif %}
+                                </span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Cooking Preferences -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                            <label for="cooking_skill" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Cooking Skill Level
+                            </label>
+                            <select id="cooking_skill" name="cooking_skill"
+                                    class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100">
+                                <option value="">Select skill level</option>
+                                <option value="beginner">Beginner</option>
+                                <option value="intermediate">Intermediate</option>
+                                <option value="advanced">Advanced</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="prep_time_limit" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Max Prep Time (minutes)
+                            </label>
+                            <select id="prep_time_limit" name="prep_time_limit"
+                                    class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100">
+                                <option value="">Select time limit</option>
+                                <option value="15">15 minutes</option>
+                                <option value="30">30 minutes</option>
+                                <option value="45">45 minutes</option>
+                                <option value="60">1 hour</option>
+                                <option value="90">1.5 hours</option>
+                                <option value="120">2+ hours</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="meal_timing_preference" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                Meal Timing Preference
+                            </label>
+                            <select id="meal_timing_preference" name="meal_timing_preference"
+                                    class="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100">
+                                <option value="">Select preference</option>
+                                <option value="early_bird">Early Bird (breakfast at 6-7 AM)</option>
+                                <option value="normal">Normal (breakfast at 7-9 AM)</option>
+                                <option value="night_owl">Night Owl (breakfast at 9+ AM)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 5: Student Lifestyle -->
+            <div id="section5" class="form-section p-8 hidden">
+                <div class="flex items-center space-x-3 mb-6">
+                    <div class="w-10 h-10 bg-orange-100 dark:bg-orange-950/30 rounded-lg flex items-center justify-center">
+                        <i class="ph ph-graduation-cap text-orange-600 dark:text-orange-400"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Student Lifestyle</h2>
+                        <p class="text-sm text-gray-600 dark:text-gray-400">Tell us about your living situation and schedule</p>
+                    </div>
+                </div>
+
+                <div class="space-y-6">
+                    <!-- Living Situation -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                            Living Situation
+                        </label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {% for situation in ['Dorm with meal plan', 'Dorm with kitchen', 'Apartment', 'Living at home'] %}
+                            <label class="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+                                <input type="radio" name="living_situation" value="{{ situation.lower().replace(' ', '_') }}"
+                                       class="mr-3 text-green-600 focus:ring-green-500">
+                                <span class="text-gray-900 dark:text-gray-100">{{ situation }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Budget -->
+                    <div>
+                        <label for="budget_per_day" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                            Daily Food Budget
+                        </label>
+                        <div class="px-4">
+                            <input type="range" id="budget_per_day" name="budget_per_day" min="5" max="50" value="20" step="1"
+                                   class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer slider">
+                            <div class="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                <span>$5</span>
+                                <span id="budgetValue" class="font-medium text-green-600 dark:text-green-400">$20</span>
+                                <span>$50+</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meal Prep Preference -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                            Meal Prep Preference
+                        </label>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            {% for pref in ['Daily cooking', 'Batch Sunday prep', 'Grab-and-go', 'Mix of all'] %}
+                            <label class="flex items-center p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+                                <input type="radio" name="meal_prep_preference" value="{{ pref.lower().replace(' ', '_').replace('-', '_') }}"
+                                       class="mr-3 text-green-600 focus:ring-green-500">
+                                <span class="text-gray-900 dark:text-gray-100">{{ pref }}</span>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- Class Schedule -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                            Typical Meal Times
+                            <span class="text-xs text-gray-500 dark:text-gray-400 ml-2">(Optional - helps with meal planning)</span>
+                        </label>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div>
+                                <label for="breakfast_time" class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Breakfast</label>
+                                <input type="time" id="breakfast_time" name="breakfast_time"
+                                       class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100">
+                            </div>
+                            <div>
+                                <label for="lunch_time" class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Lunch</label>
+                                <input type="time" id="lunch_time" name="lunch_time"
+                                       class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100">
+                            </div>
+                            <div>
+                                <label for="dinner_time" class="block text-xs text-gray-600 dark:text-gray-400 mb-1">Dinner</label>
+                                <input type="time" id="dinner_time" name="dinner_time"
+                                       class="w-full px-3 py-2 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-gray-900 dark:text-gray-100">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="flex justify-between items-center p-8 bg-gray-50 dark:bg-gray-800">
+                <button type="button" id="prevBtn" class="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed" disabled>
+                    <i class="ph ph-arrow-left mr-2"></i>
+                    Previous
+                </button>
+
+                <div class="flex space-x-3">
+                    <button type="button" id="saveDraftBtn" class="px-6 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200">
+                        <i class="ph ph-floppy-disk mr-2"></i>
+                        Save Draft
+                    </button>
+
+                    <button type="button" id="nextBtn" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200">
+                        Next
+                        <i class="ph ph-arrow-right ml-2"></i>
+                    </button>
+
+                    <button type="submit" id="submitBtn" class="px-6 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors duration-200 hidden">
+                        <i class="ph ph-check mr-2"></i>
+                        Complete Profile
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 z-50 hidden items-center justify-center">
+        <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
+        <div class="relative max-w-md w-full mx-4">
+            <div class="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-800/50 p-8 text-center">
+                <div class="w-16 h-16 bg-green-100 dark:bg-green-950/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="ph ph-check text-2xl text-green-600 dark:text-green-400"></i>
+                </div>
+                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Profile Complete!</h3>
+                <p class="text-gray-600 dark:text-gray-400 mb-6">Your personalized nutrition profile has been saved successfully.</p>
+                <div class="flex space-x-3">
+                    <a href="{{ url_for('profile.view_profile') }}" class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-center">
+                        View Profile
+                    </a>
+                    <a href="{{ url_for('index') }}" class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors text-center">
+                        Start Analyzing
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* Custom slider styling */
+.slider {
+    background: linear-gradient(to right, #10B981 0%, #10B981 var(--value, 30%), #E5E7EB var(--value, 30%), #E5E7EB 100%);
+}
+
+.dark .slider {
+    background: linear-gradient(to right, #10B981 0%, #10B981 var(--value, 30%), #374151 var(--value, 30%), #374151 100%);
+}
+
+.slider::-webkit-slider-thumb {
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #10B981;
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.slider::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #10B981;
+    cursor: pointer;
+    border: 2px solid #ffffff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    let currentSection = 1;
+    const totalSections = 5;
+    
+    // Get all form sections
+    const sections = document.querySelectorAll('.form-section');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const submitBtn = document.getElementById('submitBtn');
+    const progressBar = document.getElementById('progressBar');
+    const progressText = document.getElementById('progressText');
+
+    // Unit conversion functions
+    function updateHeightCm() {
+        const feet = parseInt(document.getElementById('heightFeet').value) || 0;
+        const inches = parseInt(document.getElementById('heightInches').value) || 0;
+        const totalInches = (feet * 12) + inches;
+        const cm = Math.round(totalInches * 2.54);
+        document.getElementById('heightCm').textContent = cm > 0 ? cm + ' cm' : '-';
+        return cm;
+    }
+
+    function updateWeightKg() {
+        const weight = parseFloat(document.getElementById('weight').value) || 0;
+        const unit = document.getElementById('weightUnit').value;
+        const kg = unit === 'kg' ? weight : Math.round(weight * 0.453592 * 10) / 10;
+        document.getElementById('weightKg').textContent = weight > 0 ? kg + ' kg' : '-';
+        return kg;
+    }
+
+    // Budget slider
+    const budgetSlider = document.getElementById('budget_per_day');
+    const budgetValue = document.getElementById('budgetValue');
+
+    function updateBudgetDisplay() {
+        const value = budgetSlider.value;
+        budgetValue.textContent = value >= 50 ? '$50+' : '$' + value;
+        const percentage = ((value - 5) / (50 - 5)) * 100;
+        budgetSlider.style.setProperty('--value', percentage + '%');
+    }
+
+    // Event listeners for calculations
+    document.getElementById('heightFeet').addEventListener('change', updateHeightCm);
+    document.getElementById('heightInches').addEventListener('change', updateHeightCm);
+    document.getElementById('weight').addEventListener('input', updateWeightKg);
+    document.getElementById('weightUnit').addEventListener('change', function() {
+        updateWeightKg();
+        document.getElementById('targetWeightUnit').textContent = this.value;
+    });
+    budgetSlider.addEventListener('input', updateBudgetDisplay);
+
+    // Goal type change handler
+    document.getElementById('goal_type').addEventListener('change', function() {
+        const targetWeightDiv = document.getElementById('targetWeightDiv');
+        const weightGoals = ['lose_weight_slow', 'lose_weight_moderate', 'lose_weight_fast', 'gain_weight_slow', 'gain_weight_moderate'];
+        
+        if (weightGoals.includes(this.value)) {
+            targetWeightDiv.classList.remove('hidden');
+        } else {
+            targetWeightDiv.classList.add('hidden');
+        }
+
+        // Calculate nutritional needs when enough data is available
+        calculateNutritionalNeeds();
+    });
+
+    // Calculate nutritional needs
+    async function calculateNutritionalNeeds() {
+        const age = document.getElementById('age').value;
+        const biologicalSex = document.querySelector('input[name="biological_sex"]:checked')?.value;
+        const activityLevel = document.getElementById('activity_level').value;
+        const goalType = document.getElementById('goal_type').value;
+        const heightCm = updateHeightCm();
+        const weightKg = updateWeightKg();
+
+        if (age && biologicalSex && activityLevel && goalType && heightCm > 0 && weightKg > 0) {
+            try {
+                const response = await fetch('/profile/api/calculate-needs', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        age: parseInt(age),
+                        biological_sex: biologicalSex,
+                        activity_level: activityLevel,
+                        goal_type: goalType,
+                        height_cm: heightCm,
+                        weight_kg: weightKg
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    const calc = data.calculations;
+                    document.getElementById('targetCalories').textContent = calc.target_calories;
+                    document.getElementById('targetProtein').textContent = calc.protein_grams;
+                    document.getElementById('targetCarbs').textContent = calc.carbs_grams;
+                    document.getElementById('targetFat').textContent = calc.fat_grams;
+                    document.getElementById('nutritionalTargets').classList.remove('hidden');
+                }
+            } catch (error) {
+                console.error('Error calculating nutritional needs:', error);
+            }
+        }
+    }
+
+    // Add listeners for calculation triggers
+    ['age', 'activity_level'].forEach(id => {
+        document.getElementById(id).addEventListener('change', calculateNutritionalNeeds);
+    });
+    document.querySelectorAll('input[name="biological_sex"]').forEach(radio => {
+        radio.addEventListener('change', calculateNutritionalNeeds);
+    });
+
+    function showSection(n) {
+        sections.forEach((section, index) => {
+            section.classList.toggle('hidden', index !== n - 1);
+        });
+
+        // Update progress
+        const progress = (n / totalSections) * 100;
+        progressBar.style.width = progress + '%';
+        progressText.textContent = `Step ${n} of ${totalSections}`;
+
+        // Update buttons
+        prevBtn.disabled = n === 1;
+        nextBtn.classList.toggle('hidden', n === totalSections);
+        submitBtn.classList.toggle('hidden', n !== totalSections);
+
+        currentSection = n;
+    }
+
+    function validateSection(n) {
+        const section = sections[n - 1];
+        const requiredInputs = section.querySelectorAll('input[required], select[required]');
+        
+        for (let input of requiredInputs) {
+            if (!input.value || (input.type === 'radio' && !section.querySelector(`input[name="${input.name}"]:checked`))) {
+                input.focus();
+                showNotification('Please fill in all required fields.', 'error');
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // Navigation
+    nextBtn.addEventListener('click', function() {
+        if (validateSection(currentSection)) {
+            if (currentSection < totalSections) {
+                showSection(currentSection + 1);
+            }
+        }
+    });
+
+    prevBtn.addEventListener('click', function() {
+        if (currentSection > 1) {
+            showSection(currentSection - 1);
+        }
+    });
+
+    // Save draft functionality
+    document.getElementById('saveDraftBtn').addEventListener('click', function() {
+        saveProfile(true);
+    });
+
+    // Form submission
+    document.getElementById('profileForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveProfile(false);
+    });
+
+    async function saveProfile(isDraft = false) {
+        const formData = new FormData(document.getElementById('profileForm'));
+        
+        // Convert FormData to structured object
+        const data = {
+            basic_info: {
+                age: formData.get('age') ? parseInt(formData.get('age')) : null,
+                height_cm: updateHeightCm(),
+                weight_kg: updateWeightKg(),
+                biological_sex: formData.get('biological_sex'),
+                activity_level: formData.get('activity_level'),
+                health_conditions: formData.getAll('health_conditions'),
+                medications: formData.get('medications'),
+                supplements: formData.getAll('supplements')
+            },
+            goals: {
+                goal_type: formData.get('goal_type'),
+                target_weight_kg: formData.get('target_weight') ? parseFloat(formData.get('target_weight')) : null,
+                timeline_weeks: formData.get('timeline_weeks') ? parseInt(formData.get('timeline_weeks')) : null,
+                secondary_goals: formData.getAll('secondary_goals'),
+                // These will be calculated on the backend
+                daily_calories: null,
+                protein_grams: null,
+                carbs_grams: null,
+                fat_grams: null,
+                fiber_grams: null,
+                sodium_mg: null,
+                sugar_grams: null
+            },
+            preferences: {
+                diet_type: formData.get('diet_type'),
+                allergies: formData.getAll('allergies'),
+                food_restrictions: formData.getAll('food_restrictions'),
+                meal_timing_preference: formData.get('meal_timing_preference'),
+                cooking_skill: formData.get('cooking_skill'),
+                prep_time_limit: formData.get('prep_time_limit') ? parseInt(formData.get('prep_time_limit')) : null,
+                budget_per_meal: formData.get('budget_per_day') ? parseFloat(formData.get('budget_per_day')) / 3 : null, // Convert daily to per meal
+                living_situation: formData.get('living_situation'),
+                meal_prep_preference: formData.get('meal_prep_preference'),
+                class_schedule: {
+                    breakfast_time: formData.get('breakfast_time'),
+                    lunch_time: formData.get('lunch_time'),
+                    dinner_time: formData.get('dinner_time')
+                }
+            }
+        };
+
+        try {
+            const response = await fetch('/profile/api/save', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            });
+
+            const result = await response.json();
+            
+            if (result.success) {
+                if (isDraft) {
+                    showNotification('Profile draft saved successfully!', 'success');
+                } else {
+                    // Show success modal
+                    document.getElementById('successModal').classList.remove('hidden');
+                    document.getElementById('successModal').classList.add('flex');
+                }
+            } else {
+                showNotification(result.error || 'Error saving profile', 'error');
+            }
+        } catch (error) {
+            console.error('Error saving profile:', error);
+            showNotification('Network error. Please try again.', 'error');
+        }
+    }
+
+    // Load existing data if available
+    async function loadExistingData() {
+        try {
+            const response = await fetch('/profile/api/load');
+            const result = await response.json();
+            
+            if (result.success && result.data) {
+                // Populate form with existing data
+                const { profile, goals, preferences } = result.data;
+                
+                if (profile) {
+                    // Basic info
+                    if (profile.age) document.getElementById('age').value = profile.age;
+                    if (profile.height_cm) {
+                        const totalInches = Math.round(profile.height_cm / 2.54);
+                        const feet = Math.floor(totalInches / 12);
+                        const inches = totalInches % 12;
+                        document.getElementById('heightFeet').value = feet;
+                        document.getElementById('heightInches').value = inches;
+                        updateHeightCm();
+                    }
+                    if (profile.weight_kg) {
+                        document.getElementById('weight').value = Math.round(profile.weight_kg * 2.20462); // Convert to lbs
+                        document.getElementById('weightUnit').value = 'lbs';
+                        updateWeightKg();
+                    }
+                    if (profile.biological_sex) {
+                        document.querySelector(`input[name="biological_sex"][value="${profile.biological_sex}"]`).checked = true;
+                    }
+                    if (profile.activity_level) {
+                        document.getElementById('activity_level').value = profile.activity_level;
+                    }
+                    if (profile.health_conditions) {
+                        profile.health_conditions.forEach(condition => {
+                            const checkbox = document.querySelector(`input[name="health_conditions"][value="${condition}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                    if (profile.medications) {
+                        document.getElementById('medications').value = profile.medications;
+                    }
+                    if (profile.supplements) {
+                        profile.supplements.forEach(supplement => {
+                            const checkbox = document.querySelector(`input[name="supplements"][value="${supplement}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                }
+                
+                if (goals) {
+                    if (goals.goal_type) document.getElementById('goal_type').value = goals.goal_type;
+                    if (goals.target_weight_kg) document.getElementById('target_weight').value = Math.round(goals.target_weight_kg * 2.20462);
+                    if (goals.timeline_weeks) document.getElementById('timeline_weeks').value = goals.timeline_weeks;
+                    if (goals.secondary_goals) {
+                        goals.secondary_goals.forEach(goal => {
+                            const checkbox = document.querySelector(`input[name="secondary_goals"][value="${goal}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                }
+                
+                if (preferences) {
+                    if (preferences.diet_type) document.getElementById('diet_type').value = preferences.diet_type;
+                    if (preferences.allergies) {
+                        preferences.allergies.forEach(allergy => {
+                            const checkbox = document.querySelector(`input[name="allergies"][value="${allergy}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                    if (preferences.food_restrictions) {
+                        preferences.food_restrictions.forEach(restriction => {
+                            const checkbox = document.querySelector(`input[name="food_restrictions"][value="${restriction}"]`);
+                            if (checkbox) checkbox.checked = true;
+                        });
+                    }
+                    if (preferences.cooking_skill) document.getElementById('cooking_skill').value = preferences.cooking_skill;
+                    if (preferences.prep_time_limit) document.getElementById('prep_time_limit').value = preferences.prep_time_limit;
+                    if (preferences.meal_timing_preference) document.getElementById('meal_timing_preference').value = preferences.meal_timing_preference;
+                    if (preferences.budget_per_meal) {
+                        const dailyBudget = Math.round(preferences.budget_per_meal * 3); // Convert back to daily
+                        document.getElementById('budget_per_day').value = dailyBudget;
+                        updateBudgetDisplay();
+                    }
+                    if (preferences.living_situation) {
+                        const radio = document.querySelector(`input[name="living_situation"][value="${preferences.living_situation}"]`);
+                        if (radio) radio.checked = true;
+                    }
+                    if (preferences.meal_prep_preference) {
+                        const radio = document.querySelector(`input[name="meal_prep_preference"][value="${preferences.meal_prep_preference}"]`);
+                        if (radio) radio.checked = true;
+                    }
+                    if (preferences.class_schedule) {
+                        if (preferences.class_schedule.breakfast_time) document.getElementById('breakfast_time').value = preferences.class_schedule.breakfast_time;
+                        if (preferences.class_schedule.lunch_time) document.getElementById('lunch_time').value = preferences.class_schedule.lunch_time;
+                        if (preferences.class_schedule.dinner_time) document.getElementById('dinner_time').value = preferences.class_schedule.dinner_time;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading existing data:', error);
+        }
+    }
+
+    // Notification system
+    function showNotification(message, type = 'info') {
+        const notification = document.createElement('div');
+        notification.className = 'fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg border max-w-sm transition-all duration-300 transform translate-x-full opacity-0';
+        
+        if (type === 'success') {
+            notification.classList.add('bg-green-50', 'dark:bg-green-950/30', 'border-green-200', 'dark:border-green-800', 'text-green-800', 'dark:text-green-200');
+            notification.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <i class="ph ph-check-circle text-green-500 text-xl"></i>
+                    <span class="font-medium">${message}</span>
+                </div>
+            `;
+        } else if (type === 'error') {
+            notification.classList.add('bg-red-50', 'dark:bg-red-950/30', 'border-red-200', 'dark:border-red-800', 'text-red-800', 'dark:text-red-200');
+            notification.innerHTML = `
+                <div class="flex items-center space-x-3">
+                    <i class="ph ph-warning text-red-500 text-xl"></i>
+                    <span class="font-medium">${message}</span>
+                </div>
+            `;
+        }
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.classList.remove('translate-x-full', 'opacity-0');
+            notification.classList.add('translate-x-0', 'opacity-100');
+        }, 100);
+        
+        setTimeout(() => {
+            notification.classList.add('translate-x-full', 'opacity-0');
+            setTimeout(() => notification.remove(), 300);
+        }, 3000);
+    }
+
+    // Initialize
+    updateBudgetDisplay();
+    loadExistingData();
+    showSection(1);
+});
+</script>
+{% endblock %}

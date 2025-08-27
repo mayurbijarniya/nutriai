@@ -1,0 +1,378 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - NutriAI{% endblock %}
+
+{% block content %}
+<div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-8">
+        <div>
+            <h1 class="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100 mb-2">My Nutrition Profile</h1>
+            <p class="text-gray-600 dark:text-gray-400">Your personalized nutrition and health information</p>
+        </div>
+        <a href="{{ url_for('profile.setup') }}" class="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm">
+            <i class="ph ph-pencil-simple"></i>
+            <span>Edit Profile</span>
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Basic Information -->
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="w-10 h-10 bg-green-100 dark:bg-green-950/30 rounded-lg flex items-center justify-center">
+                    <i class="ph ph-user text-green-600 dark:text-green-400"></i>
+                </div>
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Basic Information</h2>
+            </div>
+
+            {% if profile %}
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Age</label>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ profile.age }} years</p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Sex</label>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100 capitalize">{{ profile.biological_sex.replace('_', ' ') if profile.biological_sex else '-' }}</p>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Height</label>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            {% if profile.height_cm %}
+                                {{ profile.height_cm }} cm
+                                <span class="text-sm text-gray-500 dark:text-gray-400">
+                                    ({{ ((profile.height_cm / 2.54) // 12)|int }}'{{ ((profile.height_cm / 2.54) % 12)|round(0)|int }}")
+                                </span>
+                            {% else %}-{% endif %}
+                        </p>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Weight</label>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            {% if profile.weight_kg %}
+                                {{ profile.weight_kg }} kg
+                                <span class="text-sm text-gray-500 dark:text-gray-400">({{ (profile.weight_kg * 2.20462)|round(1) }} lbs)</span>
+                            {% else %}-{% endif %}
+                        </p>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Activity Level</label>
+                    <p class="text-lg font-semibold text-gray-900 dark:text-gray-100 capitalize">
+                        {% if profile.activity_level %}
+                            {{ profile.activity_level.replace('_', ' ') }}
+                        {% else %}-{% endif %}
+                    </p>
+                </div>
+
+                {% if profile.health_conditions and profile.health_conditions != ['none'] %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Health Conditions</label>
+                    <div class="flex flex-wrap gap-2">
+                        {% for condition in profile.health_conditions %}
+                            {% if condition != 'none' %}
+                            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-950/30 text-red-800 dark:text-red-300">
+                                {% if condition == 'diabetes_type1' %}Type 1 Diabetes
+                                {% elif condition == 'diabetes_type2' %}Type 2 Diabetes
+                                {% elif condition == 'hypertension' %}High Blood Pressure
+                                {% elif condition == 'heart_disease' %}Heart Disease
+                                {% elif condition == 'kidney_disease' %}Kidney Disease
+                                {% elif condition == 'celiac' %}Celiac Disease
+                                {% elif condition == 'ibs' %}IBS
+                                {% elif condition == 'food_allergies' %}Food Allergies
+                                {% elif condition == 'thyroid_issues' %}Thyroid Issues
+                                {% else %}{{ condition.replace('_', ' ').title() }}
+                                {% endif %}
+                            </span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if profile.supplements %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Supplements</label>
+                    <div class="flex flex-wrap gap-2">
+                        {% for supplement in profile.supplements %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-950/30 text-blue-800 dark:text-blue-300">
+                            {{ supplement.replace('_', ' ').title() }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="ph ph-warning text-4xl text-gray-400 dark:text-gray-500 mb-4"></i>
+                <p class="text-gray-600 dark:text-gray-400 mb-4">No profile information available</p>
+                <a href="{{ url_for('profile.setup') }}" class="inline-flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200">
+                    <i class="ph ph-plus"></i>
+                    <span>Set Up Profile</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Goals & Targets -->
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="w-10 h-10 bg-blue-100 dark:bg-blue-950/30 rounded-lg flex items-center justify-center">
+                    <i class="ph ph-target text-blue-600 dark:text-blue-400"></i>
+                </div>
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Goals & Targets</h2>
+            </div>
+
+            {% if goals %}
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Primary Goal</label>
+                    <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {% if goals.goal_type == 'lose_weight_slow' %}Lose Weight (Slow)
+                        {% elif goals.goal_type == 'lose_weight_moderate' %}Lose Weight (Moderate)
+                        {% elif goals.goal_type == 'lose_weight_fast' %}Lose Weight (Fast)
+                        {% elif goals.goal_type == 'maintain_weight' %}Maintain Weight
+                        {% elif goals.goal_type == 'gain_weight_slow' %}Gain Weight (Slow)
+                        {% elif goals.goal_type == 'gain_weight_moderate' %}Gain Weight (Moderate)
+                        {% elif goals.goal_type == 'build_muscle' %}Build Muscle
+                        {% elif goals.goal_type == 'improve_health' %}Improve Health
+                        {% elif goals.goal_type == 'manage_diabetes' %}Manage Diabetes
+                        {% elif goals.goal_type == 'lower_cholesterol' %}Lower Cholesterol
+                        {% else %}{{ goals.goal_type.replace('_', ' ').title() if goals.goal_type else '-' }}
+                        {% endif %}
+                    </p>
+                </div>
+
+                {% if goals.target_weight_kg %}
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Target Weight</label>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            {{ goals.target_weight_kg }} kg
+                            <span class="text-sm text-gray-500 dark:text-gray-400">({{ (goals.target_weight_kg * 2.20462)|round(1) }} lbs)</span>
+                        </p>
+                    </div>
+                    {% if goals.timeline_weeks %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Timeline</label>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ goals.timeline_weeks }} weeks</p>
+                    </div>
+                    {% endif %}
+                </div>
+                {% endif %}
+
+                {% if goals.daily_calories %}
+                <div class="bg-green-50 dark:bg-green-950/30 rounded-lg p-4">
+                    <h3 class="text-lg font-medium text-green-800 dark:text-green-200 mb-3">Daily Nutrition Targets</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ goals.daily_calories }}</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400">Calories</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ goals.protein_grams }}g</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400">Protein</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ goals.carbs_grams }}g</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400">Carbs</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ goals.fat_grams }}g</div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400">Fat</div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if goals.secondary_goals %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Secondary Goals</label>
+                    <div class="flex flex-wrap gap-2">
+                        {% for goal in goals.secondary_goals %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-950/30 text-blue-800 dark:text-blue-300">
+                            {{ goal.replace('_', ' ').title() }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="ph ph-target text-4xl text-gray-400 dark:text-gray-500 mb-4"></i>
+                <p class="text-gray-600 dark:text-gray-400">No goals set</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Diet Preferences -->
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-6">
+            <div class="flex items-center space-x-3 mb-6">
+                <div class="w-10 h-10 bg-purple-100 dark:bg-purple-950/30 rounded-lg flex items-center justify-center">
+                    <i class="ph ph-fork-knife text-purple-600 dark:text-purple-400"></i>
+                </div>
+                <h2 class="text-xl font-semibold text-gray-900 dark:text-gray-100">Diet Preferences</h2>
+            </div>
+
+            {% if preferences %}
+            <div class="space-y-4">
+                {% if preferences.diet_type %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Diet Type</label>
+                    <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                        {% if preferences.diet_type == 'standard_american' %}Standard American
+                        {% elif preferences.diet_type == 'plant_based_vegan' %}Plant-Based Vegan
+                        {% elif preferences.diet_type == 'intermittent_fasting_16_8' %}Intermittent Fasting (16:8)
+                        {% elif preferences.diet_type == 'intermittent_fasting_18_6' %}Intermittent Fasting (18:6)
+                        {% elif preferences.diet_type == 'dash_diet' %}DASH Diet
+                        {% elif preferences.diet_type == 'low_carb' %}Low Carb
+                        {% elif preferences.diet_type == 'gluten_free' %}Gluten-Free
+                        {% elif preferences.diet_type == 'low_fodmap' %}Low FODMAP
+                        {% elif preferences.diet_type == 'anti_inflammatory' %}Anti-Inflammatory
+                        {% else %}{{ preferences.diet_type.replace('_', ' ').title() }}
+                        {% endif %}
+                    </p>
+                </div>
+                {% endif %}
+
+                {% if preferences.allergies %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Food Allergies</label>
+                    <div class="flex flex-wrap gap-2">
+                        {% for allergy in preferences.allergies %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 dark:bg-red-950/30 text-red-800 dark:text-red-300">
+                            {{ allergy.capitalize() }}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if preferences.food_restrictions %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Food Restrictions</label>
+                    <div class="flex flex-wrap gap-2">
+                        {% for restriction in preferences.food_restrictions %}
+                        <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 dark:bg-orange-950/30 text-orange-800 dark:text-orange-300">
+                            {% if restriction == 'no_pork' %}No Pork
+                            {% elif restriction == 'no_beef' %}No Beef
+                            {% elif restriction == 'no_alcohol' %}No Alcohol
+                            {% elif restriction == 'organic_only' %}Organic Only
+                            {% else %}{{ restriction.title() }}
+                            {% endif %}
+                        </span>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <div class="grid grid-cols-1 gap-4">
+                    {% if preferences.cooking_skill %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Cooking Skill</label>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100 capitalize">{{ preferences.cooking_skill }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if preferences.prep_time_limit %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Max Prep Time</label>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ preferences.prep_time_limit }} minutes</p>
+                    </div>
+                    {% endif %}
+
+                    {% if preferences.budget_per_meal %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Budget per Meal</label>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">${{ "%.2f"|format(preferences.budget_per_meal) }}</p>
+                    </div>
+                    {% endif %}
+
+                    {% if preferences.living_situation %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Living Situation</label>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            {% if preferences.living_situation == 'dorm_with_meal_plan' %}Dorm with Meal Plan
+                            {% elif preferences.living_situation == 'dorm_with_kitchen' %}Dorm with Kitchen
+                            {% elif preferences.living_situation == 'living_at_home' %}Living at Home
+                            {% else %}{{ preferences.living_situation.replace('_', ' ').title() }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    {% if preferences.meal_prep_preference %}
+                    <div>
+                        <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-1">Meal Prep Style</label>
+                        <p class="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                            {% if preferences.meal_prep_preference == 'daily_cooking' %}Daily Cooking
+                            {% elif preferences.meal_prep_preference == 'batch_sunday_prep' %}Batch Sunday Prep
+                            {% elif preferences.meal_prep_preference == 'grab_and_go' %}Grab-and-Go
+                            {% elif preferences.meal_prep_preference == 'mix_of_all' %}Mix of All
+                            {% else %}{{ preferences.meal_prep_preference.replace('_', ' ').title() }}
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if preferences.class_schedule and (preferences.class_schedule.breakfast_time or preferences.class_schedule.lunch_time or preferences.class_schedule.dinner_time) %}
+                <div>
+                    <label class="block text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Typical Meal Times</label>
+                    <div class="grid grid-cols-3 gap-4 text-center">
+                        {% if preferences.class_schedule.breakfast_time %}
+                        <div class="bg-yellow-50 dark:bg-yellow-950/30 rounded-lg p-3">
+                            <div class="text-sm text-yellow-600 dark:text-yellow-400 font-medium">Breakfast</div>
+                            <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ preferences.class_schedule.breakfast_time }}</div>
+                        </div>
+                        {% endif %}
+                        {% if preferences.class_schedule.lunch_time %}
+                        <div class="bg-orange-50 dark:bg-orange-950/30 rounded-lg p-3">
+                            <div class="text-sm text-orange-600 dark:text-orange-400 font-medium">Lunch</div>
+                            <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ preferences.class_schedule.lunch_time }}</div>
+                        </div>
+                        {% endif %}
+                        {% if preferences.class_schedule.dinner_time %}
+                        <div class="bg-purple-50 dark:bg-purple-950/30 rounded-lg p-3">
+                            <div class="text-sm text-purple-600 dark:text-purple-400 font-medium">Dinner</div>
+                            <div class="text-lg font-semibold text-gray-900 dark:text-gray-100">{{ preferences.class_schedule.dinner_time }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="text-center py-8">
+                <i class="ph ph-fork-knife text-4xl text-gray-400 dark:text-gray-500 mb-4"></i>
+                <p class="text-gray-600 dark:text-gray-400">No preferences set</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Profile Actions -->
+    <div class="mt-8 flex flex-col sm:flex-row gap-4">
+        <a href="{{ url_for('index') }}" class="flex-1 sm:flex-none inline-flex items-center justify-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors duration-200 shadow-sm">
+            <i class="ph ph-camera"></i>
+            <span>Analyze a Meal</span>
+        </a>
+        <a href="{{ url_for('history') }}" class="flex-1 sm:flex-none inline-flex items-center justify-center space-x-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-lg font-medium transition-colors duration-200 border border-gray-200 dark:border-gray-600">
+            <i class="ph ph-clock-counter-clockwise"></i>
+            <span>View History</span>
+        </a>
+        <a href="{{ url_for('profile.setup') }}" class="flex-1 sm:flex-none inline-flex items-center justify-center space-x-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-lg font-medium transition-colors duration-200 border border-gray-200 dark:border-gray-600">
+            <i class="ph ph-pencil-simple"></i>
+            <span>Edit Profile</span>
+        </a>
+    </div>
+</div>
+{% endblock %}

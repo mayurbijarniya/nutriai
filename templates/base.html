@@ -291,7 +291,12 @@
                                     
                                     <a href="{{ url_for('auth.profile') }}" class="flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-lg transition-colors">
                                         <i class="ph ph-user-circle text-gray-500"></i>
-                                        <span>Profile</span>
+                                        <span>Account</span>
+                                    </a>
+                                    
+                                    <a href="{{ url_for('profile.view_profile') }}" class="flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-lg transition-colors">
+                                        <i class="ph ph-user-gear text-gray-500"></i>
+                                        <span>Nutrition Profile</span>
                                     </a>
                                     
                                     <a href="{{ url_for('history') }}" class="flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-lg transition-colors">

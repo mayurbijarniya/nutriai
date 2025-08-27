@@ -46,6 +46,11 @@ class MongoDBManager:
             self.logins = self.db.logins
             self.usage = self.db.usage  # Usage tracking
             self.share_links = self.db.share_links  # Shareable analysis links
+            
+            # User Profile collections
+            self.user_profiles = self.db.user_profiles
+            self.nutrition_goals = self.db.nutrition_goals
+            self.diet_preferences = self.db.diet_preferences
 
             # Ensure indexes
             try:
@@ -68,6 +73,11 @@ class MongoDBManager:
                 self.share_links.create_index([('token', ASCENDING)], unique=True)
                 self.share_links.create_index([('user_id', ASCENDING), ('is_active', ASCENDING)])
                 self.share_links.create_index([('expires_at', ASCENDING)])  # For cleanup
+                
+                # User Profile indexes
+                self.user_profiles.create_index([('user_id', ASCENDING)], unique=True)
+                self.nutrition_goals.create_index([('user_id', ASCENDING)])
+                self.diet_preferences.create_index([('user_id', ASCENDING)], unique=True)
             except Exception as e:
                 print(f"⚠️  Index creation warning: {e}")
             
