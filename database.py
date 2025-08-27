@@ -46,6 +46,7 @@ class MongoDBManager:
             self.logins = self.db.logins
             self.usage = self.db.usage  # Usage tracking
             self.share_links = self.db.share_links  # Shareable analysis links
+            self.hydration_logs = self.db.hydration_logs  # Water intake per user/day
             
             # User Profile collections
             self.user_profiles = self.db.user_profiles
@@ -78,6 +79,8 @@ class MongoDBManager:
                 self.user_profiles.create_index([('user_id', ASCENDING)], unique=True)
                 self.nutrition_goals.create_index([('user_id', ASCENDING)])
                 self.diet_preferences.create_index([('user_id', ASCENDING)], unique=True)
+                # Hydration indexes
+                self.hydration_logs.create_index([('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
             except Exception as e:
                 print(f"⚠️  Index creation warning: {e}")
             

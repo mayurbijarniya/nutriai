@@ -1,0 +1,194 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <h1 id="welcomeHeading" class="text-2xl sm:text-3xl font-bold">Welcome back!</h1>
+    <p id="dayProgress" class="text-sm text-gray-500 dark:text-gray-400">Loading today's progress…</p>
+  </div>
+
+  <!-- Top Metrics Row -->
+  <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+    <!-- Daily Calories -->
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+      <h3 class="text-sm font-medium mb-2">Daily Calories</h3>
+      <div class="flex items-center space-x-4">
+        <div class="relative w-20 h-20">
+          <svg viewBox="0 0 36 36" class="w-20 h-20">
+            <path class="text-gray-200 dark:text-gray-700" stroke="currentColor" stroke-width="4" fill="none" d="M18 2a16 16 0 1 1 0 32 16 16 0 0 1 0-32"/>
+            <path id="calProgressPath" class="text-green-600" stroke="currentColor" stroke-width="4" fill="none" stroke-linecap="round" d="M18 2a16 16 0 1 1 0 32 16 16 0 0 1 0-32" stroke-dasharray="0,100"/>
+          </svg>
+          <div class="absolute inset-0 flex items-center justify-center text-xs font-semibold">
+            <span id="caloriesRemain">—</span>
+          </div>
+        </div>
+        <div>
+          <div class="text-lg font-semibold"><span id="caloriesConsumed">—</span> / <span id="caloriesTarget">—</span> kcal</div>
+          <div id="caloriesStatus" class="text-xs text-gray-500">Loading…</div>
+          <button id="quickMeal" class="mt-2 px-3 py-1.5 text-xs rounded-md bg-green-600 text-white">Log quick meal</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Macros -->
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+      <h3 class="text-sm font-medium mb-2">Macros</h3>
+      <div class="space-y-2 text-sm">
+        <div>
+          <div class="flex justify-between"><span>Protein</span><span><span id="proG">—</span>/<span id="proT">—</span> g</span></div>
+          <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full"><div id="proBar" class="h-2 bg-blue-600 rounded-full" style="width:0%"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between"><span>Carbs</span><span><span id="carbG">—</span>/<span id="carbT">—</span> g</span></div>
+          <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full"><div id="carbBar" class="h-2 bg-emerald-600 rounded-full" style="width:0%"></div></div>
+        </div>
+        <div>
+          <div class="flex justify-between"><span>Fat</span><span><span id="fatG">—</span>/<span id="fatT">—</span> g</span></div>
+          <div class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full"><div id="fatBar" class="h-2 bg-amber-600 rounded-full" style="width:0%"></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Diet Score -->
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+      <h3 class="text-sm font-medium mb-2">Diet Score</h3>
+      <div class="text-3xl font-bold" id="dietScore">—</div>
+      <div id="dietBadge" class="text-xs text-gray-500">—</div>
+      <button id="dietGuide" class="mt-2 px-3 py-1.5 text-xs rounded-md bg-gray-100 dark:bg-gray-800">Diet guide</button>
+    </div>
+
+    <!-- Hydration -->
+    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4">
+      <h3 class="text-sm font-medium mb-3">Hydration</h3>
+      <div class="flex items-center space-x-1 mb-2" id="hydrationDrops"></div>
+      <div class="text-sm"><span id="hydrationMl">—</span> ml today</div>
+      <button id="logWater" class="mt-2 px-3 py-1.5 text-xs rounded-md bg-blue-600 text-white">Log water</button>
+    </div>
+  </div>
+
+  <!-- Today Meals -->
+  <div class="mt-8">
+    <h2 class="text-lg font-semibold mb-3">Today's Meals</h2>
+    <div id="mealsList" class="space-y-3"></div>
+  </div>
+
+  <!-- Smart Insights -->
+  <div class="mt-8">
+    <h2 class="text-lg font-semibold mb-3">Smart Insights</h2>
+    <div id="insights" class="text-sm text-gray-600 dark:text-gray-400">Insights will appear here after a few meals.</div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(async function initDashboard(){
+  // Greeting
+  const hours = new Date().getHours();
+  const part = hours < 12 ? 'morning' : hours < 18 ? 'afternoon' : 'evening';
+  const name = {{ (current_user.name.split()[0] if current_user.is_authenticated and current_user.name else 'Friend') | tojson }};
+  document.getElementById('welcomeHeading').textContent = `Good ${part}, ${name}!`;
+
+  // Wire basic buttons even before data loads
+  const quickMealBtn = document.getElementById('quickMeal');
+  if (quickMealBtn) quickMealBtn.addEventListener('click', () => { window.location.href = '/'; });
+  const logWaterBtn = document.getElementById('logWater');
+  if (logWaterBtn) logWaterBtn.addEventListener('click', async ()=>{
+    try {
+      await fetch('/api/dashboard/hydration', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({add_glasses:1, add_ml:250})});
+      location.reload();
+    } catch (_) {}
+  });
+
+  // Load today's data
+  let data;
+  try {
+    const res = await fetch('/api/dashboard/today');
+    data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Load failed');
+  } catch (err) {
+    document.getElementById('dayProgress').textContent = 'Unable to load today\'s data';
+    return;
+  }
+
+  // Date progress
+  const now = new Date();
+  const started = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const pctDay = Math.round(((now - started) / (24*60*60*1000)) * 100);
+  document.getElementById('dayProgress').textContent = `${now.toDateString()} • ${pctDay}% of day`;
+
+  // Calories ring
+  const consumed = data.totals.calories || 0;
+  const target = data.targets.calories || 0;
+  const remain = target ? Math.max(0, target - consumed) : 0;
+  document.getElementById('caloriesConsumed').textContent = Math.round(consumed);
+  document.getElementById('caloriesTarget').textContent = target ? Math.round(target) : '—';
+  document.getElementById('caloriesRemain').textContent = target ? `${Math.round(remain)}` : '—';
+  const pct = target ? Math.min(100, Math.round(consumed / target * 100)) : 0;
+  document.getElementById('calProgressPath').setAttribute('stroke-dasharray', `${pct},100`);
+  const diff = target ? Math.abs(target - consumed) : 0;
+  const status = diff <= 100 ? 'On track' : diff <= 200 ? 'Slightly off' : 'Needs attention';
+  document.getElementById('caloriesStatus').textContent = status;
+
+  // Macros
+  const t = data.targets.macros_g || {};
+  const g = { protein: data.totals.protein_g||0, carbs: data.totals.carbs_g||0, fat: data.totals.fat_g||0 };
+  document.getElementById('proG').textContent = Math.round(g.protein);
+  document.getElementById('carbG').textContent = Math.round(g.carbs);
+  document.getElementById('fatG').textContent = Math.round(g.fat);
+  document.getElementById('proT').textContent = t.protein ? Math.round(t.protein) : '—';
+  document.getElementById('carbT').textContent = t.carbs ? Math.round(t.carbs) : '—';
+  document.getElementById('fatT').textContent = t.fat ? Math.round(t.fat) : '—';
+  document.getElementById('proBar').style.width = t.protein ? `${Math.min(100, g.protein/t.protein*100)}%` : '0%';
+  document.getElementById('carbBar').style.width = t.carbs ? `${Math.min(100, g.carbs/t.carbs*100)}%` : '0%';
+  document.getElementById('fatBar').style.width = t.fat ? `${Math.min(100, g.fat/t.fat*100)}%` : '0%';
+
+  // Diet score
+  document.getElementById('dietScore').textContent = data.adherence_avg != null ? data.adherence_avg : '—';
+  document.getElementById('dietBadge').textContent = data.diet_type;
+
+  // Hydration drops
+  const drops = document.getElementById('hydrationDrops');
+  drops.innerHTML = '';
+  const glasses = data.hydration.glasses || 0;
+  for (let i=0;i<8;i++){
+    const span = document.createElement('span');
+    span.className = `inline-flex items-center justify-center w-6 h-6 rounded ${i<glasses?'bg-blue-600 text-white':'bg-gray-200 dark:bg-gray-700 text-blue-600'}`;
+    span.innerHTML = '<i class="ph ph-drop"></i>';
+    drops.appendChild(span);
+  }
+  document.getElementById('hydrationMl').textContent = data.hydration.ml || 0;
+
+  // Meals
+  const mealsEl = document.getElementById('mealsList');
+  mealsEl.innerHTML = (data.meals||[]).map(m=>{
+    const sj = m.analysis_json||{}; const p = m.personalization||{};
+    const score = (p.macro_adherence && p.macro_adherence.score != null) ? `${p.macro_adherence.score}/10` : '—';
+    const timeStr = m.ts ? new Date(m.ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '';
+    const cal = sj.calories_kcal || (sj.total_nutrition?sj.total_nutrition.calories:null) || '—';
+    return `<div class=\"bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-4 flex items-center space-x-4\">\
+      <div class=\"w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden\">\
+        ${m.image_path?`<img src=\"${m.image_path}\" class=\"w-full h-full object-cover\">`:''}\
+      </div>\
+      <div class=\"flex-1\">\
+        <div class=\"text-sm text-gray-500\">${timeStr}</div>\
+        <div class=\"text-sm\">\
+          <span class=\"font-medium\">${sj.meal_identification || 'Meal'}</span>\
+          • ${cal} kcal\
+        </div>\
+      </div>\
+      <div class=\"text-xs px-2 py-1 rounded-full ${p.macro_adherence&&p.macro_adherence.score>=8?'bg-green-50 text-green-700 border border-green-200':p.macro_adherence&&p.macro_adherence.score>=5?'bg-amber-50 text-amber-700 border border-amber-200':'bg-gray-100 text-gray-600 border'}\">Score: ${score}</div>\
+    </div>`;
+  }).join('');
+
+  // Smart Insights
+  try {
+    const ir = await fetch('/api/dashboard/insights');
+    const idata = await ir.json();
+    if (idata.success && Array.isArray(idata.insights)) {
+      document.getElementById('insights').innerHTML = `<ul class=\"list-disc pl-6 space-y-1\">${idata.insights.map(x=>`<li>${x}</li>`).join('')}</ul>`;
+    }
+  } catch(_){}
+})();
+</script>
+{% endblock %}

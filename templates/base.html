@@ -246,6 +246,12 @@
                         <i class="ph ph-clock-counter-clockwise mr-2"></i>
                         History
                     </a>
+                    {% if current_user and current_user.is_authenticated %}
+                    <a href="/dashboard" class="nav-link px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 {% if request.endpoint == 'dashboard' %}bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 shadow-sm{% else %}text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-white/50 dark:hover:bg-gray-700/50{% endif %}">
+                        <i class="ph ph-gauge mr-2"></i>
+                        Dashboard
+                    </a>
+                    {% endif %}
                 </div>
 
                 <!-- Mobile Navigation -->

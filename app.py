@@ -1291,6 +1291,233 @@ def mstile_fallback(size):
     else:
         return app.send_static_file('icon128.png')
 
+@app.route('/dashboard')
+def dashboard():
+    """Dashboard page (requires login)"""
+    if not (current_user and getattr(current_user, 'is_authenticated', False)):
+        return redirect(url_for('auth.login'))
+    return render_template('dashboard.html')
+
+@app.route('/api/dashboard/today')
+def dashboard_today():
+    """Today's metrics for the signed-in user only"""
+    if not (current_user and getattr(current_user, 'is_authenticated', False)):
+        return jsonify({'success': False, 'error': 'auth_required'}), 401
+    try:
+        uid = ObjectId(current_user.id)
+        from datetime import datetime, timezone, timedelta
+        now = datetime.now(timezone.utc)
+        start = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
+        end = start + timedelta(days=1)
+
+        meals = list(db.collection.find({'user_id': uid, 'created_at': {'$gte': start, '$lt': end}}).sort('created_at', 1))
+        for m in meals:
+            m['_id'] = str(m['_id'])
+            m['user_id'] = str(m['user_id']) if m.get('user_id') else None
+
+        total_cal = 0.0
+        carbs_g = 0.0
+        protein_g = 0.0
+        fat_g = 0.0
+        adherence_scores = []
+        for m in meals:
+            sj = m.get('analysis_json') or {}
+            if 'calories_kcal' in sj:
+                total_cal += float(sj.get('calories_kcal') or 0)
+                carbs_g += float(sj.get('carbs_g') or 0)
+                protein_g += float(sj.get('protein_g') or 0)
+                fat_g += float(sj.get('fat_g') or 0)
+            elif sj.get('total_nutrition'):
+                tn = sj['total_nutrition']
+                total_cal += float(tn.get('calories') or 0)
+                carbs_g += float(tn.get('carbs') or 0)
+                protein_g += float(tn.get('protein') or 0)
+                fat_g += float(tn.get('fat') or 0)
+            pers = m.get('personalization') or {}
+            ms = pers.get('macro_adherence', {}).get('score')
+            if ms is not None:
+                adherence_scores.append(float(ms))
+
+        avg_adherence = round(sum(adherence_scores)/len(adherence_scores), 1) if adherence_scores else None
+
+        prefs = db.diet_preferences.find_one({'user_id': uid}) or {}
+        prof = db.user_profiles.find_one({'user_id': uid}) or {}
+        goals = db.nutrition_goals.find_one({'user_id': uid}) or {}
+        diet_slug = prefs.get('diet_type') or 'standard_american'
+        daily_target = goals.get('daily_calories')
+        if not daily_target:
+            try:
+                bmr = calculate_bmr(float(prof.get('weight_kg') or 0), float(prof.get('height_cm') or 0), int(prof.get('age') or 0), prof.get('biological_sex') or 'female')
+                tdee = calculate_tdee(bmr, prof.get('activity_level') or 'sedentary')
+                daily_target = max(1200, int(tdee + goal_adjustment_calories(goals.get('goal_type') or 'maintain_weight')))
+            except Exception:
+                daily_target = None
+
+        today_key = start.strftime('%Y-%m-%d')
+        hyd = db.hydration_logs.find_one({'user_id': uid, 'date': today_key}) or {'glasses': 0, 'ml': 0}
+
+        return jsonify({
+            'success': True,
+            'diet_type': diet_slug,
+            'totals': {
+                'calories': round(total_cal, 1),
+                'carbs_g': round(carbs_g, 1),
+                'protein_g': round(protein_g, 1),
+                'fat_g': round(fat_g, 1),
+            },
+            'targets': {
+                'calories': daily_target,
+                'macros_g': calculate_macro_grams(daily_target, diet_slug) if daily_target else None
+            },
+            'adherence_avg': avg_adherence,
+            'meals': [
+                {
+                    'id': m['_id'],
+                    'ts': m.get('timestamp'),
+                    'analysis_json': m.get('analysis_json'),
+                    'personalization': m.get('personalization'),
+                    'image_path': m.get('image_path')
+                } for m in meals
+            ],
+            'hydration': {
+                'glasses': hyd.get('glasses', 0),
+                'ml': hyd.get('ml', 0)
+            }
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)})
+
+@app.route('/api/dashboard/hydration', methods=['POST'])
+def dashboard_hydration():
+    if not (current_user and getattr(current_user, 'is_authenticated', False)):
+        return jsonify({'success': False, 'error': 'auth_required'}), 401
+    try:
+        from datetime import datetime, timezone
+        uid = ObjectId(current_user.id)
+        payload = request.get_json() or {}
+        add_glasses = int(payload.get('add_glasses', 1))
+        add_ml = int(payload.get('add_ml', 250))
+        today_key = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        existing = db.hydration_logs.find_one({'user_id': uid, 'date': today_key})
+        if existing:
+            db.hydration_logs.update_one({'_id': existing['_id']}, {'$inc': {'glasses': add_glasses, 'ml': add_ml}})
+        else:
+            db.hydration_logs.insert_one({'user_id': uid, 'date': today_key, 'glasses': add_glasses, 'ml': add_ml})
+        return jsonify({'success': True})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/dashboard/insights')
+def dashboard_insights():
+    """Generate smart insights for the signed-in user.
+    Uses Gemini if available, with a heuristic fallback.
+    """
+    if not (current_user and getattr(current_user, 'is_authenticated', False)):
+        return jsonify({'success': False, 'error': 'auth_required'}), 401
+    try:
+        from datetime import datetime, timezone, timedelta
+        uid = ObjectId(current_user.id)
+        now = datetime.now(timezone.utc)
+        start = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
+        week_start = start - timedelta(days=6)
+
+        # Fetch last 7 days
+        meals = list(db.collection.find({'user_id': uid, 'created_at': {'$gte': week_start, '$lt': start + timedelta(days=1)}}).sort('created_at', 1))
+
+        # Aggregate by day
+        daily = {}
+        for m in meals:
+            dt = m.get('created_at')
+            key = dt.date().isoformat() if dt else start.date().isoformat()
+            d = daily.setdefault(key, {'calories': 0.0, 'carbs_g': 0.0, 'protein_g': 0.0, 'fat_g': 0.0, 'count': 0})
+            sj = m.get('analysis_json') or {}
+            if 'calories_kcal' in sj:
+                d['calories'] += float(sj.get('calories_kcal') or 0)
+                d['carbs_g'] += float(sj.get('carbs_g') or 0)
+                d['protein_g'] += float(sj.get('protein_g') or 0)
+                d['fat_g'] += float(sj.get('fat_g') or 0)
+            elif sj.get('total_nutrition'):
+                tn = sj['total_nutrition']
+                d['calories'] += float(tn.get('calories') or 0)
+                d['carbs_g'] += float(tn.get('carbs') or 0)
+                d['protein_g'] += float(tn.get('protein') or 0)
+                d['fat_g'] += float(tn.get('fat') or 0)
+            d['count'] += 1
+
+        # Targets
+        prefs = db.diet_preferences.find_one({'user_id': uid}) or {}
+        prof = db.user_profiles.find_one({'user_id': uid}) or {}
+        goals = db.nutrition_goals.find_one({'user_id': uid}) or {}
+        diet_slug = prefs.get('diet_type') or 'standard_american'
+        daily_target = goals.get('daily_calories')
+        if not daily_target:
+            try:
+                bmr = calculate_bmr(float(prof.get('weight_kg') or 0), float(prof.get('height_cm') or 0), int(prof.get('age') or 0), prof.get('biological_sex') or 'female')
+                tdee = calculate_tdee(bmr, prof.get('activity_level') or 'sedentary')
+                daily_target = max(1200, int(tdee + goal_adjustment_calories(goals.get('goal_type') or 'maintain_weight')))
+            except Exception:
+                daily_target = None
+        macro_targets = calculate_macro_grams(daily_target, diet_slug) if daily_target else None
+
+        # Build a concise context
+        today_key = start.date().isoformat()
+        today = daily.get(today_key, {'calories': 0, 'carbs_g': 0, 'protein_g': 0, 'fat_g': 0, 'count': 0})
+
+        insights = []
+        used_ai = False
+        try:
+            # Use Gemini if available
+            if analyzer.model:
+                summary = {
+                    'diet_type': diet_slug,
+                    'target_calories': daily_target,
+                    'target_macros_g': macro_targets,
+                    'today': today,
+                    'week': daily
+                }
+                prompt = (
+                    "You are a nutrition coach. Given this JSON summary of a student's meals (today and last 7 days), "
+                    "generate 3-5 short, actionable insights (one line each). Focus on protein adequacy, fiber/veg, "
+                    "sodium if high, balance vs diet type, and practical next steps for the rest of the day. "
+                    "Return plain text bullets starting with '-' only.\n\nSUMMARY:\n" + json.dumps(summary)
+                )
+                resp = analyzer.model.generate_content(prompt)
+                text = ''
+                if hasattr(resp, 'text') and resp.text:
+                    text = resp.text
+                elif getattr(resp, 'candidates', None):
+                    parts = getattr(resp.candidates[0].content, 'parts', [])
+                    text = "\n".join([getattr(p, 'text', '') for p in parts if getattr(p, 'text', '')])
+                for line in text.splitlines():
+                    line = line.strip().lstrip('-').strip()
+                    if line:
+                        insights.append(line)
+                used_ai = True
+        except Exception:
+            used_ai = False
+
+        # Heuristic fallback
+        if not insights:
+            if daily_target:
+                diff = today['calories'] - daily_target
+                if diff < -200:
+                    insights.append("You're under calories so far—consider a protein-rich meal later.")
+                elif diff > 200:
+                    insights.append("Calories are high today—choose lighter, high-fiber options next meal.")
+            if macro_targets:
+                if today['protein_g'] < macro_targets['protein'] * 0.5:
+                    insights.append("Protein looks low—add eggs, yogurt, tofu, or lean meat.")
+                if today['carbs_g'] > macro_targets['carbs'] * 0.9:
+                    insights.append("Carbs are nearing target—prefer non-starchy veggies for volume.")
+                if today['fat_g'] > macro_targets['fat'] * 1.1:
+                    insights.append("Fat slightly high—keep dressings and oils moderate next meal.")
+            if not insights:
+                insights.append("Keep prioritizing whole foods and hydrate regularly today.")
+
+        return jsonify({'success': True, 'insights': insights, 'used_ai': used_ai})
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 if __name__ == '__main__':
     print("🍽️  Diet Designer Web App Starting...")
     print("🐍 Python version:", __import__('sys').version)
