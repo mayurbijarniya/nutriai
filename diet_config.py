@@ -1,7 +1,8 @@
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 # Diet type configurations and helpers
 
+# Legacy-lite configs used across the app (kept for compatibility)
 DIETS: Dict[str, Dict[str, Any]] = {
     "standard_american": {
         "label": "Standard American Diet",
@@ -178,6 +179,200 @@ DIETS: Dict[str, Dict[str, Any]] = {
 }
 
 
+# New comprehensive Diet Configuration System (exact fields per spec)
+DIET_CONFIGURATIONS: Dict[str, Dict[str, Any]] = {
+    'standard_american': {
+        'name': 'Standard American Diet',
+        'description': 'Balanced nutrition following USDA dietary guidelines with moderate portions and variety',
+        'macro_ratios': {'carbs': 50, 'protein': 20, 'fat': 30},
+        'daily_limits': {
+            'sodium_mg': 2300,
+            'added_sugar_g': 25,
+            'saturated_fat_percent': 10,
+            'fiber_g': 25
+        },
+        'encouraged_foods': [
+            'whole_grains', 'lean_proteins', 'fish', 'poultry', 'eggs', 'dairy',
+            'fruits', 'vegetables', 'nuts', 'seeds', 'legumes', 'olive_oil'
+        ],
+        'discouraged_foods': [
+            'processed_meats', 'fried_foods', 'sugary_drinks', 'candy',
+            'refined_grains', 'trans_fats', 'excessive_alcohol'
+        ],
+        'meal_frequency': '3 meals + 1-2 snacks',
+        'difficulty': 'Easy',
+        'good_for': ['General health', 'Beginners', 'Balanced lifestyle'],
+        'student_notes': 'Most flexible option, works with dining hall meals'
+    },
+
+    'mediterranean': {
+        'name': 'Mediterranean Diet',
+        'description': 'Heart-healthy diet emphasizing olive oil, fish, whole grains, and fresh produce',
+        'macro_ratios': {'carbs': 45, 'protein': 20, 'fat': 35},
+        'daily_limits': {
+            'sodium_mg': 2000,
+            'added_sugar_g': 20,
+            'red_meat_servings': 0.3,
+            'fish_servings': 2
+        },
+        'encouraged_foods': [
+            'olive_oil', 'fish', 'seafood', 'whole_grains', 'legumes', 'nuts',
+            'fresh_fruits', 'vegetables', 'herbs', 'moderate_wine', 'yogurt', 'cheese'
+        ],
+        'discouraged_foods': [
+            'red_meat', 'processed_foods', 'refined_sugars', 'butter',
+            'margarine', 'processed_meats'
+        ],
+        'meal_frequency': '3 meals, Mediterranean-style',
+        'difficulty': 'Moderate',
+        'good_for': ['Heart health', 'Brain health', 'Longevity', 'Anti-inflammatory'],
+        'student_notes': 'Great for campus Greek restaurants, affordable with bulk legumes and grains'
+    },
+
+    'ketogenic': {
+        'name': 'Ketogenic Diet',
+        'description': 'Very low-carb, high-fat diet that puts body into ketosis for fat burning',
+        'macro_ratios': {'carbs': 5, 'protein': 25, 'fat': 70},
+        'daily_limits': {
+            'net_carbs_g': 20,
+            'protein_g_per_kg': 1.6,
+            'electrolytes': {'sodium_mg': 3000, 'potassium_mg': 3500, 'magnesium_mg': 400}
+        },
+        'encouraged_foods': [
+            'meat', 'poultry', 'fatty_fish', 'eggs', 'butter', 'coconut_oil',
+            'avocados', 'nuts', 'seeds', 'leafy_greens', 'low_carb_vegetables', 'cheese'
+        ],
+        'discouraged_foods': [
+            'grains', 'sugar', 'fruits_except_berries', 'starchy_vegetables',
+            'legumes', 'most_dairy', 'processed_foods', 'alcohol'
+        ],
+        'meal_frequency': '2-3 meals (often naturally reduces appetite)',
+        'difficulty': 'Hard',
+        'good_for': ['Rapid weight loss', 'Epilepsy management', 'Mental clarity'],
+        'student_notes': 'Challenging with dining halls, requires meal prep and supplements',
+        'warnings': ['Keto flu first week', 'Requires electrolyte supplementation', 'Medical supervision recommended']
+    },
+
+    'plant_based_vegan': {
+        'name': 'Plant-Based Vegan',
+        'description': 'Complete elimination of animal products, focusing on whole plant foods',
+        'macro_ratios': {'carbs': 55, 'protein': 15, 'fat': 30},
+        'daily_limits': {
+            'b12_mcg': 2.4,
+            'iron_mg': 18,
+            'calcium_mg': 1200,
+            'omega3_dha_epa_mg': 500
+        },
+        'encouraged_foods': [
+            'legumes', 'nuts', 'seeds', 'whole_grains', 'vegetables', 'fruits',
+            'plant_milks', 'tofu', 'tempeh', 'nutritional_yeast', 'quinoa'
+        ],
+        'discouraged_foods': [
+            'meat', 'poultry', 'fish', 'dairy', 'eggs', 'honey', 'gelatin',
+            'processed_vegan_foods_high_sodium'
+        ],
+        'meal_frequency': '3 meals + 2 snacks for adequate protein',
+        'difficulty': 'Moderate',
+        'good_for': ['Environmental impact', 'Heart health', 'Cancer prevention'],
+        'student_notes': 'Many campus options, affordable with bulk grains and legumes',
+        'required_supplements': ['B12', 'D3', 'Algae Omega-3'],
+        'protein_combining': 'Combine grains + legumes for complete amino acids'
+    },
+
+    'intermittent_fasting_16_8': {
+        'name': 'Intermittent Fasting 16:8',
+        'description': '16-hour fast with 8-hour eating window, typically 12pm-8pm',
+        'macro_ratios': {'carbs': 45, 'protein': 25, 'fat': 30},
+        'schedule': {
+            'fasting_window': '8pm - 12pm next day',
+            'eating_window': '12pm - 8pm',
+            'allowed_during_fast': ['water', 'black_coffee', 'plain_tea', 'sparkling_water']
+        },
+        'meal_timing': {
+            'first_meal': '12:00pm (break-fast)',
+            'second_meal': '4:00pm (lunch)',
+            'third_meal': '7:30pm (early dinner)',
+            'snacks': 'Within eating window only'
+        },
+        'encouraged_foods': [
+            'high_protein_foods', 'healthy_fats', 'fiber_rich_foods',
+            'nutrient_dense_foods', 'adequate_hydration'
+        ],
+        'difficulty': 'Moderate',
+        'good_for': ['Weight management', 'Insulin sensitivity', 'Simplicity'],
+        'student_notes': 'Skip breakfast, fits well with late morning classes',
+        'warnings': ['May affect morning workouts', 'Social eating challenges']
+    },
+
+    'dash_diet': {
+        'name': 'DASH Diet',
+        'description': 'Dietary Approaches to Stop Hypertension - designed to lower blood pressure',
+        'macro_ratios': {'carbs': 55, 'protein': 18, 'fat': 27},
+        'daily_targets': {
+            'sodium_mg': 1500,
+            'potassium_mg': 4700,
+            'calcium_mg': 1200,
+            'magnesium_mg': 500,
+            'fiber_g': 30,
+            'fruits_servings': 4,
+            'vegetables_servings': 5,
+            'whole_grains_servings': 6,
+            'lean_protein_servings': 2,
+            'nuts_seeds_servings': 1,
+            'low_fat_dairy_servings': 3
+        },
+        'encouraged_foods': [
+            'fruits', 'vegetables', 'whole_grains', 'lean_meats', 'poultry',
+            'fish', 'nuts', 'seeds', 'low_fat_dairy', 'beans', 'legumes'
+        ],
+        'discouraged_foods': [
+            'high_sodium_foods', 'processed_meats', 'full_fat_dairy',
+            'sugary_drinks', 'sweets', 'red_meat_excess'
+        ],
+        'difficulty': 'Moderate',
+        'good_for': ['High blood pressure', 'Heart health', 'Stroke prevention'],
+        'student_notes': 'Focus on fresh foods, avoid processed campus foods'
+    }
+}
+
+# Add Flexitarian and Gluten-Free configs to the comprehensive map for completeness
+DIET_CONFIGURATIONS['flexitarian'] = {
+    'name': 'Flexitarian Diet',
+    'description': 'Mostly plant-based with occasional lean meats; flexible and balanced',
+    'macro_ratios': {'carbs': 50, 'protein': 20, 'fat': 30},
+    'daily_limits': {
+        'sodium_mg': 2300,
+        'added_sugar_g': 25,
+        'saturated_fat_percent': 10,
+        'fiber_g': 25
+    },
+    'encouraged_foods': ['plants', 'whole_grains', 'legumes', 'fruits', 'vegetables', 'lean_meats', 'olive_oil', 'nuts', 'seeds'],
+    'discouraged_foods': ['processed_meats', 'sugary_drinks', 'refined_grains', 'trans_fats'],
+    'meal_frequency': '3 meals + 1 snack',
+    'difficulty': 'Easy',
+    'good_for': ['General health', 'Flexibility'],
+    'student_notes': 'Easy to follow on campus; choose plant mains and occasional lean meat.'
+}
+
+DIET_CONFIGURATIONS['gluten_free'] = {
+    'name': 'Gluten-Free Diet',
+    'description': 'Avoids wheat, barley, and rye; focus on naturally gluten-free foods',
+    'macro_ratios': {'carbs': 50, 'protein': 20, 'fat': 30},
+    'daily_limits': {
+        'sodium_mg': 2300,
+        'added_sugar_g': 25,
+        'saturated_fat_percent': 10,
+        'fiber_g': 25
+    },
+    'encouraged_foods': ['rice', 'corn', 'quinoa', 'potatoes', 'fruits', 'vegetables', 'lean_proteins', 'dairy'],
+    'discouraged_foods': ['wheat', 'barley', 'rye', 'malt'],
+    'meal_frequency': '3 meals + 1-2 snacks',
+    'difficulty': 'Moderate',
+    'good_for': ['Celiac disease', 'Gluten sensitivity'],
+    'student_notes': 'Check labels and cross-contamination; many cafeterias label GF options.'
+}
+
+
 def get_activity_multiplier(level: str) -> float:
     return {
         'sedentary': 1.2,
@@ -193,6 +388,31 @@ def mifflin_st_jeor_bmr(weight_kg: float, height_cm: float, age_years: int, biol
         return (10 * weight_kg) + (6.25 * height_cm) - (5 * age_years) + 5
     # female or other
     return (10 * weight_kg) + (6.25 * height_cm) - (5 * age_years) - 161
+
+
+# Exact-named helpers requested
+def calculate_bmr(weight_kg: float, height_cm: float, age: int, biological_sex: str) -> float:
+    """Mifflin-St Jeor Equation"""
+    return mifflin_st_jeor_bmr(weight_kg, height_cm, age, biological_sex)
+
+
+def calculate_tdee(bmr: float, activity_level: str) -> float:
+    """Total Daily Energy Expenditure"""
+    return bmr * get_activity_multiplier(activity_level)
+
+
+def calculate_macro_grams(calories: float, diet_type: str) -> Dict[str, float]:
+    """Convert macro percentages to grams using DIET_CONFIGURATIONS."""
+    cfg = DIET_CONFIGURATIONS.get(diet_type) or DIET_CONFIGURATIONS['standard_american']
+    ratios = cfg['macro_ratios']
+    carb_cal = calories * (ratios['carbs'] / 100)
+    protein_cal = calories * (ratios['protein'] / 100)
+    fat_cal = calories * (ratios['fat'] / 100)
+    return {
+        'carbs': carb_cal / 4.0,
+        'protein': protein_cal / 4.0,
+        'fat': fat_cal / 9.0
+    }
 
 
 def goal_adjustment_calories(goal_type: str) -> int:
@@ -329,6 +549,86 @@ def score_meal_adherence(nutrients: Dict[str, Any], diet_slug: str) -> Dict[str,
         suggestions.append("Choose fresh items over soups or processed foods to reduce sodium.")
 
     return {"score": score, "violations": violations, "suggestions": suggestions}
+
+
+# Personalized analysis helpers
+def compute_macro_adherence_10pt(calories_kcal: float, carbs_g: float, protein_g: float, fat_g: float, diet_type: str) -> Dict[str, Any]:
+    """Score 1-10 based on ±5% tolerance to macro ratios."""
+    if not calories_kcal or calories_kcal <= 0:
+        return {"score": None, "explanation": "Insufficient calorie data"}
+    cfg = DIET_CONFIGURATIONS.get(diet_type) or DIET_CONFIGURATIONS['standard_american']
+    ratios = cfg['macro_ratios']
+    actual = {
+        'carbs': (carbs_g * 4.0) / calories_kcal if carbs_g is not None else None,
+        'protein': (protein_g * 4.0) / calories_kcal if protein_g is not None else None,
+        'fat': (fat_g * 9.0) / calories_kcal if fat_g is not None else None,
+    }
+    missing = [k for k,v in actual.items() if v is None]
+    if missing:
+        return {"score": None, "explanation": f"Missing macros: {', '.join(missing)}"}
+    target = {k: ratios[k]/100.0 for k in ['carbs','protein','fat']}
+    diffs = {k: abs(actual[k] - target[k]) for k in target}
+    # 0 diff => 10, 5% diff => ~8, 15% diff => ~5, >25% => ~2
+    penalties = sum(max(0.0, (d - 0.05) * 20.0) for d in diffs.values())  # each 0.05 over costs 1 pt
+    score = max(1.0, min(10.0, 10.0 - penalties))
+    exp = ", ".join([f"{k} off by {int(d*100)}%" for k,d in diffs.items() if d > 0.05]) or "Within ±5% of targets"
+    return {"score": round(score,1), "explanation": exp}
+
+
+def detect_allergens_from_text(markdown_text: str, user_allergies: List[str]) -> List[Dict[str, Any]]:
+    if not markdown_text or not user_allergies:
+        return []
+    text = (markdown_text or '').lower()
+    matches = []
+    # Simple keyword map
+    keywords = {
+        'nuts': ['almond','walnut','cashew','pistachio','pecan','hazelnut','peanut'],
+        'dairy': ['milk','cheese','butter','cream','yogurt','ghee'],
+        'eggs': ['egg','mayonnaise','mayo'],
+        'shellfish': ['shrimp','prawn','lobster','crab','scallop'],
+        'fish': ['salmon','tuna','cod','fish','anchovy','sardine'],
+        'soy': ['soy','tofu','edamame','soybean', 'soy sauce'],
+        'gluten': ['wheat','barley','rye','flour','bread','tortilla','pasta'],
+        'sesame': ['sesame','tahini']
+    }
+    for allergen in user_allergies:
+        for kw in keywords.get(allergen, []):
+            if kw in text:
+                matches.append({"allergen": allergen, "keyword": kw, "confidence": "medium"})
+                break
+    return matches
+
+
+def portion_feedback(calories_kcal: float, daily_target_kcal: float, meal_context: str) -> str:
+    if not calories_kcal or not daily_target_kcal or daily_target_kcal <= 0:
+        return ""
+    pct = calories_kcal / daily_target_kcal
+    context_note = ""
+    if meal_context in ("pre_workout","post_workout"):
+        context_note = " for your workout"
+    if pct < 0.20:
+        return f"Light meal (~{int(pct*100)}% of day){context_note}. Consider adding protein/fiber if still hungry."
+    if pct <= 0.40:
+        return f"Balanced portion (~{int(pct*100)}% of day){context_note}."
+    if pct <= 0.60:
+        return f"Hearty meal (~{int(pct*100)}% of day){context_note}. Plan lighter meals later."
+    return f"Very heavy (~{int(pct*100)}% of day){context_note}. Reduce energy-dense items for balance."
+
+
+def goal_specific_advice(goal_type: str) -> List[str]:
+    mapping = {
+        'lose_weight_slow': ["Reduce calorie-dense toppings", "Increase non-starchy vegetables"],
+        'lose_weight_moderate': ["Choose leaner proteins", "Swap refined grains for whole grains"],
+        'lose_weight_fast': ["Limit liquid calories", "Avoid fried items"],
+        'maintain_weight': ["Keep portions consistent", "Prioritize whole foods"],
+        'gain_weight_slow': ["Add healthy fats like olive oil", "Include calorie-dense snacks"],
+        'gain_weight_moderate': ["Increase meal frequency", "Add protein shakes"],
+        'build_muscle': ["Target 1.6–2.2 g/kg protein", "Include protein each meal"],
+        'improve_health': ["Emphasize plants and fiber", "Reduce added sugars"],
+        'manage_diabetes': ["Focus on carb counting", "Prefer low-GI carbs"],
+        'lower_cholesterol': ["Use olive oil over butter", "Increase soluble fiber"]
+    }
+    return mapping.get(goal_type or 'maintain_weight', ["Choose minimally processed foods"]) 
 
 
 def generate_transition_plan(diet_from: str, diet_to: str) -> Dict[str, Any]:

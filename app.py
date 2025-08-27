@@ -24,6 +24,17 @@ from database import get_db
 # Usage tracking import
 from usage_tracker import check_limit, track_usage, get_usage_summary
 from diet_config import score_meal_adherence
+from diet_config import (
+    DIET_CONFIGURATIONS,
+    calculate_bmr,
+    calculate_tdee,
+    calculate_macro_grams,
+    compute_macro_adherence_10pt,
+    detect_allergens_from_text,
+    portion_feedback,
+    goal_specific_advice,
+    goal_adjustment_calories,
+)
 
 # Load environment variables
 load_dotenv()
@@ -418,7 +429,7 @@ STRICT OUTPUT CONTRACT:
             import re
             md = raw or ""
             payload = {}
-            m = re.search(r"```\s*DATA_PAYLOAD\s*\n([\s\S]*?)```", raw or "")
+            m = re.search(r"```\s*DATA_PAYLOAD[\w\s]*\n([\s\S]*?)```", raw or "")
             if m:
                 json_part = m.group(1)
                 try:
@@ -426,11 +437,55 @@ STRICT OUTPUT CONTRACT:
                 except Exception:
                     payload = {}
                 md = (raw[:m.start()]).strip()
+            else:
+                # Fallback: any fenced JSON code block
+                m2 = re.search(r"```\s*(?:json)?\s*\n(\{[\s\S]*?\})\s*```", raw or "")
+                if m2:
+                    try:
+                        payload = json.loads(m2.group(1))
+                        md = (raw[:m2.start()]).strip()
+                    except Exception:
+                        payload = {}
+                else:
+                    # Fallback: last JSON-like object in text
+                    start = (raw or '').rfind('{')
+                    end = (raw or '').rfind('}')
+                    if start != -1 and end != -1 and end > start:
+                        try:
+                            payload = json.loads((raw or '')[start:end+1])
+                            md = (raw[:start]).strip()
+                        except Exception:
+                            payload = {}
             
             # Remove any remaining fenced code blocks (e.g., unlabeled JSON)
             md = re.sub(r"```[\s\S]*?```", "", md).strip()
             # Remove standalone ISO-like date lines if any slipped in
             md = "\n".join([ln for ln in md.splitlines() if not re.match(r"^\s*20\d{2}[-/].*", ln)]).strip()
+
+            # Normalize payload keys for downstream logic
+            def _num(x):
+                try:
+                    return float(x)
+                except Exception:
+                    return None
+            if payload:
+                # Map alt shapes to flat keys
+                tn = payload.get('total_nutrition') or {}
+                if 'calories_kcal' not in payload:
+                    if 'calories' in payload:
+                        payload['calories_kcal'] = _num(payload.get('calories'))
+                    elif 'calories' in tn:
+                        payload['calories_kcal'] = _num(tn.get('calories'))
+                for k_src, k_dst in [('carbs','carbs_g'), ('protein','protein_g'), ('fat','fat_g'), ('fiber','fiber_g'), ('sodium','sodium_mg')]:
+                    if k_dst not in payload:
+                        if k_src in payload:
+                            payload[k_dst] = _num(payload.get(k_src))
+                        elif k_src in tn:
+                            payload[k_dst] = _num(tn.get(k_src))
+                # Ensure numbers are numeric
+                for key in ['calories_kcal','carbs_g','protein_g','fat_g','fiber_g','sodium_mg']:
+                    if key in payload:
+                        payload[key] = _num(payload.get(key))
 
             return {"success": True, "markdown": md, "data_payload": payload, "processed_image": processed_path}
 
@@ -824,6 +879,7 @@ def api_analyze_with_profile():
                 'carb_target': goals.get('carbs_grams'),
                 'fat_target': goals.get('fat_grams'),
                 'restrictions': prefs.get('food_restrictions', []),
+                'goal_type': goals.get('goal_type') or 'maintain_weight',
             }
 
         result = analyzer.analyze_meal_with_profile(image_path, user_context, meal_context)
@@ -880,12 +936,106 @@ def api_analyze_with_profile():
                     parts.append(f"Feedback: {feedback}")
                 analysis_text = '\n'.join(parts) or (raw_text or 'Analysis not available')
 
+        # Fallback: parse macros from Markdown if payload missing
+        def parse_macros_from_markdown(md_text: str):
+            import re
+            if not md_text:
+                return {}
+            t = md_text
+            # Pipe-table pattern
+            m = re.search(r"\|\s*Total\s*Calories\s*\|[\s\S]*?\n\|[\-:\s\|]+\n\|\s*(?P<cal>\d+(?:\.\d+)?)\s*\|\s*(?P<carb>\d+(?:\.\d+)?)\s*\|\s*(?P<pro>\d+(?:\.\d+)?)\s*\|\s*(?P<fat>\d+(?:\.\d+)?)\s*\|\s*(?P<fiber>\d+(?:\.\d+)?)\s*\|\s*(?P<sod>\d+(?:\.\d+)?)", t, re.IGNORECASE)
+            if m:
+                return {
+                    'calories_kcal': float(m.group('cal')),
+                    'carbs_g': float(m.group('carb')),
+                    'protein_g': float(m.group('pro')),
+                    'fat_g': float(m.group('fat')),
+                    'fiber_g': float(m.group('fiber')),
+                    'sodium_mg': float(m.group('sod')),
+                }
+            # Loose text fallback
+            def pick(rx):
+                mm = re.search(rx, t, re.IGNORECASE)
+                return float(mm.group(1)) if mm else None
+            cal = pick(r"Total\s*Calories\D+(\d+(?:\.\d+)?)")
+            carb = pick(r"Carbs\s*\(g\)\D+(\d+(?:\.\d+)?)")
+            pro = pick(r"Protein\s*\(g\)\D+(\d+(?:\.\d+)?)")
+            fat = pick(r"Fat\s*\(g\)\D+(\d+(?:\.\d+)?)")
+            fiber = pick(r"Fiber\s*\(g\)\D+(\d+(?:\.\d+)?)")
+            sod = pick(r"Sodium\s*\(mg\)\D+(\d+(?:\.\d+)?)")
+            got = {k:v for k,v in [('calories_kcal',cal),('carbs_g',carb),('protein_g',pro),('fat_g',fat),('fiber_g',fiber),('sodium_mg',sod)] if v is not None}
+            return got
+
+        if analysis_text and (not structured or not any(structured.get(k) for k in ['calories_kcal','carbs_g','protein_g','fat_g'])):
+            parsed = parse_macros_from_markdown(analysis_text)
+            if parsed:
+                structured.update(parsed)
+
+        # Compute personalization using configs and user profile (if available)
+        personalization = {}
+        try:
+            diet_slug = user_context.get('diet_type', 'standard_american')
+            daily_target_kcal = user_context.get('daily_calorie_target')
+            # Fallback: compute daily target if missing using BMR/TDEE and goal adjustment
+            if not daily_target_kcal:
+                try:
+                    if all(user_context.get(k) for k in ['weight_kg','height_cm','age','gender','activity_level']):
+                        bmr = calculate_bmr(float(user_context['weight_kg']), float(user_context['height_cm']), int(user_context['age']), user_context['gender'])
+                        tdee = calculate_tdee(bmr, user_context['activity_level'])
+                        adj = goal_adjustment_calories(user_context.get('goal_type') or 'maintain_weight')
+                        daily_target_kcal = max(1200, int(tdee + adj))
+                except Exception:
+                    daily_target_kcal = None
+            if structured:
+                macro_score = compute_macro_adherence_10pt(
+                    structured.get('calories_kcal'),
+                    structured.get('carbs_g'),
+                    structured.get('protein_g'),
+                    structured.get('fat_g'),
+                    diet_slug,
+                )
+                portion_msg = portion_feedback(structured.get('calories_kcal'), daily_target_kcal, meal_context)
+            else:
+                macro_score = {"score": None, "explanation": "No structured macros"}
+                portion_msg = portion_feedback(None, daily_target_kcal, meal_context)
+            allergens = detect_allergens_from_text(analysis_text, user_context.get('allergies', []))
+            # Dynamic goal tips based on deviations and sodium
+            goal_tips = goal_specific_advice(user_context.get('goal_type'))
+            try:
+                tips_dynamic = []
+                if macro_score and macro_score.get('explanation') and 'carbs off' in macro_score.get('explanation').lower():
+                    tips_dynamic.append("Reduce refined carbs; add more non-starchy vegetables.")
+                if macro_score and macro_score.get('explanation') and 'protein off' in macro_score.get('explanation').lower():
+                    tips_dynamic.append("Add a lean protein portion to balance macros.")
+                if structured.get('sodium_mg') and structured['sodium_mg'] > 1500:
+                    tips_dynamic.append("Choose fresh items and limit salty seasonings to reduce sodium.")
+                if structured.get('calories_kcal') and daily_target_kcal:
+                    pct = structured['calories_kcal'] / max(1, daily_target_kcal)
+                    if pct > 0.6:
+                        tips_dynamic.append("Since this meal is large, keep other meals lighter today.")
+                if tips_dynamic:
+                    goal_tips = list(dict.fromkeys(goal_tips + tips_dynamic))
+            except Exception:
+                pass
+            cfg = DIET_CONFIGURATIONS.get(diet_slug) or {}
+            limits = cfg.get('daily_limits') or cfg.get('daily_targets')
+            personalization = {
+                'macro_adherence': macro_score,
+                'portion_advice': portion_msg,
+                'allergen_matches': allergens,
+                'goal_tips': goal_tips,
+                'diet_limits': limits,
+            }
+        except Exception as _:
+            personalization = {}
+
         # Attach ownership and save result
         save_payload = {
             'timestamp': datetime.now().isoformat(),
             'dietary_goal': user_context.get('diet_type', 'standard_american'),
             'analysis': analysis_text,
             'analysis_json': structured,
+            'personalization': personalization,
             'image_path': result.get('processed_image'),
             'meal_context': meal_context
         }
@@ -897,6 +1047,7 @@ def api_analyze_with_profile():
             'success': True,
             'structured': structured,
             'analysis': analysis_text,
+            'personalization': personalization,
             'database_id': db_result.get('id') if db_result and db_result.get('success') else None
         })
 

@@ -618,6 +618,37 @@ document.addEventListener('DOMContentLoaded', function() {
         analysisResult.innerHTML = `${prose}
             <div class="prose prose-sm max-w-none dark:prose-invert">
                 <div class="text-gray-700 dark:text-gray-300 leading-relaxed space-y-3">${renderedMarkdown}</div>
+                ${data.personalization ? `
+                <div class="mt-6 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40">
+                    <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">How this fits your goals</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-medium">Macro Adherence</div>
+                            <div class="inline-flex items-center px-3 py-1 rounded-full text-sm ${data.personalization.macro_adherence && data.personalization.macro_adherence.score >= 8 ? 'bg-green-50 text-green-700 border border-green-200' : data.personalization.macro_adherence && data.personalization.macro_adherence.score >= 5 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-red-50 text-red-700 border border-red-200'}">
+                                ${data.personalization.macro_adherence?.score ?? '—'} / 10
+                            </div>
+                            <div class="text-xs mt-2 text-gray-500 dark:text-gray-400">${data.personalization.macro_adherence?.explanation || ''}</div>
+                        </div>
+                        <div>
+                            <div class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-medium">Portion Advice</div>
+                            <p class="text-gray-700 dark:text-gray-300">${data.personalization.portion_advice || '—'}</p>
+                        </div>
+                    </div>
+                    ${Array.isArray(data.personalization.allergen_matches) && data.personalization.allergen_matches.length ? `
+                    <div class="mt-4">
+                        <div class="text-sm font-medium text-red-700 mb-1">Allergen Alerts</div>
+                        <ul class="list-disc pl-6 text-red-700">
+                            ${data.personalization.allergen_matches.map(a => `<li>${a.allergen} (matched: ${a.keyword})</li>`).join('')}
+                        </ul>
+                    </div>` : ''}
+                    ${Array.isArray(data.personalization.goal_tips) && data.personalization.goal_tips.length ? `
+                    <div class="mt-4">
+                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Goal-Specific Tips</div>
+                        <ul class="list-disc pl-6 text-gray-700 dark:text-gray-300">
+                            ${data.personalization.goal_tips.map(t => `<li>${t}</li>`).join('')}
+                        </ul>
+                    </div>` : ''}
+                </div>` : ''}
             </div>`;
 
         resultsSection.classList.remove('hidden');
