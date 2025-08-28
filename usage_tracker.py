@@ -8,12 +8,14 @@ import uuid
 # Daily limits configuration
 LIMITS = {
     'guest': {
-        'analyses': 3,
-        'ai_search': 0,  # Not available for guests
+        # Increased free user limit from 3 -> 10
+        'analyses': 10,
+        'ai_search': 0,   # Not available for guests
         'share_links': 0  # Not available for guests
     },
     'user': {
-        'analyses': 25,
+        # Increased signed-in user limit from 25 -> 100
+        'analyses': 100,
         'ai_search': 10,
         'share_links': 5  # Active links at any time
     }
