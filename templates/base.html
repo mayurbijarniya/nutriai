@@ -305,9 +305,10 @@
                                         <span>Nutrition Profile</span>
                                     </a>
                                     
-                                    <a href="{{ url_for('history') }}" class="flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-lg transition-colors">
-                                        <i class="ph ph-clock-counter-clockwise text-gray-500"></i>
-                                        <span>History</span>
+                                    <!-- Replaced History with Dashboard so it's accessible on mobile via profile menu -->
+                                    <a href="{{ url_for('dashboard') }}" class="sm:hidden flex items-center space-x-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100/50 dark:hover:bg-gray-800/50 rounded-lg transition-colors">
+                                        <i class="ph ph-gauge text-gray-500"></i>
+                                        <span>Dashboard</span>
                                     </a>
                                     
                                     <div class="border-t border-gray-200/50 dark:border-gray-700/50 my-1"></div>
