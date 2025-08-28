@@ -168,7 +168,8 @@ class DietAnalyzer:
             self.model = genai.GenerativeModel(
                 'gemini-2.5-flash',
                 generation_config={
-                    "max_output_tokens": 4000,
+                    # Increased to allow large table + payload output
+                    "max_output_tokens": 8192,
                     "temperature": 0.7,
                 },
                 safety_settings=[
@@ -457,7 +458,7 @@ STRICT OUTPUT CONTRACT:
                         except Exception:
                             payload = {}
             
-            # Remove any remaining fenced code blocks (e.g., unlabeled JSON)
+            # Remove any remaining fenced code blocks (e.g., unlabeled JSON) from the visible markdown section
             md = re.sub(r"```[\s\S]*?```", "", md).strip()
             # Remove standalone ISO-like date lines if any slipped in
             md = "\n".join([ln for ln in md.splitlines() if not re.match(r"^\s*20\d{2}[-/].*", ln)]).strip()
@@ -486,6 +487,92 @@ STRICT OUTPUT CONTRACT:
                 for key in ['calories_kcal','carbs_g','protein_g','fat_g','fiber_g','sodium_mg']:
                     if key in payload:
                         payload[key] = _num(payload.get(key))
+
+            def _looks_structured(_md: str, _payload: dict) -> bool:
+                has_tables = ('|' in (_md or '')) and ('Meal Breakdown' in (_md or '') or 'Macros' in (_md or ''))
+                has_core = bool(_payload) and any(k in _payload for k in ['calories_kcal','carbs_g','protein_g','fat_g'])
+                return has_tables and has_core
+
+            # If the first pass doesn't satisfy structure, attempt a repair pass
+            if not _looks_structured(md, payload):
+                try:
+                    repair_prompt = f"""
+You are a formatter. Take the ANALYSIS CONTENT below and output EXACTLY:
+1) Clean Markdown with these sections in order:
+   # <Diet Type> Diet Analysis
+   Meal Breakdown (as a Markdown table with headers: Item | Portion | Method | Notes)
+   Macros & Key Nutrients (as a Markdown table with headers: Nutrient | Amount)
+   Diet Compatibility Score: X/10
+   Positives (bullets)
+   Areas for Improvement (bullets)
+   Personalized Recommendations with bold subheads (Ingredient Swaps, Portion Tweaks, Cooking Methods)
+   Overall Health Score (1–2 sentences)
+2) Then append a fenced code block named DATA_PAYLOAD containing JSON with keys:
+   {{"diet_type","calories_kcal","carbs_g","protein_g","fat_g","fiber_g","sodium_mg","adherence_score","flags","top_violations","top_suggestions"}}
+No extra commentary. Keep lines < 100 chars. Do not include any other code blocks.
+
+USER PROFILE SUMMARY:
+- Diet Type: {uc.get('diet_type','N/A')}, Goal: {uc.get('goal_type','maintain_weight')}, Activity: {uc.get('activity_level','N/A')}
+- Allergies: {', '.join(uc.get('allergies',[]) or []) or 'None'} | Restrictions: {', '.join(uc.get('restrictions',[]) or []) or 'None'}
+- Meal Context: {meal_context or 'general'}
+
+ANALYSIS CONTENT:
+{raw}
+"""
+                    response2 = self.model.generate_content(repair_prompt)
+                    raw2 = ''
+                    if hasattr(response2, 'text') and response2.text:
+                        raw2 = response2.text
+                    elif getattr(response2, 'candidates', None):
+                        parts = getattr(response2.candidates[0].content, 'parts', [])
+                        raw2 = "\n".join([getattr(p, 'text', '') for p in parts if getattr(p, 'text', '')])
+
+                    # Parse repaired
+                    md2 = raw2 or ""
+                    payload2 = {}
+                    m3 = re.search(r"```\s*DATA_PAYLOAD[\w\s]*\n([\s\S]*?)```", raw2 or "")
+                    if m3:
+                        try:
+                            payload2 = json.loads(m3.group(1))
+                        except Exception:
+                            payload2 = {}
+                        md2 = (raw2[:m3.start()]).strip()
+                    else:
+                        m4 = re.search(r"```\s*(?:json)?\s*\n(\{[\s\S]*?\})\s*```", raw2 or "")
+                        if m4:
+                            try:
+                                payload2 = json.loads(m4.group(1))
+                                md2 = (raw2[:m4.start()]).strip()
+                            except Exception:
+                                payload2 = {}
+                    md2 = re.sub(r"```[\s\S]*?```", "", md2).strip()
+
+                    # Normalize payload2 keys
+                    if payload2:
+                        tn2 = payload2.get('total_nutrition') or {}
+                        if 'calories_kcal' not in payload2:
+                            if 'calories' in payload2:
+                                payload2['calories_kcal'] = _num(payload2.get('calories'))
+                            elif 'calories' in tn2:
+                                payload2['calories_kcal'] = _num(tn2.get('calories'))
+                        for k_src, k_dst in [('carbs','carbs_g'), ('protein','protein_g'), ('fat','fat_g'), ('fiber','fiber_g'), ('sodium','sodium_mg')]:
+                            if k_dst not in payload2:
+                                if k_src in payload2:
+                                    payload2[k_dst] = _num(payload2.get(k_src))
+                                elif k_src in tn2:
+                                    payload2[k_dst] = _num(tn2.get(k_src))
+                        for key in ['calories_kcal','carbs_g','protein_g','fat_g','fiber_g','sodium_mg']:
+                            if key in payload2:
+                                payload2[key] = _num(payload2.get(key))
+
+                    # If repair looks good, replace
+                    if _looks_structured(md2, payload2):
+                        md, payload = md2, payload2
+                except Exception:
+                    pass
+
+            if not _looks_structured(md, payload):
+                return {"success": False, "error": "structured_markdown_missing", "raw_text": raw, "processed_image": processed_path}
 
             return {"success": True, "markdown": md, "data_payload": payload, "processed_image": processed_path}
 
@@ -898,43 +985,12 @@ def api_analyze_with_profile():
             structured = payload
 
         if not analysis_text:
-            # previous fallback path
-            structured = result.get('structured', {}) or {}
-            raw_text = (result.get('raw_text') or '').strip()
-            analysis_text = ''
-            if not structured or raw_text in ('', '{}'):
-                classic_goal = user_context.get('diet_type', 'standard_american')
-                user_prefs_text = request.form.get('user_preferences', '').strip()
-                classic = analyzer.analyze_meal(image_path, classic_goal, user_prefs_text)
-                if classic.get('success'):
-                    analysis_text = classic.get('analysis', '')
-                else:
-                    analysis_text = raw_text or 'Analysis not available'
-            else:
-                parts = []
-                mi = structured.get('meal_identification')
-                if mi:
-                    parts.append(f"Meal Identification: {mi}")
-                tn = structured.get('total_nutrition') or {}
-                if tn:
-                    cal = tn.get('calories'); pro = tn.get('protein'); carb = tn.get('carbs'); fat = tn.get('fat')
-                    summary = 'Totals: '
-                    if cal is not None:
-                        summary += f"Calories {cal} ";
-                    if pro is not None:
-                        summary += f"Protein {pro}g ";
-                    if carb is not None:
-                        summary += f"Carbs {carb}g ";
-                    if fat is not None:
-                        summary += f"Fat {fat}g"
-                    parts.append(summary.strip())
-                score = structured.get('diet_adherence_score')
-                if score is not None:
-                    parts.append(f"Diet adherence: {score}/10")
-                feedback = structured.get('personalized_feedback')
-                if feedback:
-                    parts.append(f"Feedback: {feedback}")
-                analysis_text = '\n'.join(parts) or (raw_text or 'Analysis not available')
+            # Enforce table-based markdown output only; remove legacy narrative fallback
+            return jsonify({
+                'success': False,
+                'error': 'structured_markdown_missing',
+                'message': 'The AI did not return the expected table-based markdown. Please try again.'
+            }), 502
 
         # Fallback: parse macros from Markdown if payload missing
         def parse_macros_from_markdown(md_text: str):
