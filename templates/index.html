@@ -776,11 +776,9 @@ document.addEventListener('DOMContentLoaded', function() {
 
 
     // Load usage status and diet list on page load
-    loadUsageStatus();
-    loadDiets();
-
-    // Set default from user's saved diet preference
-    (async function setDefaultDietFromProfile(){
+    // Defer non-critical background requests so the landing page renders immediately.
+    // These will run when the browser is idle or shortly after initial paint.
+    async function setDefaultDietFromProfile(){
         try {
             const res = await fetch('/profile/api/load');
             const data = await res.json();
@@ -794,8 +792,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     selectedDietText.textContent = diet.label;
                 }
             }
-        } catch(_){}
-    })();
+        } catch(_){ }
+    }
+
+    function runBackgroundInit(){
+        try {
+            loadUsageStatus();
+            loadDiets();
+            setDefaultDietFromProfile();
+        } catch (e) {
+            // ignore
+        }
+    }
+
+    if (window.requestIdleCallback) {
+        // Prefer requestIdleCallback to run when browser is free
+        requestIdleCallback(runBackgroundInit, {timeout: 3000});
+    } else {
+        // Fallback: run shortly after load
+        setTimeout(runBackgroundInit, 1000);
+    }
 
     // Meal context dropdown logic
     const mealContextBtn = document.getElementById('mealContextBtn');
