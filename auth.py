@@ -75,7 +75,7 @@ def auth_callback():
         picture = userinfo.get('picture')
         
         if not google_sub:
-            print(f"❌ ERROR: google_sub is None! userinfo: {userinfo}")
+            print(f"ERROR: google_sub is None! userinfo: {userinfo}")
             return redirect(url_for('index'))
 
         now = datetime.utcnow()

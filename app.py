@@ -59,11 +59,11 @@ else:
 # Configure Gemini API
 GEMINI_API_KEY = os.getenv('GEMINI_API_KEY')
 if not GEMINI_API_KEY:
-    print("⚠️  Warning: GEMINI_API_KEY not found in environment variables!")
-    print("📝 Create a .env file with: GEMINI_API_KEY=your_api_key_here")
+    print("Warning: GEMINI_API_KEY not found in environment variables!")
+    print("Create a .env file with: GEMINI_API_KEY=your_api_key_here")
 else:
     genai.configure(api_key=GEMINI_API_KEY)
-    print("✅ Gemini API configured successfully")
+    print("Gemini API configured successfully")
 
 # Initialize MongoDB database
 db = get_db()
@@ -187,7 +187,7 @@ class DietAnalyzer:
         try:
             # Convert RGBA to RGB if needed
             if img.mode == 'RGBA':
-                print("🔧 Converting RGBA to RGB for compatibility")
+                print("Converting RGBA to RGB for compatibility")
                 background = Image.new('RGB', img.size, (255, 255, 255))
                 background.paste(img, mask=img.split()[-1])
                 img = background
@@ -206,11 +206,11 @@ class DietAnalyzer:
             # Resize for optimal processing
             img.thumbnail((1024, 1024), Image.Resampling.LANCZOS)
             
-            print(f"✅ Image processed: {img.mode} mode, size: {img.size}")
+            print(f"Image processed: {img.mode} mode, size: {img.size}")
             return img
             
         except Exception as e:
-            print(f"⚠️  Image enhancement error: {e}")
+            print(f"Image enhancement error: {e}")
             if img.mode != 'RGB':
                 img = img.convert('RGB')
             return img
@@ -269,11 +269,11 @@ class DietAnalyzer:
             return {"error": "Gemini API not configured. Please set GEMINI_API_KEY in .env file"}
         
         try:
-            print(f"📂 Loading image from: {image_path}")
+            print(f"Loading image from: {image_path}")
             
             # Load and enhance image
             img = Image.open(image_path)
-            print(f"📷 Original image: {img.mode} mode, size: {img.size}")
+            print(f"Original image: {img.mode} mode, size: {img.size}")
             
             img = self.enhance_image(img)
             
@@ -283,7 +283,7 @@ class DietAnalyzer:
                 processed_path = processed_path + '.jpg'
             
             img.save(processed_path, 'JPEG', quality=90)
-            print(f"💾 Processed image saved: {processed_path}")
+            print(f"Processed image saved: {processed_path}")
             
             diet_info = self.get_diet_info(dietary_goal)
             
@@ -349,13 +349,13 @@ Please be specific with numbers, practical with suggestions, and format the resp
                     "image_path": processed_path
                 }
                 
-                print("✅ Analysis completed successfully")
+                print("Analysis completed successfully")
                 return {"success": True, "analysis": response.text, "data": analysis_data}
             else:
                 return {"error": "AI returned empty response. Please try again."}
                 
         except Exception as e:
-            print(f"❌ Analysis error: {str(e)}")
+            print(f"Analysis error: {str(e)}")
             return {"error": f"Analysis failed: {str(e)}"}
 
     def analyze_meal_with_profile(self, image_path, user_context, meal_context: str = ""):
@@ -577,7 +577,7 @@ ANALYSIS CONTENT:
             return {"success": True, "markdown": md, "data_payload": payload, "processed_image": processed_path}
 
         except Exception as e:
-            print(f"❌ Profile analysis error: {str(e)}")
+            print(f"Profile analysis error: {str(e)}")
             return {"error": f"Profile analysis failed: {str(e)}"}
     
     def extract_nutrition_data(self, analysis_text):
@@ -616,10 +616,10 @@ ANALYSIS CONTENT:
             if sodium_match:
                 nutrition_data['sodium_level'] = sodium_match.group(1).lower()
             
-            print(f"📊 Extracted nutrition data: {nutrition_data}")
+            print(f"Extracted nutrition data: {nutrition_data}")
             
         except Exception as e:
-            print(f"⚠️  Data extraction warning: {e}")
+            print(f"Data extraction warning: {e}")
         
         return nutrition_data
 
@@ -663,7 +663,7 @@ def analyze():
                 image_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 
                 file.save(image_path)
-                print(f"📁 File uploaded: {image_path}")
+                print(f"File uploaded: {image_path}")
         
         # Handle URL input
         elif request.form.get('image_url'):
@@ -677,7 +677,7 @@ def analyze():
                 img = Image.open(BytesIO(response.content))
                 img = analyzer.enhance_image(img)
                 img.save(image_path, 'JPEG', quality=90)
-                print(f"🌐 URL image processed and saved: {image_path}")
+                print(f"URL image processed and saved: {image_path}")
                 
             except Exception as e:
                 return jsonify({"error": f"Failed to download image: {str(e)}"})
@@ -689,7 +689,7 @@ def analyze():
         diet_goal = request.form.get('diet_goal', 'keto')
         user_preferences = request.form.get('user_preferences', '').strip()
         
-        print(f"🎯 Analyzing for {diet_goal} diet")
+        print(f"Analyzing for {diet_goal} diet")
         
         # Analyze meal
         result = analyzer.analyze_meal(image_path, diet_goal, user_preferences)
@@ -736,7 +736,7 @@ def analyze():
             return jsonify(result)
             
     except Exception as e:
-        print(f"❌ Server error: {str(e)}")
+        print(f"Server error: {str(e)}")
         return jsonify({"error": f"Server error: {str(e)}"})
 
 @app.route('/history')
@@ -760,7 +760,7 @@ def history():
             history.append(doc)
         return render_template('history.html', history=history, is_guest=False)
     except Exception as e:
-        print(f"❌ History error: {e}")
+        print(f"History error: {e}")
         return render_template('history.html', history=[], is_guest=True)
 
 @app.route('/api/history')
@@ -796,7 +796,7 @@ def api_history():
             "user_id": current_user.id
         })
     except Exception as e:
-        print(f"❌ API History error: {e}")
+        print(f"API History error: {e}")
         return jsonify({
             "success": False,
             "error": str(e),
@@ -1108,7 +1108,7 @@ def api_analyze_with_profile():
         })
 
     except Exception as e:
-        print(f"❌ analyze-with-profile error: {e}")
+        print(f"analyze-with-profile error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
         
         
@@ -1130,7 +1130,7 @@ def test_auth():
 def test():
     """Test route to check if basic Flask works"""
     return jsonify({
-        "status": "Flask is working on Vercel! 🎉",
+        "status": "Flask is working on Vercel!",
         "environment": "Vercel" if os.environ.get('VERCEL') else "Local",
         "gemini_configured": bool(GEMINI_API_KEY),
         "mongodb_uri_exists": bool(os.getenv('MONGODB_URI')),
@@ -1274,14 +1274,14 @@ def save_to_history(analysis_data, chart_path):
 
         result = db.save_analysis(analysis_data)
         if result["success"]:
-            print(f"💾 Analysis saved to MongoDB with ID: {result['id']}")
+            print(f"Analysis saved to MongoDB with ID: {result['id']}")
         else:
-            print(f"⚠️ Database save error: {result['error']}")
+            print(f"Database save error: {result['error']}")
         
         return result
             
     except Exception as e:
-        print(f"⚠️ History save error: {e}")
+        print(f"History save error: {e}")
         return {"success": False, "error": str(e)}
 
 def allowed_file(filename):
@@ -1575,22 +1575,22 @@ def dashboard_insights():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 if __name__ == '__main__':
-    print("🍽️  Diet Designer Web App Starting...")
-    print("🐍 Python version:", __import__('sys').version)
-    print("📦 Flask version:", __import__('flask').__version__)
+    print("Diet Designer Web App Starting...")
+    print("Python version:", __import__('sys').version)
+    print("Flask version:", __import__('flask').__version__)
     
     if GEMINI_API_KEY:
-        print("✅ Gemini API key configured")
+        print("Gemini API key configured")
     else:
-        print("❌ Gemini API key missing - create .env file")
+        print("Gemini API key missing - create .env file")
     
     if db.client:
-        print("✅ MongoDB Atlas connected")
+        print("MongoDB Atlas connected")
     else:
-        print("❌ MongoDB Atlas connection failed")
+        print("MongoDB Atlas connection failed")
     
-    print("🌐 Starting server at: http://localhost:5001")
-    print("📱 Access from mobile: http://your-ip:5001")
-    print("📝 MongoDB Atlas integration enabled")
+    print("Starting server at: http://localhost:5001")
+    print("Access from mobile: http://your-ip:5001")
+    print("MongoDB Atlas integration enabled")
     
     app.run(debug=True, host='0.0.0.0', port=5001)

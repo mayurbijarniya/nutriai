@@ -212,7 +212,7 @@ def save_profile():
         return jsonify({'success': True, 'message': 'Profile saved successfully'})
         
     except Exception as e:
-        print(f"❌ Profile save error: {e}")
+        print(f"Profile save error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @profile_bp.route('/api/load')
@@ -248,7 +248,7 @@ def load_profile():
         return jsonify({'success': True, 'data': result})
         
     except Exception as e:
-        print(f"❌ Profile load error: {e}")
+        print(f"Profile load error: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
 @profile_bp.route('/view')

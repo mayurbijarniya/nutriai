@@ -14,10 +14,10 @@ class MongoDBManager:
     def __init__(self):
         # Get connection string from environment variable
         self.connection_string = os.getenv('MONGODB_URI')
-        print(f"🔍 MongoDB URI exists: {bool(self.connection_string)}")
+        print(f"MongoDB URI exists: {bool(self.connection_string)}")
         
         if not self.connection_string:
-            print("❌ MONGODB_URI not found in environment variables!")
+            print("MONGODB_URI not found in environment variables!")
             self.client = None
             self.db = None
             return
@@ -25,7 +25,7 @@ class MongoDBManager:
         # Print partial URI for debugging (hide password)
         uri_parts = self.connection_string.split('@')
         if len(uri_parts) > 1:
-            print(f"🔗 Connecting to: ...@{uri_parts[1][:50]}...")
+            print(f"Connecting to: ...@{uri_parts[1][:50]}...")
         
         try:
             # Create MongoDB client with explicit timeout settings
@@ -82,24 +82,24 @@ class MongoDBManager:
                 # Hydration indexes
                 self.hydration_logs.create_index([('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
             except Exception as e:
-                print(f"⚠️  Index creation warning: {e}")
+                print(f"Index creation warning: {e}")
             
             # Test connection with ping
-            print("🔄 Testing MongoDB connection...")
+            print("Testing MongoDB connection...")
             self.client.admin.command('ping')
-            print("✅ Connected to MongoDB Atlas successfully!")
+            print("Connected to MongoDB Atlas successfully!")
             
         except Exception as e:
-            print(f"❌ MongoDB connection failed: {e}")
-            print(f"🔍 Error type: {type(e).__name__}")
+            print(f"MongoDB connection failed: {e}")
+            print(f"Error type: {type(e).__name__}")
             
             # More detailed error info
             if "authentication failed" in str(e).lower():
-                print("🔐 Authentication issue - check username/password in MongoDB URI")
+                print("Authentication issue - check username/password in MongoDB URI")
             elif "timeout" in str(e).lower():
-                print("⏰ Connection timeout - check network/firewall settings")
+                print("Connection timeout - check network/firewall settings")
             elif "dns" in str(e).lower():
-                print("📡 DNS resolution issue - check MongoDB cluster hostname")
+                print("DNS resolution issue - check MongoDB cluster hostname")
             
             self.client = None
             self.db = None
@@ -131,27 +131,27 @@ class MongoDBManager:
             analysis_data.setdefault('user_id', None)
             analysis_data.setdefault('guest_session_id', None)
             
-            print(f"💾 Attempting to save analysis to MongoDB...")
+            print(f"Attempting to save analysis to MongoDB...")
             
             # Insert document
             result = self.collection.insert_one(analysis_data)
             
-            print(f"✅ Analysis saved with ID: {result.inserted_id}")
+            print(f"Analysis saved with ID: {result.inserted_id}")
             return {"success": True, "id": str(result.inserted_id)}
             
         except Exception as e:
-            print(f"❌ Save error: {e}")
-            print(f"🔍 Error type: {type(e).__name__}")
+            print(f"Save error: {e}")
+            print(f"Error type: {type(e).__name__}")
             return {"success": False, "error": str(e)}
     
     def get_history(self, limit=20):
         """Get analysis history from MongoDB"""
         if not self.client:
-            print("⚠️ Database not connected, returning empty history")
+            print("Database not connected, returning empty history")
             return []
         
         try:
-            print(f"📚 Attempting to retrieve {limit} analyses...")
+            print(f"Attempting to retrieve {limit} analyses...")
             
             # Get documents sorted by created_at (newest first)
             cursor = self.collection.find().sort("created_at", -1).limit(limit)
@@ -168,12 +168,12 @@ class MongoDBManager:
                 
                 history.append(doc)
             
-            print(f"✅ Retrieved {len(history)} analyses from database")
+            print(f"Retrieved {len(history)} analyses from database")
             return history
             
         except Exception as e:
-            print(f"❌ History retrieval error: {e}")
-            print(f"🔍 Error type: {type(e).__name__}")
+            print(f"History retrieval error: {e}")
+            print(f"Error type: {type(e).__name__}")
             return []
     
     def delete_analysis(self, analysis_id):
@@ -189,13 +189,13 @@ class MongoDBManager:
             result = self.collection.delete_one({"_id": object_id})
             
             if result.deleted_count > 0:
-                print(f"🗑️ Deleted analysis with ID: {analysis_id}")
+                print(f"Deleted analysis with ID: {analysis_id}")
                 return {"success": True, "message": "Analysis deleted successfully"}
             else:
                 return {"success": False, "error": "Analysis not found"}
                 
         except Exception as e:
-            print(f"❌ Delete error: {e}")
+            print(f"Delete error: {e}")
             return {"success": False, "error": str(e)}
     
     def clear_all_history(self):
@@ -207,11 +207,11 @@ class MongoDBManager:
             # Delete all documents
             result = self.collection.delete_many({})
             
-            print(f"🗑️ Cleared {result.deleted_count} analyses from database")
+            print(f"Cleared {result.deleted_count} analyses from database")
             return {"success": True, "message": f"Cleared {result.deleted_count} analyses"}
             
         except Exception as e:
-            print(f"❌ Clear history error: {e}")
+            print(f"Clear history error: {e}")
             return {"success": False, "error": str(e)}
     
     def get_stats(self):
@@ -242,7 +242,7 @@ class MongoDBManager:
             return stats
             
         except Exception as e:
-            print(f"⚠️ Stats error: {e}")
+            print(f"Stats error: {e}")
             return {"error": str(e), "connected": False}
 
 # Global database instance
@@ -252,6 +252,6 @@ def get_db():
     """Get database manager instance"""
     global db_manager
     if db_manager is None:
-        print("🔄 Initializing MongoDB connection...")
+        print("Initializing MongoDB connection...")
         db_manager = MongoDBManager()
     return db_manager

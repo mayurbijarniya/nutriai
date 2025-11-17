@@ -1,4 +1,4 @@
-# NutriAI 🥗
+# NutriAI
 
 **AI-powered nutrition analysis with Google OAuth authentication and personalized insights**
 
@@ -6,35 +6,35 @@ Transform your meals into actionable nutrition data with cutting-edge AI technol
 
 ![NutriAI Interface](https://img.shields.io/badge/Status-Production%20Ready-brightgreen) ![Python](https://img.shields.io/badge/Python-3.9+-blue) ![Flask](https://img.shields.io/badge/Flask-2.3+-green) ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-brightgreen)
 
-## ✨ Features
+## Features
 
-### 🔐 **Secure Authentication**
+### **Secure Authentication**
 - **Google OAuth 2.0** integration for seamless sign-in
 - **User profiles** with personalized dashboards
 - **Session management** with secure cookie handling
 - **Sign-in history tracking** for security monitoring
 
-### 🤖 **AI-Powered Analysis**
+### **AI-Powered Analysis**
 - **Google Gemini 2.5 Pro** for advanced food recognition
 - **Multi-diet support**: Keto, Vegan, Paleo, Mediterranean, Low-Carb
 - **Detailed nutrition breakdown** with macros and micronutrients
 - **Personalized recommendations** based on dietary goals
 - **Smart portion estimation** using visual cues
 
-### 📊 **User Management**
+### **User Management**
 - **Private history** - each user sees only their own analyses
 - **Cross-device sync** - access your data anywhere
 - **Usage tracking** with daily limits (Guest: 3/day, Signed-in: 25/day)
 - **Profile management** with join dates and activity history
 
-### 🎨 **Modern UI/UX**
+### **Modern UI/UX**
 - **Professional interface** inspired by premium apps
 - **Glassmorphism design** with backdrop blur effects
 - **Dark/Light mode** toggle
 - **Responsive design** for desktop and mobile
 - **Smooth animations** and transitions
 
-## 🚀 Quick Setup
+## Quick Setup
 
 ### Prerequisites
 - **Python 3.9+**
@@ -91,10 +91,10 @@ Transform your meals into actionable nutrition data with cutting-edge AI technol
 
 6. **Access Application**
    ```
-   🌐 http://localhost:5001
+   http://localhost:5001
    ```
 
-## 🔧 Tech Stack
+## Tech Stack
 
 ### Backend
 - **Flask 2.3+** - Web framework
@@ -121,7 +121,7 @@ Transform your meals into actionable nutrition data with cutting-edge AI technol
 - **Static file** optimization
 - **Production** security settings
 
-## 📱 Usage Guide
+## Usage Guide
 
 ### For Guests (No Sign-in Required)
 - **Upload food photos** or paste image URLs
@@ -143,7 +143,7 @@ Transform your meals into actionable nutrition data with cutting-edge AI technol
 - **Personalized recommendations** for improvements
 - **Health insights** and suggestions
 
-## 🛡️ Security Features
+## Security Features
 
 ### Authentication
 - **Google OAuth 2.0** - Industry standard security
@@ -162,7 +162,7 @@ Transform your meals into actionable nutrition data with cutting-edge AI technol
 - **Per-user tracking** with MongoDB
 - **Graceful limit** notifications
 
-## 🚀 Deployment
+## Deployment
 
 ### Vercel (Recommended)
 1. **Connect repository** to Vercel
@@ -187,18 +187,18 @@ Transform your meals into actionable nutrition data with cutting-edge AI technol
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
-## 👨‍💻 Author
+## Author
 
 **Mayur Bijarniya**
-- 📧 Email: bijarniya.m@northeastern.edu
-- 🔗 LinkedIn: [linkedin.com/in/mayurbijarniya](https://linkedin.com/in/mayurbijarniya)
-- 🐙 GitHub: [github.com/mayurbijarniya](https://github.com/mayurbijarniya)
+- Email: bijarniya.m@northeastern.edu
+- LinkedIn: [linkedin.com/in/mayurbijarniya](https://linkedin.com/in/mayurbijarniya)
+- GitHub: [github.com/mayurbijarniya](https://github.com/mayurbijarniya)
 
 ---
 
 <div align="center">
 
-**Made with ❤️ for healthier eating choices**
+**Made with love for healthier eating choices**
 
 ⭐ Star this repo if you found it helpful!
 
