@@ -24,7 +24,7 @@ Transform your meals into actionable nutrition data with cutting-edge AI technol
 ### **User Management**
 - **Private history** - each user sees only their own analyses
 - **Cross-device sync** - access your data anywhere
-- **Usage tracking** with daily limits (Guest: 3/day, Signed-in: 25/day)
+- **Usage tracking** with daily limits (Guest: 10/day, Signed-in: 100/day)
 - **Profile management** with join dates and activity history
 
 ### **Modern UI/UX**
@@ -127,11 +127,11 @@ Transform your meals into actionable nutrition data with cutting-edge AI technol
 - **Upload food photos** or paste image URLs
 - **Get instant AI analysis** with nutrition breakdown
 - **Try different diet goals** (Keto, Vegan, etc.)
-- **Limited to 3 analyses per day**
+- **Limited to 10 analyses per day**
 
 ### For Signed-in Users
 - **Save analysis history** across devices
-- **25 analyses per day** limit
+- **100 analyses per day** limit
 - **Personal profile** with activity tracking
 - **Sign-in security** monitoring
 - **Cross-device synchronization**
@@ -175,7 +175,7 @@ Transform your meals into actionable nutrition data with cutting-edge AI technol
 3. **Update OAuth redirects** for production domain
 4. **Monitor usage** and performance
 
-## 🤝 Contributing
+## Contributing
 
 1. **Fork the repository**
 2. **Create feature branch** (`git checkout -b feature/amazing-feature`)
@@ -183,7 +183,7 @@ Transform your meals into actionable nutrition data with cutting-edge AI technol
 4. **Push to branch** (`git push origin feature/amazing-feature`)
 5. **Open Pull Request**
 
-## 📄 License
+## License
 
 This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
