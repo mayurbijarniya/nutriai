@@ -1437,6 +1437,64 @@ def allowed_file(filename):
     return ('.' in filename and 
             filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS)
 
+# --- Public Share Route ---
+@app.route('/share/<analysis_id>')
+def share_analysis(analysis_id):
+    """Publicly shareable analysis view (No Auth Required)"""
+    try:
+        # Fetch analysis
+        oid = ObjectId(analysis_id)
+        doc = db.collection.find_one({'_id': oid})
+        
+        if not doc:
+            return "Analysis not found", 404
+            
+        # Parse content for template
+        aj = doc.get('analysis_json') or {}
+        
+        # Robust Name Extraction
+        meal_name = 'Unknown Meal'
+        mid = aj.get('meal_identification')
+        if isinstance(mid, str):
+            meal_name = mid
+        elif isinstance(mid, dict):
+            meal_name = mid.get('name') or 'Unknown Meal'
+            
+        # Robust Macro Extraction
+        macros = {
+            'calories': 0, 'carbs_g': 0, 'protein_g': 0, 'fat_g': 0
+        }
+        ne = aj.get('nutritional_estimation') or {} # Legacy
+        tn = aj.get('total_nutrition') or {} # New
+        
+        # Flatten macros logic
+        if 'calories_kcal' in aj: macros['calories'] = aj['calories_kcal']
+        elif 'calories' in ne: macros['calories'] = ne['calories']
+        elif 'calories' in tn: macros['calories'] = tn['calories']
+        
+        for k in ['carbs_g', 'protein_g', 'fat_g']:
+            base = k.replace('_g', '')
+            if k in aj: macros[k] = aj[k]
+            elif base in ne: macros[k] = ne[base]
+            elif base in tn: macros[k] = tn[base]
+            
+        # Prepare context
+        analysis_data = {
+            'meal_name': meal_name,
+            'image_base64': doc.get('image_base64'),
+            'dietary_goal': doc.get('dietary_goal') or 'general',
+            'timestamp_str': doc.get('created_at').strftime('%B %d, %Y • %I:%M %p') if doc.get('created_at') else 'Unknown Date',
+            'timestamp_iso': (doc.get('created_at').isoformat() + 'Z') if doc.get('created_at') else '', # Pass ISO for client conversion
+            'raw_markdown': doc.get('analysis', '').replace('```DATA_PAYLOAD', '<!--').replace('```', ''), # Strip payload
+            'macros': macros
+        }
+        
+        return render_template('share.html', analysis=analysis_data)
+        
+    except Exception as e:
+        print(f"Share error: {e}")
+        return "Invalid Link", 404
+
 # Favicon and icon routes for comprehensive device support
 @app.route('/favicon.ico')
 def favicon():

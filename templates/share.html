@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ analysis.meal_name }} - NutriAI Analysis</title>
+    <script src="https://cdn.tailwindcss.com?plugins=typography"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;0,700,1,400&display=swap"
+        rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+        }
+
+        .font-serif-accent {
+            font-family: 'Playfair Display', serif;
+        }
+
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+        }
+
+        .dark .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Table Styling for Markdown */
+        .prose table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin: 1rem 0;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            border: 1px solid rgba(209, 213, 219, 0.5);
+        }
+
+        .dark .prose table {
+            border-color: rgba(75, 85, 99, 0.5);
+        }
+
+        .prose thead tr {
+            background-color: rgba(243, 244, 246, 0.5);
+        }
+
+        .dark .prose thead tr {
+            background-color: rgba(31, 41, 55, 0.5);
+        }
+
+        .prose th,
+        .prose td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(229, 231, 235, 0.5);
+        }
+
+        .dark .prose th,
+        .dark .prose td {
+            border-color: rgba(75, 85, 99, 0.5);
+        }
+
+        .prose th {
+            /* Headers */
+            font-weight: 700;
+            color: #111827;
+            font-size: 0.875rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .dark .prose th {
+            color: #f3f4f6;
+        }
+
+        .prose td {
+            /* Cells */
+            font-size: 0.95rem;
+        }
+
+        .prose tr:last-child td {
+            border-bottom: none;
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            darkMode: 'media',
+            theme: {
+                extend: {
+                    colors: {
+                        green: { 50: '#f0fdf4', 100: '#dcfce7', 500: '#22c55e', 600: '#16a34a', 700: '#15803d', 900: '#14532d' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body
+    class="bg-gray-50 dark:bg-gray-900 min-h-screen text-gray-900 dark:text-gray-100 flex items-center justify-center p-4">
+
+    <!-- background decoration -->
+    <div class="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div class="absolute -top-[10%] -left-[10%] w-[50%] h-[50%] rounded-full bg-green-400/10 blur-3xl"></div>
+        <div class="absolute top-[40%] -right-[10%] w-[40%] h-[60%] rounded-full bg-blue-400/10 blur-3xl"></div>
+    </div>
+
+    <div class="w-full max-w-3xl relative z-10 animate-in fade-in zoom-in-95 duration-500">
+        <!-- Brand Header -->
+        <div class="text-center mb-8">
+            <div class="inline-flex items-center gap-2 mb-2">
+                <div
+                    class="w-8 h-8 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center text-white shadow-lg shadow-green-500/30">
+                    <i class="ph ph-plant text-lg"></i>
+                </div>
+                <span class="text-xl font-bold font-serif-accent tracking-tighter">NutriAI</span>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Shared Analysis Report</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="glass-panel rounded-3xl shadow-2xl overflow-hidden">
+            <!-- Header Image Area -->
+            <div class="relative w-full h-64 sm:h-80 bg-gray-100 dark:bg-black/30 group">
+                {% if analysis.image_base64 %}
+                <img src="data:image/jpeg;base64,{{ analysis.image_base64 }}" class="w-full h-full object-cover">
+                {% else %}
+                <div class="w-full h-full flex items-center justify-center text-gray-400">
+                    <span class="flex items-center gap-2"><i class="ph ph-image-broken"></i> No Image Available</span>
+                </div>
+                {% endif %}
+                <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+
+                <div class="absolute bottom-0 left-0 right-0 p-6 sm:p-8 text-white">
+                    <div class="flex items-center gap-3 mb-2">
+                        <span
+                            class="px-2.5 py-1 rounded-lg bg-white/20 backdrop-blur-md text-xs font-bold uppercase tracking-wider border border-white/10">
+                            {{ analysis.dietary_goal | replace('_', ' ') }}
+                        </span>
+                        <!-- Time Display: Logic Updated -->
+                        <span class="text-xs font-medium opacity-80 flex items-center gap-1">
+                            <i class="ph ph-clock"></i>
+                            <span id="localTime" data-utc="{{ analysis.timestamp_iso }}">Loading...</span>
+                        </span>
+                    </div>
+                    <h1 class="text-3xl sm:text-4xl font-bold font-serif-accent leading-tight shadow-sm">{{
+                        analysis.meal_name }}</h1>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="p-6 sm:p-10">
+                <!-- Macros Row -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                    {% for m in ['calories', 'carbs', 'protein', 'fat'] %}
+                    <div
+                        class="bg-white/50 dark:bg-white/5 rounded-2xl p-4 text-center border border-gray-100 dark:border-gray-800">
+                        <p class="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-400 font-bold mb-1">{{ m
+                            }}</p>
+                        <p class="text-lg font-bold text-gray-900 dark:text-white">
+                            {% if m == 'calories' %}
+                            {{ analysis.macros.calories }} <span class="text-xs font-normal text-gray-500">kcal</span>
+                            {% elif m == 'carbs' %}
+                            {{ analysis.macros.carbs_g }}<span class="text-xs font-normal text-gray-500">g</span>
+                            {% elif m == 'protein' %}
+                            {{ analysis.macros.protein_g }}<span class="text-xs font-normal text-gray-500">g</span>
+                            {% elif m == 'fat' %}
+                            {{ analysis.macros.fat_g }}<span class="text-xs font-normal text-gray-500">g</span>
+                            {% endif %}
+                        </p>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Report Render: Typography Plugin Active -->
+                <div id="report-content"
+                    class="prose prose-stone dark:prose-invert max-w-none prose-headings:font-serif-accent prose-headings:font-bold prose-p:text-gray-600 dark:prose-p:text-gray-300 prose-li:text-gray-600 dark:prose-li:text-gray-300">
+                    <!-- JS will render markdown here -->
+                </div>
+
+                <!-- CTA -->
+                <div class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-800 text-center">
+                    <p class="text-gray-500 mb-4 text-sm">Want detailed insights for your own meals?</p>
+                    <a href="/"
+                        class="inline-flex items-center gap-2 px-6 py-3 rounded-full bg-black dark:bg-white text-white dark:text-black font-bold hover:scale-105 transition-transform shadow-lg">
+                        <span>Try NutriAI Free</span>
+                        <i class="ph ph-arrow-right"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <p class="text-center text-xs text-gray-400 mt-8 mb-4">
+            Analysis generated by NutriAI AI Model
+        </p>
+    </div>
+
+    <script>
+        // Render markdown
+        const rawMd = `{{ analysis.raw_markdown | safe }}`;
+        document.getElementById('report-content').innerHTML = marked.parse(rawMd);
+
+        // Timezone Conversion
+        const timeEl = document.getElementById('localTime');
+        const utcStr = timeEl.getAttribute('data-utc');
+        if (utcStr) {
+            try {
+                // Ensure Z is appended if missing and not already there, for valid ISO
+                // (Backend usually sends ISO, but let's be safe)
+                const d = new Date(utcStr.endsWith('Z') ? utcStr : utcStr + 'Z');
+
+                // Format: Dec 22, 2025 • 03:15 PM
+                timeEl.textContent = d.toLocaleString(undefined, {
+                    month: 'short', day: 'numeric', year: 'numeric',
+                    hour: '2-digit', minute: '2-digit'
+                });
+            } catch (e) {
+                timeEl.textContent = utcStr || '';
+            }
+        }
+    </script>
+</body>
+
+</html>
