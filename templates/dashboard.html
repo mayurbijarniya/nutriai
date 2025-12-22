@@ -302,7 +302,7 @@
         let score = (p.macro_adherence && p.macro_adherence.score != null) ? p.macro_adherence.score : null;
 
         const timeStr = m.ts ? new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
-        const name = sj.meal_identification || 'Unknown Meal';
+        const name = (typeof sj.meal_identification === 'object' ? sj.meal_identification?.name : sj.meal_identification) || 'Unknown Meal';
         const cal = sj.calories_kcal || (sj.total_nutrition ? sj.total_nutrition.calories : '—');
 
         let imgHtml = '';

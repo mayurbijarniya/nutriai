@@ -491,7 +491,7 @@ STRICT OUTPUT CONTRACT:
   8) **Overall Health Score** (1–2 sentences)
 - Do NOT include dates/timestamps anywhere in the markdown.
 - After the markdown, append a fenced code block named DATA_PAYLOAD with keys:
-  {"diet_type","calories_kcal","carbs_g","protein_g","fat_g","fiber_g","sodium_mg","adherence_score","flags","top_violations","top_suggestions"}
+  {"meal_identification","diet_type","calories_kcal","carbs_g","protein_g","fat_g","fiber_g","sodium_mg","adherence_score","flags","top_violations","top_suggestions"}
 - No extra commentary; keep lines under ~100 chars.
 """
 
@@ -594,7 +594,7 @@ You are a formatter. Take the ANALYSIS CONTENT below and output EXACTLY:
    Personalized Recommendations with bold subheads (Ingredient Swaps, Portion Tweaks, Cooking Methods)
    Overall Health Score (1–2 sentences)
 2) Then append a fenced code block named DATA_PAYLOAD containing JSON with keys:
-   {{"diet_type","calories_kcal","carbs_g","protein_g","fat_g","fiber_g","sodium_mg","adherence_score","flags","top_violations","top_suggestions"}}
+   {{"meal_identification","diet_type","calories_kcal","carbs_g","protein_g","fat_g","fiber_g","sodium_mg","adherence_score","flags","top_violations","top_suggestions"}}
 No extra commentary. Keep lines < 100 chars. Do not include any other code blocks.
 
 USER PROFILE SUMMARY:

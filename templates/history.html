@@ -233,7 +233,11 @@
                                 <span class="px-2 py-0.5 rounded-md bg-green-100/50 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-[10px] font-bold uppercase tracking-wider border border-green-200/50 dark:border-green-800/30">${goal}</span>
                              </div>
                              <h3 class="text-xl font-bold text-gray-900 dark:text-gray-50 font-serif-accent cursor-pointer hover:text-green-600 transition-colors leading-tight" onclick='openModal(${JSON.stringify(item).replace(/'/g, "&#39;")})'>
-                                ${item.analysis_json?.meal_identification?.name || 'Meal Analysis'}
+                                ${(typeof item.analysis_json?.meal_identification === 'string'
+                    ? item.analysis_json.meal_identification
+                    : item.analysis_json?.meal_identification?.name)
+                || 'Meal Analysis'
+                }
                              </h3>
                         </div>
                     </div>
