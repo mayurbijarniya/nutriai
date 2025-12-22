@@ -1405,6 +1405,32 @@ def save_to_history(analysis_data, chart_path):
         print(f"History save error: {e}")
         return {"success": False, "error": str(e)}
 
+@app.route('/delete-account', methods=['POST'])
+def delete_account():
+    """Permanently delete user account and all associated data"""
+    try:
+        if not (current_user and getattr(current_user, 'is_authenticated', False)):
+            return jsonify({'success': False, 'error': 'auth_required'}), 401
+            
+        uid = ObjectId(current_user.id)
+        
+        # Delete from all collections
+        db.users.delete_one({'_id': uid})
+        db.collection.delete_many({'user_id': uid})  # Analysis history
+        db.user_profiles.delete_one({'user_id': uid})
+        db.diet_preferences.delete_one({'user_id': uid})
+        db.nutrition_goals.delete_one({'user_id': uid})
+        db.hydration_logs.delete_many({'user_id': uid})
+        
+        logout_user()
+        flash('Your account has been permanently deleted.', 'info')
+        return jsonify({'success': True})
+        
+    except Exception as e:
+        print(f"Delete account error: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+    
 def allowed_file(filename):
     """Check if file extension is allowed"""
     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'bmp', 'webp'}

@@ -107,6 +107,41 @@
     </div>
 </div>
 
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal"
+    class="hidden fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-all duration-300">
+    <div
+        class="bg-white dark:bg-gray-900 w-full max-w-md rounded-3xl shadow-2xl p-8 transform scale-100 transition-all relative overflow-hidden">
+        <!-- Background decorative blob -->
+        <div class="absolute -top-10 -right-10 w-32 h-32 bg-red-500/10 rounded-full blur-2xl"></div>
+
+        <div class="text-center">
+            <div
+                class="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-6 text-red-600 dark:text-red-500">
+                <i class="ph ph-warning-circle text-4xl"></i>
+            </div>
+
+            <h3 id="deleteModalTitle" class="text-2xl font-bold text-gray-900 dark:text-white mb-2 font-serif-accent">
+                Delete Item?</h3>
+            <p id="deleteModalText" class="text-gray-500 dark:text-gray-400 mb-8">
+                Are you sure? This action cannot be undone.
+            </p>
+
+            <div class="flex flex-col gap-3">
+                <button id="confirmDeleteBtn" onclick="executeDelete()"
+                    class="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg shadow-red-500/30 transition-all flex items-center justify-center gap-2">
+                    <span id="deleteBtnText">Yes, Delete</span>
+                    <i class="ph ph-spinner animate-spin hidden" id="deleteSpinner"></i>
+                </button>
+                <button onclick="closeDeleteModal()"
+                    class="w-full py-3 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold transition-all">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 {% endblock %}
 
 {% block scripts %}
@@ -172,7 +207,7 @@
         <div class="glass-panel rounded-2xl p-1 overflow-visible hover:shadow-lg transition-all group relative">
              <!-- Delete Button - Absolute Top Right -->
              {% if not is_guest %}
-             <button onclick='deleteAnalysis("${item._id}"); event.stopPropagation();' class="absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/80 dark:bg-black/50 hover:bg-red-50 dark:hover:bg-red-900/50 text-gray-400 hover:text-red-500 backdrop-blur-sm flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-sm border border-gray-100 dark:border-gray-700">
+             <button onclick='openDeleteModal("single", "${item._id}"); event.stopPropagation();' class="absolute top-2 right-2 z-20 w-8 h-8 rounded-full bg-white/80 dark:bg-black/50 hover:bg-red-50 dark:hover:bg-red-900/50 text-gray-400 hover:text-red-500 backdrop-blur-sm flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 shadow-sm border border-gray-100 dark:border-gray-700">
                 <i class="ph ph-trash text-lg"></i>
              </button>
              {% endif %}
@@ -259,32 +294,100 @@
         document.body.style.overflow = '';
     }
 
-    window.deleteAnalysis = async function (id) {
-        if (!confirm("Delete this analysis?")) return;
-        try {
-            const res = await fetch(`/delete-analysis/${id}`, { method: 'POST' });
-            const data = await res.json();
-            if (data.success) {
-                loadHistory();
-            } else {
-                alert(data.error || "Failed to delete");
-            }
-        } catch (e) {
-            console.error(e);
-            alert("Error deleting analysis");
+    // --- Delete Modal Logic ---
+    let pendingDeleteType = null;
+    let pendingDeleteId = null;
+
+    // Use these instead of direct calls
+    window.openDeleteModal = function (type, id = null) {
+        pendingDeleteType = type;
+        pendingDeleteId = id;
+
+        const dModal = document.getElementById('deleteModal');
+        const title = document.getElementById('deleteModalTitle');
+        const text = document.getElementById('deleteModalText');
+        const btnText = document.getElementById('deleteBtnText');
+
+        dModal.classList.remove('hidden');
+
+        if (type === 'all') {
+            title.textContent = 'Clear History?';
+            text.textContent = 'Are you sure you want to delete ALL meal history? This cannot be undone.';
+            btnText.textContent = 'Yes, Clear All';
+        } else {
+            title.textContent = 'Delete Analysis?';
+            text.textContent = 'Are you sure you want to delete this meal analysis?';
+            btnText.textContent = 'Yes, Delete';
         }
     }
 
-    // Clear History
-    window.clearHistory = async function () {
-        if (!confirm("Are you sure? This cannot be undone.")) return;
+    window.closeDeleteModal = function () {
+        document.getElementById('deleteModal').classList.add('hidden');
+        pendingDeleteType = null;
+        pendingDeleteId = null;
+
+        // Reset button state
+        const btn = document.getElementById('confirmDeleteBtn');
+        const txt = document.getElementById('deleteBtnText');
+        const spin = document.getElementById('deleteSpinner');
+        btn.disabled = false;
+        btn.classList.remove('opacity-75', 'cursor-not-allowed');
+        spin.classList.add('hidden');
+    }
+
+    window.executeDelete = async function () {
+        const btn = document.getElementById('confirmDeleteBtn');
+        const txt = document.getElementById('deleteBtnText');
+        const spin = document.getElementById('deleteSpinner');
+
+        btn.disabled = true;
+        btn.classList.add('opacity-75', 'cursor-not-allowed');
+        txt.textContent = 'Deleting...';
+        spin.classList.remove('hidden');
+
         try {
-            await fetch('/api/history/clear', { method: 'POST' }); // Assuming this endpoint exists or will create
-            loadHistory();
+            if (pendingDeleteType === 'single' && pendingDeleteId) {
+                // Delete Single
+                const res = await fetch(`/delete-analysis/${pendingDeleteId}`, { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    closeDeleteModal();
+                    loadHistory();
+                } else {
+                    alert(data.error || "Failed to delete");
+                    closeDeleteModal();
+                }
+            } else if (pendingDeleteType === 'all') {
+                // Delete All
+                const res = await fetch('/api/history/clear', { method: 'POST' });
+                const data = await res.json();
+                if (data.success) {
+                    closeDeleteModal();
+                    loadHistory();
+                } else {
+                    alert(data.error || "Failed to clear history");
+                    closeDeleteModal();
+                }
+            }
         } catch (e) {
-            // Fallback or specific implementation
-            alert("Feature requires backend impl.");
+            console.error(e);
+            alert("An error occurred.");
+            closeDeleteModal();
         }
+    }
+
+    // Hook up the Clear All button in logic if needed, but in HTML calling clearHistory() 
+    // We need to overwrite clearHistory to use modal or update the HTML onclick to use openDeleteModal('all')
+    // Let's redefine standard function names to proxy to modal for simpler HTML changes if any, 
+    // or just update HTML to call openDeleteModal directly if feasible.
+
+    // Legacy mapping if existing HTML buttons call these:
+    window.deleteAnalysis = function (id) {
+        openDeleteModal('single', id);
+    }
+
+    window.clearHistory = function () {
+        openDeleteModal('all');
     }
 </script>
 {% endblock %}
