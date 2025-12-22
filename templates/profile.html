@@ -67,8 +67,8 @@
                 <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Last Signed
                     In
                 </p>
-                <p class="text-xl font-bold text-gray-900 dark:text-gray-100 font-sans">{{
-                    user.last_login_at_formatted or 'Just now' }}</p>
+                <p class="text-xl font-bold text-gray-900 dark:text-gray-100 font-sans local-time"
+                    data-utc="{{ user.last_login_iso }}">{{ user.last_login_at_formatted or 'Just now' }}</p>
             </div>
         </div>
 
@@ -112,8 +112,10 @@
                         Device' }}</h3>
                     <div
                         class="flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 mt-1 text-sm text-gray-500 dark:text-gray-400">
-                        <span class="flex items-center gap-1.5"><i class="ph ph-clock"></i> {{ login.when_formatted
-                            }}</span>
+                        <span class="flex items-center gap-1.5">
+                            <i class="ph ph-clock"></i>
+                            <span class="local-time" data-utc="{{ login.when_iso }}">{{ login.when_formatted }}</span>
+                        </span>
                     </div>
                 </div>
 
@@ -193,6 +195,23 @@
 </div>
 
 <script>
+    // Timezone conversion for sessions
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.local-time').forEach(el => {
+            const utc = el.getAttribute('data-utc');
+            if (utc) {
+                const date = new Date(utc);
+                el.textContent = date.toLocaleString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
+            }
+        });
+    });
+
     async function deleteAccount() {
         const btn = document.getElementById('confirmDeleteBtn');
         const txt = document.getElementById('deleteBtnText');

@@ -120,12 +120,12 @@ class MongoDBManager:
             return {"success": False, "error": "Database not connected"}
         
         try:
-            # Add timestamp if not present
+            # Add timestamp if not present (UTC)
             if 'timestamp' not in analysis_data:
-                analysis_data['timestamp'] = datetime.now().isoformat()
+                analysis_data['timestamp'] = datetime.utcnow().isoformat()
             
-            # Add created_at for sorting
-            analysis_data['created_at'] = datetime.now()
+            # Add created_at for sorting (UTC)
+            analysis_data['created_at'] = datetime.utcnow()
 
             # Ensure ownership fields exist (nullable)
             analysis_data.setdefault('user_id', None)

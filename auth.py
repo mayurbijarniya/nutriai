@@ -173,12 +173,15 @@ def profile():
                 
             if 'last_login_at' in user_doc and user_doc['last_login_at']:
                 user_doc['last_login_at_formatted'] = user_doc['last_login_at'].strftime('%B %d, %Y at %I:%M %p')
+                user_doc['last_login_iso'] = user_doc['last_login_at'].isoformat() + 'Z'
             else:
                 user_doc['last_login_at_formatted'] = 'Unknown'
+                user_doc['last_login_iso'] = ''
         
         # Format login history
         for login in login_history:
             login['when_formatted'] = login['when'].strftime('%B %d, %Y at %I:%M %p')
+            login['when_iso'] = login['when'].isoformat() + 'Z'
             login['ip'] = login.get('ip', 'Unknown')
             login['user_agent_short'] = get_browser_info(login.get('user_agent', ''))
         

@@ -166,7 +166,7 @@ class DietAnalyzer:
     def __init__(self):
         if GEMINI_API_KEY:
             self.model = genai.GenerativeModel(
-                'gemini-2.5-flash',
+                'gemini-2.5-flash-lite',
                 generation_config={
                     # Increased to allow large table + payload output
                     "max_output_tokens": 8192,
@@ -879,7 +879,7 @@ def api_history():
             if 'user_id' in doc:
                 doc['user_id'] = str(doc['user_id'])
             if 'created_at' in doc:
-                doc['timestamp'] = doc['created_at'].isoformat()
+                doc['timestamp'] = doc['created_at'].isoformat() + 'Z'
             history.append(doc)
         
         return jsonify({
@@ -1577,7 +1577,7 @@ def dashboard_today():
             'meals': [
                 {
                     'id': m['_id'],
-                    'ts': m.get('timestamp'),
+                    'ts': m['created_at'].isoformat() + 'Z' if 'created_at' in m else m.get('timestamp'),
                     'analysis_json': m.get('analysis_json'),
                     'personalization': m.get('personalization'),
                     'image_path': m.get('image_path'),
