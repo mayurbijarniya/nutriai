@@ -218,19 +218,26 @@ class DietAnalyzer:
     def get_diet_info(self, dietary_goal):
         """Get comprehensive diet information"""
         diet_data = {
-            "keto": {
+            "ketogenic": {
                 "name": "Ketogenic",
                 "rules": "KETO RULES: <20g net carbs daily, 70-80% calories from healthy fats, moderate protein",
                 "focus": "Focus on avocados, nuts, olive oil, fatty fish, low-carb vegetables",
                 "icon": "🥑",
                 "color": "#FF6B35"
             },
-            "vegan": {
+            "plant_based_vegan": {
                 "name": "Vegan",
                 "rules": "VEGAN RULES: No animal products (meat, dairy, eggs, honey)",
                 "focus": "Focus on legumes, nuts, seeds, whole grains, fruits, vegetables",
                 "icon": "🌱",
                 "color": "#4CAF50"
+            },
+            "vegetarian": {
+                "name": "Vegetarian",
+                "rules": "VEGETARIAN: No meat/fish. Eggs and dairy allowed.",
+                "focus": "Plant-forward with eggs/dairy for protein. Whole grains, legumes.",
+                "icon": "🥦",
+                "color": "#8BC34A"
             },
             "paleo": {
                 "name": "Paleo",
@@ -246,12 +253,82 @@ class DietAnalyzer:
                 "icon": "🫒",
                 "color": "#1976D2"
             },
-            "low-carb": {
+            "low_carb": {
                 "name": "Low Carb",
                 "rules": "LOW-CARB: <100g carbs daily, emphasis on protein and healthy fats",
                 "focus": "Focus on lean proteins, healthy fats, non-starchy vegetables",
                 "icon": "⚖️",
                 "color": "#9C27B0"
+            },
+            "intermittent_fasting_18_6": {
+                "name": "Intermittent Fasting 18:6",
+                "rules": "FASTING 18:6: Eat only within 6-hour window. Hydrate during fast.",
+                "focus": "Nutrient density during eating window",
+                "icon": "⏳",
+                "color": "#607D8B"
+            },
+             "intermittent_fasting_16_8": {
+                "name": "Intermittent Fasting 16:8",
+                "rules": "FASTING 16:8: Eat only within 8-hour window.",
+                "focus": "Balanced meals during window",
+                "icon": "⏳",
+                "color": "#607D8B"
+            },
+            "standard_american": {
+                 "name": "Standard American",
+                 "rules": "STANDARD: Balanced macronutrients (50% carb, 20% protein, 30% fat).",
+                 "focus": "Portion control, whole foods, limiting processed sugars.",
+                 "icon": "🍽️",
+                 "color": "#607D8B"
+            },
+            "flexitarian": {
+                 "name": "Flexitarian",
+                 "rules": "FLEXITARIAN: Mostly plant-based, occasional meat permitted.",
+                 "focus": "Increase plants, reduce meat frequency/portion.",
+                 "icon": "🥗",
+                 "color": "#8BC34A"
+            },
+            "pescatarian": {
+                 "name": "Pescatarian",
+                 "rules": "PESCATARIAN: Vegetarian + Fish/Seafood.",
+                 "focus": "Omega-3s from fish, plant proteins, vegetables.",
+                 "icon": "🐟",
+                 "color": "#03A9F4"
+            },
+            "dash_diet": {
+                 "name": "DASH Diet",
+                 "rules": "DASH: Low sodium (<1500-2300mg), high potassium/magnesium.",
+                 "focus": "Lower blood pressure: Fruits, veggies, low-fat dairy.",
+                 "icon": "🧂",
+                 "color": "#00BCD4"
+            },
+            "gluten_free": {
+                 "name": "Gluten-Free",
+                 "rules": "GF RULES: Strictly NO wheat, barley, rye.",
+                 "focus": "Avoid hidden gluten. Use rice, corn, quinoa, potatoes.",
+                 "icon": "🌾",
+                 "color": "#FFC107"
+            },
+            "low_fodmap": {
+                 "name": "Low FODMAP",
+                 "rules": "LOW-FODMAP: Avoid high-FODMAP carbs (onions, garlic, wheat, certain fruits).",
+                 "focus": "Digestive relief. Eat rice, potatoes, carrots, spinach, maple syrup.",
+                 "icon": "🥝",
+                 "color": "#8D6E63"
+            },
+            "whole30": {
+                 "name": "Whole30",
+                 "rules": "WHOLE30: No sugar, alcohol, grains, legumes, dairy for 30 days.",
+                 "focus": "Reset. Meat, seafood, eggs, veggies, fruit, natural fats only.",
+                 "icon": "🍎",
+                 "color": "#D32F2F"
+            },
+            "anti_inflammatory": {
+                 "name": "Anti-Inflammatory",
+                 "rules": "ANTI-INFLAMMATORY: High omega-3s, antioxidants. Low sugar/processed.",
+                 "focus": "Berries, fatty fish, leafy greens, olive oil, turmeric.",
+                 "icon": "🫐",
+                 "color": "#E91E63"
             }
         }
         
@@ -339,6 +416,14 @@ Please be specific with numbers, practical with suggestions, and format the resp
             response = self.model.generate_content([prompt, img])
             
             if response.text:
+                # Create thumbnail for storage (Base64)
+                img_thumb = img.copy()
+                img_thumb.thumbnail((600, 600))
+                buffered = BytesIO()
+                img_thumb.save(buffered, format="JPEG", quality=85)
+                import base64
+                img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+
                 # Store analysis data
                 analysis_data = {
                     "timestamp": datetime.now().isoformat(),
@@ -346,7 +431,8 @@ Please be specific with numbers, practical with suggestions, and format the resp
                     "diet_info": diet_info,
                     "analysis": response.text,
                     "user_preferences": user_preferences,
-                    "image_path": processed_path
+                    "image_path": processed_path,
+                    "image_base64": img_base64 # Added Base64 for persistent storage
                 }
                 
                 print("Analysis completed successfully")
@@ -574,7 +660,15 @@ ANALYSIS CONTENT:
             if not _looks_structured(md, payload):
                 return {"success": False, "error": "structured_markdown_missing", "raw_text": raw, "processed_image": processed_path}
 
-            return {"success": True, "markdown": md, "data_payload": payload, "processed_image": processed_path}
+            # Create thumbnail for storage (Base64)
+            img_thumb = img.copy()
+            img_thumb.thumbnail((600, 600))
+            buffered = BytesIO()
+            img_thumb.save(buffered, format="JPEG", quality=85)
+            import base64
+            img_base64 = base64.b64encode(buffered.getvalue()).decode('utf-8')
+
+            return {"success": True, "markdown": md, "data_payload": payload, "processed_image": processed_path, "image_base64": img_base64}
 
         except Exception as e:
             print(f"Profile analysis error: {str(e)}")
@@ -805,6 +899,7 @@ def api_history():
         })
 
 @app.route('/clear-history', methods=['POST'])
+@app.route('/api/history/clear', methods=['POST'])
 def clear_history():
     """Clear analysis history - SIGNED IN USERS ONLY"""
     try:
@@ -1093,6 +1188,7 @@ def api_analyze_with_profile():
             'analysis_json': structured,
             'personalization': personalization,
             'image_path': result.get('processed_image'),
+            'image_base64': result.get('image_base64'),
             'meal_context': meal_context
         }
         db_result = None
@@ -1192,6 +1288,31 @@ def debug_users():
             "success": False,
             "error": str(e)
         })
+
+@app.route('/health')
+def health_check():
+    try:
+        # Check MongoDB connection
+        db.command('ping')
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'database': 'connected'
+        }), 200
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e)
+        }), 500
+
+@app.route('/privacy')
+def privacy():
+    return render_template('legal/privacy.html')
+
+@app.route('/terms')
+def terms():
+    return render_template('legal/terms.html')
+
 
 @app.route('/fix-users', methods=['POST'])
 def fix_users():
@@ -1361,9 +1482,10 @@ def dashboard_today():
         return jsonify({'success': False, 'error': 'auth_required'}), 401
     try:
         uid = ObjectId(current_user.id)
-        from datetime import datetime, timezone, timedelta
-        now = datetime.now(timezone.utc)
-        start = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
+        from datetime import datetime, timedelta
+        # Use local time since database.py uses datetime.now() (naive/local)
+        now = datetime.now()
+        start = datetime(now.year, now.month, now.day)
         end = start + timedelta(days=1)
 
         meals = list(db.collection.find({'user_id': uid, 'created_at': {'$gte': start, '$lt': end}}).sort('created_at', 1))
@@ -1432,7 +1554,8 @@ def dashboard_today():
                     'ts': m.get('timestamp'),
                     'analysis_json': m.get('analysis_json'),
                     'personalization': m.get('personalization'),
-                    'image_path': m.get('image_path')
+                    'image_path': m.get('image_path'),
+                    'image_base64': m.get('image_base64')
                 } for m in meals
             ],
             'hydration': {
@@ -1453,7 +1576,8 @@ def dashboard_hydration():
         payload = request.get_json() or {}
         add_glasses = int(payload.get('add_glasses', 1))
         add_ml = int(payload.get('add_ml', 250))
-        today_key = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+        # Use local time to match dashboard_today logic
+        today_key = datetime.now().strftime('%Y-%m-%d')
         existing = db.hydration_logs.find_one({'user_id': uid, 'date': today_key})
         if existing:
             db.hydration_logs.update_one({'_id': existing['_id']}, {'$inc': {'glasses': add_glasses, 'ml': add_ml}})

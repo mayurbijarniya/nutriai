@@ -1,844 +1,591 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+<div class="max-w-4xl mx-auto space-y-16">
+
     <!-- Hero Section -->
-    <div class="text-center mb-12">
-        <div class="inline-flex items-center space-x-2 bg-green-50 dark:bg-green-950/50 text-green-600 dark:text-green-400 px-4 py-2 rounded-full text-sm font-medium mb-6">
-            <i class="ph ph-robot"></i>
-            <span>AI-Powered Nutrition Analysis</span>
+    <div class="text-center pt-8 md:pt-16 space-y-6">
+        <div
+            class="inline-flex items-center space-x-2 bg-green-100/50 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-4 py-1.5 rounded-full text-xs font-semibold tracking-wide uppercase shadow-sm border border-green-200/50 dark:border-green-800/50 backdrop-blur-sm">
+            <span class="relative flex h-2 w-2">
+                <span
+                    class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+            </span>
+            <span>AI-Powered 2.0</span>
         </div>
-        
-        <h1 class="text-4xl sm:text-5xl font-bold tracking-tight mb-4 bg-gradient-to-r from-green-800 via-emerald-700 to-green-800 bg-clip-text text-transparent">
-            AI Diet Designer
+
+        <h1 class="text-5xl md:text-7xl font-bold tracking-tight text-gray-900 dark:text-white leading-[1.1]">
+            Your Personal <br />
+            <span
+                class="font-serif-accent italic bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent pr-2">Nutritionist</span>
+            in Your Pocket
         </h1>
-        <p class="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Upload your meal photo and get personalized nutrition analysis and recommendations
+
+        <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
+            Upload a meal photo and let our advanced AI analyze macros, ingredients, and compatibility with your diet
+            goals instantly.
         </p>
-        
-        <div class="flex flex-wrap justify-center gap-3 mt-8">
-            <!--<div class="inline-flex items-center space-x-2 bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-lg text-sm border border-green-200 dark:border-green-800">
-                <i class="ph ph-cpu text-green-500"></i>
-                <span>AI Powered</span>
-            </div>-->
-            <div class="inline-flex items-center space-x-2 bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 px-3 py-1.5 rounded-lg text-sm border border-green-200 dark:border-green-800">
-                <i class="ph ph-flask text-green-500"></i>
-                <span>Scientific Analysis</span>
-            </div>
-            <div class="inline-flex items-center space-x-2 bg-amber-50 dark:bg-amber-950/30 text-amber-600 dark:text-amber-400 px-3 py-1.5 rounded-lg text-sm border border-amber-200 dark:border-amber-800">
-                <i class="ph ph-chart-bar text-amber-500"></i>
-                <span>Visual Reports</span>
-            </div>
-        </div>
     </div>
 
-    <!-- Chat Interface -->
-    <div class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-sm">
-        <!-- Chat Header -->
-        <div class="border-b border-gray-200 dark:border-gray-700 p-4">
-            <div class="flex items-center justify-between">
-                <div class="flex items-center space-x-3">
-                    <div class="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center">
-                        <i class="ph ph-camera text-white"></i>
-                    </div>
-                    <div>
-                        <h3 class="font-semibold text-gray-900 dark:text-gray-100">Upload Your Meal Photo</h3>
-                        <p class="text-sm text-gray-500 dark:text-gray-400">Drop an image or paste a URL to get started</p>
-                    </div>
-                </div>
-                
-                <!-- Diet Selection Dropdown (old UI restored, now dynamic) -->
-                <div class="relative">
-                    <button id="dietDropdownBtn" type="button" class="inline-flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 border border-gray-200 dark:border-gray-600">
-                        <span id="selectedDietIcon">🍽️</span>
-                        <span id="selectedDietText">Standard American</span>
-                        <i class="ph ph-caret-down"></i>
-                    </button>
-                    
-                    <div id="dietDropdown" class="hidden absolute right-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
-                        <div id="dietDropdownList" class="py-1"></div>
-                    </div>
-                </div>
-            </div>
+    <!-- Main Glass Interface -->
+    <div class="relative">
+        <!-- Abstract Glow Behind -->
+        <div
+            class="absolute -top-10 -left-10 w-72 h-72 bg-purple-300/30 dark:bg-purple-900/20 rounded-full blur-[80px] -z-10 animate-pulse">
+        </div>
+        <div
+            class="absolute -bottom-10 -right-10 w-72 h-72 bg-green-300/30 dark:bg-green-900/20 rounded-full blur-[80px] -z-10 animate-pulse delay-700">
         </div>
 
-        <!-- Chat Messages -->
-        <div id="chatMessages" class="p-4 min-h-[300px] max-h-[500px] overflow-y-auto space-y-4 bg-gray-50 dark:bg-gray-950">
-            <!-- Welcome Message -->
-            <div class="flex items-start space-x-3 chat-message">
-                <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i class="ph ph-robot text-white text-sm"></i>
-                </div>
-                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg rounded-tl-none p-3 max-w-md shadow-sm">
-                    <p class="text-sm text-gray-700 dark:text-gray-300">Hi! I'm your AI nutrition analyst. Upload a photo of your meal or paste an image URL, and I'll provide detailed nutritional analysis based on your chosen diet goal.</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Chat Input -->
-        <div class="border-t border-gray-200 dark:border-gray-700 p-4 bg-white dark:bg-gray-900">
-            <form id="analysisForm" enctype="multipart/form-data" class="space-y-4">
-                <!-- Image Upload Tabs -->
-                <div class="flex rounded-lg bg-gray-100 dark:bg-gray-800 p-1">
-                    <button type="button" id="uploadTab" class="flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-md bg-white dark:bg-gray-700 shadow-sm text-sm font-medium transition-all duration-200 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-600">
-                        <i class="ph ph-upload-simple text-green-500"></i>
-                        <span>Upload File</span>
-                    </button>
-                    <button type="button" id="urlTab" class="flex-1 flex items-center justify-center space-x-2 py-2 px-3 rounded-md text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 transition-all duration-200">
-                        <i class="ph ph-link"></i>
-                        <span>Image URL</span>
-                    </button>
-                </div>
-
-                <!-- Upload Content -->
-                <div id="uploadContent">
-                    <!-- File Upload -->
-                    <div id="fileUpload" class="space-y-4">
-                        <div id="dropZone" class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-8 text-center transition-colors duration-200 hover:border-green-400 hover:bg-green-50/50 dark:hover:bg-green-950/20 cursor-pointer bg-white dark:bg-gray-800">
-                            <div class="w-12 h-12 mx-auto mb-4 text-gray-400 dark:text-gray-500">
-                                <i class="ph ph-cloud-arrow-up text-4xl"></i>
+        <div class="glass-panel rounded-[2rem] p-1 shadow-2xl overflow-hidden">
+            <div class="bg-white/40 dark:bg-black/20 rounded-[1.8rem] h-full">
+                <!-- Chat Header -->
+                <div class="border-b border-gray-200/50 dark:border-gray-700/50 p-5 flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div
+                            class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-green-400 to-emerald-600 flex items-center justify-center shadow-lg text-white">
+                            <i class="ph ph-camera-plus text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-semibold text-gray-900 dark:text-white text-lg">AI Analysis</h3>
+                            <div
+                                class="flex items-center space-x-1.5 text-xs text-green-600 dark:text-green-400 font-medium">
+                                <i class="ph ph-lightning-fill"></i>
+                                <span>Online & Ready</span>
                             </div>
-                            <h4 class="text-lg font-medium mb-2 text-gray-900 dark:text-gray-100">Drag & Drop Your Photo Here</h4>
-                            <p class="text-sm text-gray-500 dark:text-gray-400 mb-4">Or click the button below to browse files</p>
-                            <div class="flex justify-center space-x-2 mb-4">
-                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600">JPG</span>
-                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600">PNG</span>
-                                <span class="bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600">WebP</span>
-                            </div>
-                            <p class="text-xs text-gray-500 dark:text-gray-400">Maximum file size: 16MB</p>
-                            <input type="file" id="imageFile" name="image_file" accept="image/*" class="hidden">
-                            <button type="button" class="mt-4 inline-flex items-center space-x-2 bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 shadow-sm" onclick="document.getElementById('imageFile').click()">
-                                <i class="ph ph-folder-open"></i>
-                                <span>Choose Photo</span>
-                            </button>
                         </div>
                     </div>
 
-                    <!-- URL Input -->
-                    <div id="urlInput" class="hidden">
-                        <div class="flex space-x-2">
-                            <div class="flex-1 relative">
-                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <i class="ph ph-link text-gray-400 dark:text-gray-500"></i>
-                                </div>
-                                <input type="url" name="image_url" placeholder="https://example.com/your-meal-photo.jpg" 
-                                       class="w-full pl-10 pr-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-sm text-gray-900 dark:text-gray-100">
-                            </div>
-                            <button type="button" id="pasteUrl" class="px-4 py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors duration-200 text-sm font-medium border border-gray-300 dark:border-gray-600">
-                                Paste URL
-                            </button>
-                        </div>
-                        <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 flex items-center space-x-1">
-                            <i class="ph ph-info"></i>
-                            <span>Enter the direct URL to your meal image</span>
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Personal Preferences -->
-                <div class="space-y-3">
-                    <!-- Meal Context -->
-                    <div class="flex items-center space-x-2">
-                        <i class="ph ph-bowl-food text-green-500"></i>
-                        <h4 class="font-medium text-gray-900 dark:text-gray-100">Meal Context</h4>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">(Optional)</span>
-                    </div>
-                    <div class="relative">
-                        <button id="mealContextBtn" type="button" class="inline-flex items-center space-x-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors duration-200 border border-gray-200 dark:border-gray-600">
-                            <span id="mealContextText">Meal Context</span>
-                            <i class="ph ph-caret-down"></i>
+                    <!-- Diet Dropdown (Glass Style) -->
+                    <div class="relative z-20">
+                        <button id="dietDropdownBtn" type="button"
+                            class="group flex items-center space-x-2.5 bg-white/60 dark:bg-gray-800/60 hover:bg-white dark:hover:bg-gray-800 transition-all border border-gray-200/50 dark:border-gray-700/50 rounded-xl px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-200 shadow-sm">
+                            <span id="selectedDietIcon" class="text-lg">🍽️</span>
+                            <span id="selectedDietText">Standard American</span>
+                            <i class="ph ph-caret-down text-gray-400 group-hover:text-gray-600 transition-colors"></i>
                         </button>
-                        <div id="mealContextDropdown" class="hidden absolute left-0 mt-2 w-64 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50">
-                            <div class="py-1">
-                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="">None</button>
-                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="pre_workout">Pre-workout</button>
-                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="post_workout">Post-workout</button>
-                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="breakfast">Breakfast</button>
-                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="lunch">Lunch</button>
-                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="dinner">Dinner</button>
-                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="study_snack">Study snack</button>
-                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="social_meal">Social meal</button>
-                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="stress_eating">Stress eating</button>
-                                <button type="button" class="w-full text-left px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700" data-context="late_night_snack">Late-night snack</button>
+
+                        <div id="dietDropdown"
+                            class="hidden absolute right-0 mt-2 w-72 glass-panel rounded-2xl shadow-xl z-50 overflow-hidden transform origin-top-right transition-all">
+                            <div
+                                class="p-2 bg-gray-50/50 dark:bg-gray-900/50 border-b border-gray-100 dark:border-gray-700/50">
+                                <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider px-2">Select
+                                    Goal</span>
+                            </div>
+                            <div id="dietDropdownList" class="max-h-80 overflow-y-auto p-1 space-y-0.5">
+                                <!-- Populated by JS -->
                             </div>
                         </div>
-                        <input type="hidden" id="mealContext" name="meal_context" value="">
                     </div>
-                    <div class="flex items-center space-x-2">
-                        <i class="ph ph-user-gear text-green-500"></i>
-                        <h4 class="font-medium text-gray-900 dark:text-gray-100">Personal Preferences</h4>
-                        <span class="text-xs text-gray-500 dark:text-gray-400">(Optional)</span>
-                    </div>
-                    <textarea name="user_preferences" rows="3" 
-                              placeholder="Tell us about your preferences...
-
-Examples:
-• I prefer spicy foods and want to increase protein
-• I have gluten sensitivity"
-                              class="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200 text-sm resize-none text-gray-900 dark:text-gray-100"></textarea>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 flex items-center space-x-1">
-                        <i class="ph ph-lightbulb"></i>
-                        <span>The more details you provide, the better our recommendations!</span>
-                    </p>
                 </div>
 
-                <!-- Usage Badge -->
-                <div id="usageBadge" class="hidden mb-3 p-3 rounded-lg text-sm">
-                    <!-- Content will be populated by JavaScript -->
-                </div>
-
-                <!-- Submit Button -->
-                <button type="submit" id="analyzeBtn" class="w-full bg-gradient-to-r from-green-700 to-emerald-700 hover:from-green-800 hover:to-emerald-800 text-white py-3 px-4 rounded-lg font-medium transition-all duration-200 flex items-center justify-center space-x-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5">
-                    <i class="ph ph-magic-wand"></i>
-                    <span>Analyze My Meal with AI</span>
-                </button>
-
-                <!-- Loading State -->
-                <div id="loadingState" class="hidden text-center py-4">
-                    <div class="inline-flex items-center space-x-3 bg-green-50 dark:bg-green-950/30 text-green-600 dark:text-green-400 px-4 py-2 rounded-lg border border-green-200 dark:border-green-800">
-                        <div class="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                        <span class="text-sm font-medium">AI is analyzing your meal<span class="loading-dots"></span></span>
+                <!-- Chat Area -->
+                <div id="chatMessages" class="h-[400px] overflow-y-auto p-6 space-y-6 scroll-smooth">
+                    <!-- Intro Message -->
+                    <div class="flex items-start gap-4 max-w-[90%] chat-message">
+                        <div
+                            class="w-10 h-10 rounded-full bg-gradient-to-tr from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-md flex-shrink-0 mt-1">
+                            <i class="ph ph-robot text-lg"></i>
+                        </div>
+                        <div
+                            class="glass-panel bg-white/60 dark:bg-gray-800/60 rounded-2xl rounded-tl-none p-4 shadow-sm text-gray-800 dark:text-gray-200 text-sm leading-relaxed border-0">
+                            Hi! I'm your AI nutritionist. Upload a photo of your meal to get started.
+                            <br>I can identify ingredients, estimate calories, and give you health tips based on your
+                            diet!
+                        </div>
                     </div>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">This may take 10-15 seconds</p>
                 </div>
 
-                <input type="hidden" id="dietGoal" name="diet_goal" value="standard_american">
-            </form>
+                <!-- Input Area (Bottom) -->
+                <div class="p-5 bg-white/30 dark:bg-gray-900/30 border-t border-gray-200/50 dark:border-gray-700/50">
+                    <form id="analysisForm" enctype="multipart/form-data" class="space-y-4">
+
+                        <!-- Upload Tabs (Minimal) -->
+                        <div class="flex space-x-4 mb-2">
+                            <button type="button" id="uploadTab"
+                                class="text-sm font-medium text-green-600 dark:text-green-400 border-b-2 border-green-500 pb-1 transition-colors">Upload
+                                File</button>
+                            <button type="button" id="urlTab"
+                                class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 pb-1 transition-colors">Image
+                                URL</button>
+                        </div>
+
+                        <!-- Drop Zone -->
+                        <div id="uploadContent" class="relative group">
+                            <div id="fileUpload">
+                                <input type="file" id="imageFile" name="image_file" accept="image/*" class="hidden">
+                                <div id="dropZone"
+                                    class="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl p-8 hover:border-green-500 dark:hover:border-green-500 hover:bg-green-50/30 dark:hover:bg-green-900/10 transition-all cursor-pointer text-center group-hover:scale-[0.995]">
+                                    <div
+                                        class="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 mb-3 group-hover:text-green-500 transition-colors">
+                                        <i class="ph ph-cloud-arrow-up text-2xl"></i>
+                                    </div>
+                                    <p class="text-sm text-gray-600 dark:text-gray-300 font-medium">Click to browse or
+                                        drag image here</p>
+                                    <p class="text-xs text-gray-400 mt-1">JPG, PNG, WebP up to 16MB</p>
+                                </div>
+                            </div>
+
+                            <!-- URL Input -->
+                            <div id="urlInput" class="hidden">
+                                <div class="flex gap-2">
+                                    <input type="url" name="image_url" placeholder="Paste image link here..."
+                                        class="flex-1 input-glass rounded-xl px-4 py-3 text-sm text-gray-800 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 shadow-sm">
+                                    <button type="button" id="pasteUrl"
+                                        class="px-5 py-3 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 font-medium text-sm transition-colors border border-gray-200 dark:border-gray-700">
+                                        Paste
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Context Options (Accordion style) -->
+                        <details class="group">
+                            <summary
+                                class="flex items-center justify-between cursor-pointer text-xs font-medium uppercase tracking-wider text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors py-2 select-none">
+                                <span>Advanced Options (Context & Prefs)</span>
+                                <i class="ph ph-caret-down group-open:rotate-180 transition-transform"></i>
+                            </summary>
+                            <div
+                                class="pt-3 pb-2 grid grid-cols-1 md:grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-200">
+                                <!-- Meal Context -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Meal Type</label>
+                                    <div class="relative">
+                                        <select name="meal_context"
+                                            class="w-full appearance-none input-glass rounded-xl px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 shadow-sm cursor-pointer">
+                                            <option value="">No specific context</option>
+                                            <option value="breakfast">Breakfast</option>
+                                            <option value="lunch">Lunch</option>
+                                            <option value="dinner">Dinner</option>
+                                            <option value="pre_workout">Pre-Workout</option>
+                                            <option value="post_workout">Post-Workout</option>
+                                            <option value="snack">Snack</option>
+                                            <option value="cheat_meal">Cheat Meal</option>
+                                        </select>
+                                        <i
+                                            class="ph ph-caret-down absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                    </div>
+                                </div>
+                                <!-- Prefs -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-gray-500 mb-1.5">Quick Notes</label>
+                                    <input type="text" name="user_preferences"
+                                        placeholder="e.g. 'I'm allergic to nuts' or 'Low carb'"
+                                        class="w-full input-glass rounded-xl px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 shadow-sm">
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- Usage Badge -->
+                        <div id="usageBadge"
+                            class="hidden p-3 rounded-xl text-xs bg-red-50/50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 flex items-center justify-center space-x-2">
+                            <!-- Populated by JS with limits -->
+                        </div>
+
+                        <!-- Action Button -->
+                        <button type="submit" id="analyzeBtn"
+                            class="w-full relative overflow-hidden group btn-primary rounded-xl py-4 font-bold text-sm uppercase tracking-wide shadow-lg hover:shadow-green-500/20 transition-all">
+                            <div
+                                class="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:animate-[shimmer_1.5s_infinite]">
+                            </div>
+                            <span class="relative flex items-center justify-center space-x-2">
+                                <i class="ph ph-sparkle-fill text-green-400"></i>
+                                <span>Analyze Meal</span>
+                            </span>
+                        </button>
+
+                        <!-- Loading State -->
+                        <div id="loadingState" class="hidden text-center py-2">
+                            <div
+                                class="inline-flex items-center space-x-3 px-4 py-2 rounded-full bg-white/50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 backdrop-blur-sm shadow-sm">
+                                <svg class="animate-spin h-4 w-4 text-green-500" xmlns="http://www.w3.org/2000/svg"
+                                    fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-200">Analyzing<span
+                                        class="loading-dots"></span></span>
+                            </div>
+                        </div>
+
+                        <input type="hidden" id="dietGoal" name="diet_goal" value="standard_american">
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Results Section -->
-    <div id="resultsSection" class="hidden mt-8">
-        <div id="analysisResult" class="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow-sm">
-            <!-- Results will be populated here -->
+    <!-- Results Anchor -->
+    <div id="resultsSection" class="hidden scroll-mt-28">
+        <div class="flex items-center space-x-4 mb-6">
+            <div class="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent">
+            </div>
+            <span class="font-serif-accent text-2xl italic text-gray-400">Analysis Results</span>
+            <div class="h-px flex-1 bg-gradient-to-r from-transparent via-gray-300 dark:via-gray-700 to-transparent">
+            </div>
+        </div>
+
+        <div id="analysisResult" class="glass-panel rounded-[2rem] p-8 md:p-10 shadow-xl">
+            <!-- Populated by JS -->
         </div>
     </div>
 
-    <!-- Pro Tips -->
-    <div class="mt-12 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-950/20 dark:to-purple-950/20 rounded-xl p-6 border border-blue-200 dark:border-blue-800/30">
-        <div class="flex items-center space-x-2 mb-4">
-            <i class="ph ph-lightbulb text-yellow-500"></i>
-            <h3 class="font-semibold text-gray-900 dark:text-gray-100">Pro Tips for Better Results</h3>
+    <!-- Features Grid (Glass Cards) -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 px-2">
+        {% for feature in [
+        {'icon': 'ph-sun-dim', 'color': 'text-amber-500', 'title': 'Perfect Lighting', 'desc': 'Natural light helps AI
+        see details clearly.'},
+        {'icon': 'ph-frame-corners', 'color': 'text-blue-500', 'title': 'Full Frame', 'desc': 'Capture the entire plate
+        from above.'},
+        {'icon': 'ph-fork-knife', 'color': 'text-purple-500', 'title': 'Utensils Context', 'desc': 'Helps estimate
+        portion sizes accurately.'},
+        {'icon': 'ph-list-magnifying-glass', 'color': 'text-rose-500', 'title': 'Visible Ingredients', 'desc': 'Ensure
+        key components aren\'t hidden.'}
+        ] %}
+        <div
+            class="glass-panel p-6 rounded-2xl flex flex-col items-center text-center transition-all duration-300 hover:-translate-y-2 hover:shadow-lg group">
+            <div
+                class="w-12 h-12 rounded-full bg-gray-50 dark:bg-white/5 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+                <i class="ph {{ feature.icon }} text-2xl {{ feature.color }}"></i>
+            </div>
+            <h3 class="font-semibold text-gray-900 dark:text-gray-100 mb-1">{{ feature.title }}</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 leading-snug">{{ feature.desc }}</p>
         </div>
-        
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="text-center">
-                <div class="w-12 h-12 mx-auto mb-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center border border-blue-200 dark:border-blue-800">
-                    <i class="ph ph-camera text-blue-600 dark:text-blue-400"></i>
-                </div>
-                <h4 class="font-medium mb-2 text-gray-900 dark:text-gray-100">Good Lighting</h4>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Take photos in natural light when possible</p>
-            </div>
-            
-            <div class="text-center">
-                <div class="w-12 h-12 mx-auto mb-3 bg-green-100 dark:bg-green-900/30 rounded-lg flex items-center justify-center border border-green-200 dark:border-green-800">
-                    <i class="ph ph-arrows-out text-green-600 dark:text-green-400"></i>
-                </div>
-                <h4 class="font-medium mb-2 text-gray-900 dark:text-gray-100">Full View</h4>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Show the complete meal from above</p>
-            </div>
-            
-            <div class="text-center">
-                <div class="w-12 h-12 mx-auto mb-3 bg-purple-100 dark:bg-purple-900/30 rounded-lg flex items-center justify-center border border-purple-200 dark:border-purple-800">
-                    <i class="ph ph-fork-knife text-purple-600 dark:text-purple-400"></i>
-                </div>
-                <h4 class="font-medium mb-2 text-gray-900 dark:text-gray-100">Include Utensils</h4>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Helps AI estimate portion sizes</p>
-            </div>
-            
-            <div class="text-center">
-                <div class="w-12 h-12 mx-auto mb-3 bg-orange-100 dark:bg-orange-900/30 rounded-lg flex items-center justify-center border border-orange-200 dark:border-orange-800">
-                    <i class="ph ph-eye text-orange-600 dark:text-orange-400"></i>
-                </div>
-                <h4 class="font-medium mb-2 text-gray-900 dark:text-gray-100">Clear Details</h4>
-                <p class="text-sm text-gray-600 dark:text-gray-400">Make sure all ingredients are visible</p>
-            </div>
-        </div>
+        {% endfor %}
     </div>
+
 </div>
 {% endblock %}
 
 {% block scripts %}
 <script>
-// Markdown renderer (loaded lazily if not present)
-if (typeof marked === 'undefined') {
-    const s = document.createElement('script');
-    s.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
-    document.head.appendChild(s);
-}
-document.addEventListener('DOMContentLoaded', function() {
-    // Diet dropdown UI (old style)
-    const dietGoalInput = document.getElementById('dietGoal');
-    const dietDropdownBtn = document.getElementById('dietDropdownBtn');
-    const dietDropdown = document.getElementById('dietDropdown');
-    const dietDropdownList = document.getElementById('dietDropdownList');
-    const selectedDietIcon = document.getElementById('selectedDietIcon');
-    const selectedDietText = document.getElementById('selectedDietText');
-    let dietsData = [];
+    // Check for marked
+    if (typeof marked === 'undefined') {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/marked/marked.min.js';
+        document.head.appendChild(s);
+    }
 
-    async function loadDiets() {
-        try {
-            const res = await fetch('/profile/api/diets');
-            const data = await res.json();
-            if (data.success) {
-                dietsData = data.diets;
-                buildDietDropdown(dietsData);
+    document.addEventListener('DOMContentLoaded', function () {
+        // --- UI Interactions ---
+
+        // Tab Switching
+        const uploadTab = document.getElementById('uploadTab');
+        const urlTab = document.getElementById('urlTab');
+        const fileUpload = document.getElementById('fileUpload');
+        const urlInput = document.getElementById('urlInput');
+
+        function switchTab(mode) {
+            if (mode === 'file') {
+                uploadTab.classList.add('text-green-600', 'dark:text-green-400', 'border-b-2', 'border-green-500');
+                uploadTab.classList.remove('text-gray-500', 'dark:text-gray-400');
+                urlTab.classList.remove('text-green-600', 'dark:text-green-400', 'border-b-2', 'border-green-500');
+                urlTab.classList.add('text-gray-500', 'dark:text-gray-400');
+
+                fileUpload.classList.remove('hidden');
+                urlInput.classList.add('hidden');
+            } else {
+                urlTab.classList.add('text-green-600', 'dark:text-green-400', 'border-b-2', 'border-green-500');
+                urlTab.classList.remove('text-gray-500', 'dark:text-gray-400');
+                uploadTab.classList.remove('text-green-600', 'dark:text-green-400', 'border-b-2', 'border-green-500');
+                uploadTab.classList.add('text-gray-500', 'dark:text-gray-400');
+
+                urlInput.classList.remove('hidden');
+                fileUpload.classList.add('hidden');
             }
-        } catch {}
-    }
+        }
 
-    function emojiFor(slug) {
-        const map = {
-            'standard_american': '🍽️',
-            'mediterranean': '🫒',
-            'ketogenic': '🥑',
-            'paleo': '🥩',
-            'plant_based_vegan': '🌱',
-            'vegetarian': '🥚',
-            'pescatarian': '🐟',
-            'dash_diet': '🧂',
-            'intermittent_fasting_16_8': '⏰',
-            'low_fodmap': '🧬',
-            'low_carb': '⚖️',
-            'flexitarian': '🥗',
-            'gluten_free': '🚫🌾',
-            'whole30': '🧭',
-            'anti_inflammatory': '🫐'
-        };
-        return map[slug] || '🍽️';
-    }
+        uploadTab.addEventListener('click', () => switchTab('file'));
+        urlTab.addEventListener('click', () => switchTab('url'));
 
-    function buildDietDropdown(diets) {
-        if (!dietDropdownList) return;
-        const current = dietGoalInput.value || 'standard_american';
-        dietDropdownList.innerHTML = diets.map(d => `
-            <button data-slug="${d.slug}" class="w-full flex items-start space-x-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
-                <span>${emojiFor(d.slug)}</span>
-                <div class="text-left">
-                    <div class="font-medium">${d.label}</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1">${d.focus || ''}</div>
+        // Drag & Drop
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('imageFile');
+
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('border-green-500', 'bg-green-50/50', 'dark:bg-green-900/20');
+        });
+
+        dropZone.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-green-500', 'bg-green-50/50', 'dark:bg-green-900/20');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('border-green-500', 'bg-green-50/50', 'dark:bg-green-900/20');
+            if (e.dataTransfer.files.length) {
+                fileInput.files = e.dataTransfer.files;
+                handleFile(e.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files.length) handleFile(e.target.files[0]);
+        });
+
+        function handleFile(file) {
+            if (!file.type.startsWith('image/')) return;
+            addUserMessage(`Uploaded: ${file.name}`);
+
+            // Preview
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const previewId = 'img-' + Date.now();
+                const html = `
+                <div class="relative w-full max-w-sm rounded-2xl overflow-hidden glass-panel">
+                    <img src="${e.target.result}" class="w-full h-48 object-cover">
+                    <div class="absolute bottom-0 inset-x-0 bg-black/50 backdrop-blur-sm p-2 text-white text-xs truncate">
+                        ${file.name}
+                    </div>
+                </div>
+            `;
+                addMediaMessage('user', html);
+            }
+            reader.readAsDataURL(file);
+        }
+
+        // Paste URL
+        const pasteBtn = document.getElementById('pasteUrl');
+        if (pasteBtn) {
+            pasteBtn.addEventListener('click', async () => {
+                try {
+                    const text = await navigator.clipboard.readText();
+                    if (text && text.startsWith('http')) {
+                        document.querySelector('input[name="image_url"]').value = text;
+                        addUserMessage(`Image URL: ${text}`);
+                    }
+                } catch (e) { }
+            });
+        }
+
+        // --- Chat & Logic ---
+        const chatContainer = document.getElementById('chatMessages');
+
+        function scrollToBottom() {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+
+        function addUserMessage(text) {
+            const div = document.createElement('div');
+            div.className = "flex items-start justify-end gap-4 max-w-[90%] ml-auto chat-message";
+            div.innerHTML = `
+            <div class="bg-blue-600 text-white rounded-2xl rounded-tr-none p-4 shadow-md text-sm leading-relaxed">
+                ${text}
+            </div>
+             <div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 mt-1">
+                <i class="ph ph-user text-gray-500 dark:text-gray-300"></i>
+            </div>
+        `;
+            chatContainer.appendChild(div);
+            scrollToBottom();
+        }
+
+        function addBotMessage(text) {
+            const div = document.createElement('div');
+            div.className = "flex items-start gap-4 max-w-[90%] chat-message";
+            div.innerHTML = `
+            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-green-500 to-emerald-600 flex items-center justify-center text-white shadow-md flex-shrink-0 mt-1">
+                <i class="ph ph-robot text-lg"></i>
+            </div>
+            <div class="glass-panel bg-white/60 dark:bg-gray-800/60 rounded-2xl rounded-tl-none p-4 shadow-sm text-gray-800 dark:text-gray-200 text-sm leading-relaxed border-0">
+                ${text}
+            </div>
+        `;
+            chatContainer.appendChild(div);
+            scrollToBottom();
+        }
+
+        function addMediaMessage(role, htmlContent) {
+            const div = document.createElement('div');
+            if (role === 'user') {
+                div.className = "flex items-start justify-end gap-4 max-w-[90%] ml-auto chat-message";
+                div.innerHTML = `
+                ${htmlContent}
+                <div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 mt-1">
+                    <i class="ph ph-user text-gray-500 dark:text-gray-300"></i>
+                </div>
+             `;
+            }
+            chatContainer.appendChild(div);
+            scrollToBottom();
+        }
+
+        // --- Data Loading (Diets) ---
+        const dietGoalInput = document.getElementById('dietGoal');
+        const dietDropdownBtn = document.getElementById('dietDropdownBtn');
+        const dietDropdown = document.getElementById('dietDropdown');
+        const dietDropdownList = document.getElementById('dietDropdownList');
+        const selectedDietIcon = document.getElementById('selectedDietIcon');
+        const selectedDietText = document.getElementById('selectedDietText');
+
+        // Toggle
+        dietDropdownBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            dietDropdown.classList.toggle('hidden');
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!dietDropdown.contains(e.target) && !dietDropdownBtn.contains(e.target)) {
+                dietDropdown.classList.add('hidden');
+            }
+        });
+
+        async function loadDiets() {
+            try {
+                const res = await fetch('/profile/api/diets');
+                const data = await res.json();
+                if (data.success) {
+                    renderDiets(data.diets);
+                }
+            } catch (e) { console.error(e) }
+        }
+
+        function emojiFor(slug) {
+            const map = {
+                'standard_american': '🍽️', 'mediterranean': '🫒', 'ketogenic': '🥑',
+                'paleo': '🥩', 'plant_based_vegan': '🌱', 'vegetarian': '🥦',
+                'pescatarian': '🐟', 'dash_diet': '🧂',
+                'flexitarian': '🥗', 'gluten_free': '🌾',
+                'whole30': '🍎', 'anti_inflammatory': '🫐',
+                'intermittent_fasting_16_8': '⏳',
+                'intermittent_fasting_18_6': '⏳',
+                'low_fodmap': '🥝', 'low_carb': '⚖️'
+            };
+            return map[slug] || '🍽️';
+        }
+
+        function renderDiets(diets) {
+            dietDropdownList.innerHTML = diets.map(d => `
+            <button type="button" data-slug="${d.slug}" class="w-full flex items-center space-x-3 px-4 py-2 hover:bg-green-50 dark:hover:bg-green-900/20 text-left transition-colors group">
+                <span class="text-xl">${emojiFor(d.slug)}</span>
+                <div>
+                     <p class="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-green-700 dark:group-hover:text-green-400">${d.label}</p>
                 </div>
             </button>
         `).join('');
 
-        // Set current selection label
-        const currentDiet = diets.find(x => x.slug === current) || diets[0];
-        if (currentDiet) {
-            selectedDietIcon.textContent = emojiFor(currentDiet.slug);
-            selectedDietText.textContent = currentDiet.label;
-        }
+            // Handlers
+            dietDropdownList.querySelectorAll('button').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    const slug = btn.dataset.slug;
+                    const label = btn.querySelector('p').innerText;
 
-        dietDropdownList.querySelectorAll('button[data-slug]').forEach(btn => {
-            btn.addEventListener('click', () => {
-                const slug = btn.getAttribute('data-slug');
-                dietGoalInput.value = slug;
-                const diet = diets.find(x => x.slug === slug);
-                if (diet) {
+                    dietGoalInput.value = slug;
                     selectedDietIcon.textContent = emojiFor(slug);
-                    selectedDietText.textContent = diet.label;
-                }
-                dietDropdown.classList.add('hidden');
-                addChatMessage('user', `I've selected the ${diet.label}.`);
-                addChatMessage('assistant', 'Great choice! Now upload your meal photo for analysis.');
+                    selectedDietText.textContent = label;
+                    dietDropdown.classList.add('hidden');
+
+                    addBotMessage(`Goal updated to <b>${label}</b>. I'll analyze your meals with this focus.`);
+                });
             });
-        });
-    }
 
-    // Toggle dropdown
-    if (dietDropdownBtn) {
-        dietDropdownBtn.addEventListener('click', () => {
-            dietDropdown.classList.toggle('hidden');
-        });
-        document.addEventListener('click', (e) => {
-            if (!dietDropdownBtn.contains(e.target) && !dietDropdown.contains(e.target)) {
-                dietDropdown.classList.add('hidden');
-            }
-        });
-    }
-
-    // Tab switching
-    const uploadTabBtn = document.getElementById('uploadTab');
-    const urlTabBtn = document.getElementById('urlTab');
-    const fileUpload = document.getElementById('fileUpload');
-    const urlInput = document.getElementById('urlInput');
-
-    uploadTabBtn.addEventListener('click', () => {
-        uploadTabBtn.classList.add('bg-white', 'dark:bg-gray-700', 'shadow-sm', 'border', 'border-gray-200', 'dark:border-gray-600', 'text-gray-900', 'dark:text-gray-100');
-        urlTabBtn.classList.remove('bg-white', 'dark:bg-gray-700', 'shadow-sm', 'border', 'border-gray-200', 'dark:border-gray-600', 'text-gray-900', 'dark:text-gray-100');
-        urlTabBtn.classList.add('text-gray-600', 'dark:text-gray-400');
-        fileUpload.classList.remove('hidden');
-        urlInput.classList.add('hidden');
-    });
-
-    urlTabBtn.addEventListener('click', () => {
-        urlTabBtn.classList.add('bg-white', 'dark:bg-gray-700', 'shadow-sm', 'border', 'border-gray-200', 'dark:border-gray-600', 'text-gray-900', 'dark:text-gray-100');
-        uploadTabBtn.classList.remove('bg-white', 'dark:bg-gray-700', 'shadow-sm', 'border', 'border-gray-200', 'dark:border-gray-600', 'text-gray-900', 'dark:text-gray-100');
-        uploadTabBtn.classList.add('text-gray-600', 'dark:text-gray-400');
-        urlInput.classList.remove('hidden');
-        fileUpload.classList.add('hidden');
-    });
-
-    // Drag and drop functionality
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('imageFile');
-
-    dropZone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropZone.classList.add('border-blue-400', 'bg-blue-50/50', 'dark:bg-blue-950/20');
-    });
-
-    dropZone.addEventListener('dragleave', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('border-blue-400', 'bg-blue-50/50', 'dark:bg-blue-950/20');
-    });
-
-    dropZone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropZone.classList.remove('border-blue-400', 'bg-blue-50/50', 'dark:bg-blue-950/20');
-        
-        const files = e.dataTransfer.files;
-        if (files.length > 0) {
-            fileInput.files = files;
-            handleFileSelection(files[0]);
+            // Set default if exists
+            if (dietsData.length === 0) dietsData = diets; // Cache
+            restoreUserPref();
         }
-    });
 
-    fileInput.addEventListener('change', (e) => {
-        if (e.target.files.length > 0) {
-            handleFileSelection(e.target.files[0]);
+        let dietsData = [];
+        async function restoreUserPref() {
+            try {
+                const res = await fetch('/profile/api/load');
+                const data = await res.json();
+                if (data.success && data.data.preferences?.diet_type) {
+                    const slug = data.data.preferences.diet_type;
+                    dietGoalInput.value = slug;
+                    // Update UI look
+                    selectedDietIcon.textContent = emojiFor(slug);
+                    // Find label if possible
+                    const btn = dietDropdownList.querySelector(`button[data-slug="${slug}"]`);
+                    if (btn) selectedDietText.textContent = btn.querySelector('p').innerText;
+                }
+            } catch (_) { }
         }
-    });
 
-    // File selection handler
-    function handleFileSelection(file) {
-        if (file && file.type.startsWith('image/')) {
-            addChatMessage('user', `Uploaded: ${file.name}`);
-            
-            // Show image preview in chat
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                addImagePreview(e.target.result, file.name);
-            };
-            reader.readAsDataURL(file);
-            
-            addChatMessage('assistant', 'Perfect! I can see your meal photo. Click "Analyze My Meal with AI" to get your nutrition analysis.');
-        }
-    }
+        loadDiets();
+        loadUsage();
 
-    // Paste URL functionality
-    document.getElementById('pasteUrl').addEventListener('click', async () => {
-        try {
-            const text = await navigator.clipboard.readText();
-            if (text && (text.startsWith('http') || text.startsWith('https'))) {
-                document.querySelector('input[name="image_url"]').value = text;
-                addChatMessage('user', `Pasted image URL: ${text}`);
-                addChatMessage('assistant', 'Great! I can see the image URL. Click "Analyze My Meal with AI" to get your nutrition analysis.');
-            }
-        } catch (err) {
-            console.log('Failed to read clipboard');
-        }
-    });
-
-    // Form submission function
-    function analyzeForm() {
+        // --- Analysis Actions ---
         const form = document.getElementById('analysisForm');
-        const formData = new FormData(form);
         const analyzeBtn = document.getElementById('analyzeBtn');
         const loadingState = document.getElementById('loadingState');
-        
-        // Show loading state
-        analyzeBtn.classList.add('hidden');
-        loadingState.classList.remove('hidden');
-        
-        addChatMessage('assistant', 'Analyzing your meal with AI...');
-        
-        // Choose endpoint: if user is signed in and has profile, use profile-aware API; else fallback
-        // We optimistically call profile-aware endpoint; backend will still work for guests
-        fetch('/api/analyze-with-profile', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (response.status === 429) {
-                // Handle rate limit specifically
-                return response.json().then(data => {
-                    throw new Error(data.message || 'Daily limit exceeded');
-                });
-            }
-            return response.json();
-        })
-        .then(data => {
-            analyzeBtn.classList.remove('hidden');
-            loadingState.classList.add('hidden');
-            
-            if (data.error) {
-                if (data.error === 'limit_exceeded') {
-                    showNotification('error', data.message);
-                    addChatMessage('assistant', `${data.message}`);
-                    // Refresh usage status
-                    loadUsageStatus();
-                } else {
-                    addChatMessage('assistant', `Sorry, there was an error: ${data.error}`);
-                    showNotification('error', 'Analysis failed: ' + data.error);
-                }
-            } else {
-                displayResults(data);
-                // Only save to history if user is signed in (server handles this)
-                // No local storage saving for guests
-                // Refresh usage status
-                loadUsageStatus();
-            }
-        })
-        .catch(error => {
-            analyzeBtn.classList.remove('hidden');
-            loadingState.classList.add('hidden');
-            addChatMessage('assistant', 'Sorry, there was an error processing your request. Please try again.');
-            showNotification('error', error.message || 'Network error: Please check your connection and try again.');
-        });
-    }
-
-    // Form submission event
-    document.getElementById('analysisForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-        analyzeForm();
-    });
-
-    // Chat message functions
-    function addChatMessage(sender, message) {
-        const messagesContainer = document.getElementById('chatMessages');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'flex items-start space-x-3 chat-message';
-        
-        if (sender === 'user') {
-            messageDiv.innerHTML = `
-                <div class="w-8 h-8 bg-gray-600 dark:bg-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i class="ph ph-user text-white dark:text-gray-900 text-sm"></i>
-                </div>
-                <div class="bg-blue-600 text-white rounded-lg rounded-tl-none p-3 max-w-md shadow-sm">
-                    <p class="text-sm">${message}</p>
-                </div>
-            `;
-        } else {
-            messageDiv.innerHTML = `
-                <div class="w-8 h-8 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full flex items-center justify-center flex-shrink-0">
-                    <i class="ph ph-robot text-white text-sm"></i>
-                </div>
-                <div class="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg rounded-tl-none p-3 max-w-md shadow-sm">
-                    <p class="text-sm text-gray-700 dark:text-gray-300">${message}</p>
-                </div>
-            `;
-        }
-        
-        messagesContainer.appendChild(messageDiv);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    function addImagePreview(src, filename) {
-        const messagesContainer = document.getElementById('chatMessages');
-        const messageDiv = document.createElement('div');
-        messageDiv.className = 'flex items-start space-x-3 chat-message';
-        
-        messageDiv.innerHTML = `
-            <div class="w-8 h-8 bg-gray-600 dark:bg-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
-                <i class="ph ph-user text-white dark:text-gray-900 text-sm"></i>
-            </div>
-            <div class="bg-blue-600 text-white rounded-lg rounded-tl-none p-3 max-w-md shadow-sm">
-                <img src="${src}" alt="${filename}" class="w-full h-32 object-cover rounded-lg mb-2">
-                <p class="text-sm">${filename}</p>
-            </div>
-        `;
-        
-        messagesContainer.appendChild(messageDiv);
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    function displayResults(data) {
-        addChatMessage('assistant', 'Analysis complete! Your detailed results are shown below:');
         const resultsSection = document.getElementById('resultsSection');
         const analysisResult = document.getElementById('analysisResult');
 
-        // Prefer markdown coming from backend
-        let cleanAnalysis = data.analysis || 'Analysis not available';
-        // Strip any visible fenced code blocks (DATA_PAYLOAD or others)
-        cleanAnalysis = cleanAnalysis.replace(/```[\s\S]*?```/g, '').trim();
-        // Promote common all-caps headings if present
-        const headingCaps = [
-            'MEAL IDENTIFICATION','NUTRITIONAL ESTIMATION','DIET COMPATIBILITY SCORE',
-            'POSITIVE ASPECTS','AREAS FOR IMPROVEMENT','PERSONALIZED RECOMMENDATIONS',
-            'OVERALL HEALTH SCORE','PERSONALIZED ADVICE','SUMMARY','MEAL BREAKDOWN','MACROS & KEY NUTRIENTS'
-        ];
-        headingCaps.forEach(h => {
-            const re = new RegExp('(^|\\n)'+h+':', 'g');
-            cleanAnalysis = cleanAnalysis.replace(re, `\n\n### ${h.replace(/_/g,' ')}\n`);
-        });
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
 
-        // Render markdown (fallback to light HTML)
-        function renderAsHTML(text) {
-            if (/•/.test(text)) text = text.replace(/\s*•\s*/g, '\n- ');
-            text = text.replace(/^•\s+/gm, '- ');
-            const paragraphs = text.split(/\n\n+/).map(p => p.trim());
-            let html = '';
-            const hRe = /^###\s+(.*)$/i;
-            paragraphs.forEach(p => {
-                if (!p) return;
-                if (hRe.test(p)) {
-                    const m = p.match(hRe);
-                    html += `<h3 class="text-xl font-semibold mb-3 text-gray-900 dark:text-gray-100">${m[1]}</h3>`;
-                } else if (/^\-\s+/.test(p) || /\n\-\s+/.test('\n'+p)) {
-                    const items = p.split(/\n/).filter(x=>/^\-\s+/.test(x)).map(x=>x.replace(/^\-\s+/,''));
-                    html += `<ul class="list-disc pl-6 space-y-1 text-gray-700 dark:text-gray-300">${items.map(i=>`<li>${i}</li>`).join('')}</ul>`;
+            // UI State: Loading
+            analyzeBtn.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+            addBotMessage("Analysing your meal... this usually takes about 10 seconds.");
+
+            try {
+                const formData = new FormData(form);
+                const res = await fetch('/api/analyze-with-profile', { method: 'POST', body: formData });
+                const data = await res.json();
+
+                // UI State: Done
+                analyzeBtn.classList.remove('hidden');
+                loadingState.classList.add('hidden');
+
+                if (data.error) {
+                    addBotMessage(`⚠️ Error: ${data.message || data.error}`);
                 } else {
-                    const colonBold = p.replace(/(^|\n)([A-Za-z][A-Za-z\s]+:)\s/g, (m,g1,g2)=>`${g1}<strong class=\"text-gray-900 dark:text-gray-100\">${g2}</strong> `);
-                    html += `<p class="mb-3 leading-relaxed text-gray-700 dark:text-gray-300">${colonBold}</p>`;
+                    renderResults(data);
+                    loadUsage(); // Refresh limits
                 }
-            });
-            return html;
-        }
-        let renderedMarkdown = '';
-        try {
+
+            } catch (err) {
+                analyzeBtn.classList.remove('hidden');
+                loadingState.classList.add('hidden');
+                addBotMessage("⚠️ Network error. Please try again.");
+            }
+        });
+
+        function renderResults(data) {
+            addBotMessage("Analysis complete! Check the detailed report below.");
+            resultsSection.classList.remove('hidden');
+
+            // Parse Markdown
+            let html = data.analysis;
             if (typeof marked !== 'undefined') {
-                renderedMarkdown = marked.parse(cleanAnalysis);
-            } else {
-                renderedMarkdown = renderAsHTML(cleanAnalysis);
+                html = marked.parse(data.analysis);
             }
-        } catch(e) { renderedMarkdown = renderAsHTML(cleanAnalysis) }
 
-        // Enhance tables globally: add borders/striping via wrapper CSS classes
-        const prose = `
-            <style>
-              #analysisResult table { border-collapse: separate; border-spacing: 0; width: 100%; }
-              #analysisResult thead th { border-bottom: 1px solid var(--tw-prose-borders, #e5e7eb); }
-              #analysisResult td, #analysisResult th { border-right: 1px solid #e5e7eb; padding: 0.5rem 0.75rem; }
-              #analysisResult tr > *:last-child { border-right: 0 }
-              #analysisResult tbody tr { border-bottom: 1px solid #e5e7eb }
-              .dark #analysisResult thead th, .dark #analysisResult tbody tr { border-color: #374151 }
-              .dark #analysisResult td, .dark #analysisResult th { border-color: #374151 }
-            </style>`;
+            analysisResult.innerHTML = `
+            <div class="prose prose-glass max-w-none">
+                ${html}
+            </div>
+        `;
 
-        analysisResult.innerHTML = `${prose}
-            <div class="prose prose-sm max-w-none dark:prose-invert">
-                <div class="text-gray-700 dark:text-gray-300 leading-relaxed space-y-3">${renderedMarkdown}</div>
-                ${data.personalization ? `
-                <div class="mt-6 p-4 rounded-lg border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/40">
-                    <h3 class="text-lg font-semibold mb-3 text-gray-900 dark:text-gray-100">How this fits your goals</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                            <div class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-medium">Macro Adherence</div>
-                            <div class="inline-flex items-center px-3 py-1 rounded-full text-sm ${data.personalization.macro_adherence && data.personalization.macro_adherence.score >= 8 ? 'bg-green-50 text-green-700 border border-green-200' : data.personalization.macro_adherence && data.personalization.macro_adherence.score >= 5 ? 'bg-amber-50 text-amber-700 border border-amber-200' : 'bg-red-50 text-red-700 border border-red-200'}">
-                                ${data.personalization.macro_adherence?.score ?? '—'} / 10
-                            </div>
-                            <div class="text-xs mt-2 text-gray-500 dark:text-gray-400">${data.personalization.macro_adherence?.explanation || ''}</div>
-                        </div>
-                        <div>
-                            <div class="text-sm text-gray-600 dark:text-gray-400 mb-1 font-medium">Portion Advice</div>
-                            <p class="text-gray-700 dark:text-gray-300">${data.personalization.portion_advice || '—'}</p>
-                        </div>
-                    </div>
-                    ${Array.isArray(data.personalization.allergen_matches) && data.personalization.allergen_matches.length ? `
-                    <div class="mt-4">
-                        <div class="text-sm font-medium text-red-700 mb-1">Allergen Alerts</div>
-                        <ul class="list-disc pl-6 text-red-700">
-                            ${data.personalization.allergen_matches.map(a => `<li>${a.allergen} (matched: ${a.keyword})</li>`).join('')}
-                        </ul>
-                    </div>` : ''}
-                    ${Array.isArray(data.personalization.goal_tips) && data.personalization.goal_tips.length ? `
-                    <div class="mt-4">
-                        <div class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Goal-Specific Tips</div>
-                        <ul class="list-disc pl-6 text-gray-700 dark:text-gray-300">
-                            ${data.personalization.goal_tips.map(t => `<li>${t}</li>`).join('')}
-                        </ul>
-                    </div>` : ''}
-                </div>` : ''}
-            </div>`;
-
-        resultsSection.classList.remove('hidden');
-        resultsSection.scrollIntoView({ behavior: 'smooth' });
-    }
-
-    // History is now handled server-side only for signed-in users
-    // Guests get temporary analysis results without persistent storage
-
-    // Notification system (same as history page)
-    function showNotification(message, type = 'info') {
-        // Remove any existing notifications
-        const existingNotification = document.querySelector('.notification');
-        if (existingNotification) {
-            existingNotification.remove();
+            // Smooth scroll
+            resultsSection.scrollIntoView({ behavior: 'smooth' });
         }
-        
-        // Create notification element
-        const notification = document.createElement('div');
-        notification.className = 'notification fixed top-4 right-4 z-50 px-6 py-4 rounded-lg shadow-lg border max-w-sm transition-all duration-300 transform translate-x-full opacity-0';
-        
-        // Set colors based on type
-        if (type === 'success') {
-            notification.classList.add('bg-green-50', 'dark:bg-green-950/30', 'border-green-200', 'dark:border-green-800', 'text-green-800', 'dark:text-green-200');
-            notification.innerHTML = `
-                <div class="flex items-center space-x-3">
-                    <i class="ph ph-check-circle text-green-500 text-xl"></i>
-                    <span class="font-medium">${message}</span>
-                </div>
-            `;
-        } else if (type === 'error') {
-            notification.classList.add('bg-red-50', 'dark:bg-red-950/30', 'border-red-200', 'dark:border-red-800', 'text-red-800', 'dark:text-red-200');
-            notification.innerHTML = `
-                <div class="flex items-center space-x-3">
-                    <i class="ph ph-warning text-red-500 text-xl"></i>
-                    <span class="font-medium">${message}</span>
-                </div>
-            `;
-        } else {
-            notification.classList.add('bg-blue-50', 'dark:bg-blue-950/30', 'border-blue-200', 'dark:border-blue-800', 'text-blue-800', 'dark:text-blue-200');
-            notification.innerHTML = `
-                <div class="flex items-center space-x-3">
-                    <i class="ph ph-info text-blue-500 text-xl"></i>
-                    <span class="font-medium">${message}</span>
-                </div>
-            `;
-        }
-        
-        // Add to page
-        document.body.appendChild(notification);
-        
-        // Animate in
-        setTimeout(() => {
-            notification.classList.remove('translate-x-full', 'opacity-0');
-            notification.classList.add('translate-x-0', 'opacity-100');
-        }, 100);
-        
-        // Auto remove after 3 seconds
-        setTimeout(() => {
-            notification.classList.add('translate-x-full', 'opacity-0');
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.remove();
+
+        async function loadUsage() {
+            try {
+                const res = await fetch('/api/usage');
+                const data = await res.json();
+                const badge = document.getElementById('usageBadge');
+
+                if (data.usage?.analyses) {
+                    const { current, limit } = data.usage.analyses;
+                    if (current >= limit || data.user_type === 'guest') {
+                        badge.classList.remove('hidden');
+                        badge.innerHTML = `<i class="ph ph-warning"></i> <span>Daily Usage: ${current}/${limit} (Guest Mode)</span>`;
+                    }
                 }
-            }, 300);
-        }, 3000);
-    }
-
-    // Usage tracking and limits
-    async function loadUsageStatus() {
-        try {
-            const response = await fetch('/api/usage');
-            const data = await response.json();
-            updateUsageBadge(data);
-        } catch (error) {
-            console.error('Failed to load usage status:', error);
+            } catch (_) { }
         }
-    }
-
-    function updateUsageBadge(data) {
-        const badge = document.getElementById('usageBadge');
-        const analyzeBtn = document.getElementById('analyzeBtn');
-        
-        if (!data.usage.analyses) return;
-        
-        const { current, limit, near_limit, at_limit } = data.usage.analyses;
-        
-        // Show badge for guests or when near/at limit
-        if (data.user_type === 'guest' || near_limit || at_limit) {
-            badge.classList.remove('hidden');
-            
-            if (at_limit) {
-                badge.className = 'mb-3 p-3 rounded-lg text-sm bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 text-red-800 dark:text-red-200';
-                badge.innerHTML = `
-                    <div class="flex items-center space-x-2">
-                        <i class="ph ph-warning text-red-500"></i>
-                        <span>Daily limit reached (${current}/${limit}). ${data.user_type === 'guest' ? 'Sign in for higher limits.' : 'Try again tomorrow.'}</span>
-                    </div>
-                `;
-                // Disable button
-                analyzeBtn.disabled = true;
-                analyzeBtn.classList.add('opacity-50', 'cursor-not-allowed');
-            } else if (near_limit) {
-                badge.className = 'mb-3 p-3 rounded-lg text-sm bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 text-amber-800 dark:text-amber-200';
-                badge.innerHTML = `
-                    <div class="flex items-center space-x-2">
-                        <i class="ph ph-warning text-amber-500"></i>
-                        <span>${current}/${limit} analyses used today</span>
-                    </div>
-                `;
-            } else if (data.user_type === 'guest') {
-                badge.className = 'mb-3 p-3 rounded-lg text-sm bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 text-blue-800 dark:text-blue-200';
-                badge.innerHTML = `
-                    <div class="flex items-center space-x-2">
-                        <i class="ph ph-info text-blue-500"></i>
-                        <span>Guest mode (${current}/${limit} analyses today) — <a href="#" onclick="document.getElementById('openLoginModal').click()" class="underline hover:no-underline">sign in</a> to sync and unlock more</span>
-                    </div>
-                `;
-            }
-        } else {
-            badge.classList.add('hidden');
-        }
-    }
-
-
-
-    // Load usage status and diet list on page load
-    // Defer non-critical background requests so the landing page renders immediately.
-    // These will run when the browser is idle or shortly after initial paint.
-    async function setDefaultDietFromProfile(){
-        try {
-            const res = await fetch('/profile/api/load');
-            const data = await res.json();
-            if (data.success && data.data && data.data.preferences && data.data.preferences.diet_type) {
-                const savedSlug = data.data.preferences.diet_type;
-                dietGoalInput.value = savedSlug;
-                // Update button label when diets are already loaded
-                const diet = (dietsData || []).find(x => x.slug === savedSlug);
-                if (diet) {
-                    selectedDietIcon.textContent = emojiFor(savedSlug);
-                    selectedDietText.textContent = diet.label;
-                }
-            }
-        } catch(_){ }
-    }
-
-    function runBackgroundInit(){
-        try {
-            loadUsageStatus();
-            loadDiets();
-            setDefaultDietFromProfile();
-        } catch (e) {
-            // ignore
-        }
-    }
-
-    if (window.requestIdleCallback) {
-        // Prefer requestIdleCallback to run when browser is free
-        requestIdleCallback(runBackgroundInit, {timeout: 3000});
-    } else {
-        // Fallback: run shortly after load
-        setTimeout(runBackgroundInit, 1000);
-    }
-
-    // Meal context dropdown logic
-    const mealContextBtn = document.getElementById('mealContextBtn');
-    const mealContextDropdown = document.getElementById('mealContextDropdown');
-    const mealContextHidden = document.getElementById('mealContext');
-    const mealContextText = document.getElementById('mealContextText');
-    if (mealContextBtn) {
-        mealContextBtn.addEventListener('click', () => {
-            mealContextDropdown.classList.toggle('hidden');
-        });
-        document.addEventListener('click', (e) => {
-            if (!mealContextBtn.contains(e.target) && !mealContextDropdown.contains(e.target)) {
-                mealContextDropdown.classList.add('hidden');
-            }
-        });
-        mealContextDropdown.querySelectorAll('button[data-context]').forEach(b => {
-            b.addEventListener('click', () => {
-                const val = b.getAttribute('data-context');
-                mealContextHidden.value = val;
-                mealContextText.textContent = val ? b.textContent : 'Meal Context';
-                mealContextDropdown.classList.add('hidden');
-            });
-        });
-    }
-
-    // Initialize with welcome message
-    addChatMessage('assistant', 'Welcome! I\'m your AI nutrition analyst. Please select your diet goal from the dropdown above, then upload a meal photo or paste an image URL to get started.');
-});
+    });
 </script>
 {% endblock %}

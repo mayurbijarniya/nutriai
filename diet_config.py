@@ -154,6 +154,17 @@ DIETS: Dict[str, Dict[str, Any]] = {
         "timeline": "2-3 weeks for adaptation",
         "student_notes": "Align eating window with class schedule."
     },
+    "intermittent_fasting_18_6": {
+        "label": "Intermittent Fasting 18:6",
+        "macros": {"base": "standard_american"},
+        "focus": "6-hour eating window (e.g., 2pm-8pm)",
+        "restrictions": ["No calories during 18-hour fast"],
+        "recommended": ["Water", "Black coffee", "Plain tea during fast"],
+        "good_for": ["weight_loss", "autophagy"],
+        "difficulty": "hard",
+        "timeline": "2-4 weeks for adaptation",
+        "student_notes": "Advanced fasting; stay hydrated."
+    },
     "low_fodmap": {
         "label": "Low-FODMAP",
         "macros": {"carbs_pct": (0.45, 0.50), "protein_pct": (0.20, 0.20), "fat_pct": (0.30, 0.35)},
@@ -304,6 +315,28 @@ DIET_CONFIGURATIONS: Dict[str, Dict[str, Any]] = {
         'warnings': ['May affect morning workouts', 'Social eating challenges']
     },
 
+    'intermittent_fasting_18_6': {
+        'name': 'Intermittent Fasting 18:6',
+        'description': '18-hour fast with 6-hour eating window, typically 2pm-8pm',
+        'macro_ratios': {'carbs': 45, 'protein': 25, 'fat': 30},
+        'schedule': {
+            'fasting_window': '8pm - 2pm next day',
+            'eating_window': '2pm - 8pm',
+            'allowed_during_fast': ['water', 'black_coffee', 'plain_tea', 'sparkling_water']
+        },
+        'meal_timing': {
+            'first_meal': '2:00pm (break-fast)',
+            'second_meal': '4:30pm (snack/light meal)',
+            'third_meal': '7:30pm (dinner)',
+            'snacks': 'Within eating window only'
+        },
+        'encouraged_foods': ['nutrient_dense_foods', 'adequate_hydration'],
+        'difficulty': 'Hard',
+        'good_for': ['Aggressive weight loss', 'Autophagy'],
+        'student_notes': 'Advanced; ensure you eat enough calories in the short window.',
+        'warnings': ['Risk of undereating', 'Requires strict timing']
+    },
+
     'dash_diet': {
         'name': 'DASH Diet',
         'description': 'Dietary Approaches to Stop Hypertension - designed to lower blood pressure',
@@ -370,6 +403,114 @@ DIET_CONFIGURATIONS['gluten_free'] = {
     'difficulty': 'Moderate',
     'good_for': ['Celiac disease', 'Gluten sensitivity'],
     'student_notes': 'Check labels and cross-contamination; many cafeterias label GF options.'
+}
+
+DIET_CONFIGURATIONS['vegetarian'] = {
+    'name': 'Vegetarian',
+    'description': 'No meat, poultry, or fish; includes dairy and eggs',
+    'macro_ratios': {'carbs': 50, 'protein': 20, 'fat': 30},
+    'daily_limits': {
+        'sodium_mg': 2300,
+        'added_sugar_g': 25,
+        'saturated_fat_percent': 10,
+        'fiber_g': 25
+    },
+    'encouraged_foods': ['eggs', 'dairy', 'legumes', 'nuts', 'whole_grains', 'vegetables', 'fruits'],
+    'discouraged_foods': ['meat', 'fish', 'poultry'],
+    'meal_frequency': '3 meals + 1-2 snacks',
+    'difficulty': 'Easy',
+    'good_for': ['General health', 'Environment'],
+    'student_notes': 'Omelet station and yogurt bars are great campus options.'
+}
+
+DIET_CONFIGURATIONS['pescatarian'] = {
+    'name': 'Pescatarian',
+    'description': 'Vegetarian diet that includes fish and seafood',
+    'macro_ratios': {'carbs': 45, 'protein': 25, 'fat': 30},
+    'daily_limits': {
+        'sodium_mg': 2300,
+        'added_sugar_g': 25,
+        'saturated_fat_percent': 10,
+        'fiber_g': 25
+    },
+    'encouraged_foods': ['fish', 'seafood', 'dairy', 'eggs', 'legumes', 'all_vegetables'],
+    'discouraged_foods': ['meat', 'poultry'],
+    'meal_frequency': '3 meals + 1-2 snacks',
+    'difficulty': 'Easy',
+    'good_for': ['Heart health', 'Brain health'],
+    'student_notes': 'Tuna packets and grilled fish at dining halls are key.'
+}
+
+DIET_CONFIGURATIONS['low_fodmap'] = {
+    'name': 'Low FODMAP',
+    'description': 'Elimination diet to identify triggers for IBS; restricts fermentable carbs',
+    'macro_ratios': {'carbs': 45, 'protein': 25, 'fat': 30},
+    'daily_limits': {
+        'sodium_mg': 2300,
+        'added_sugar_g': 25,
+        'saturated_fat_percent': 10,
+        'fiber_g': 25
+    },
+    'encouraged_foods': ['rice', 'potatoes', 'carrots', 'spinach', 'chicken', 'fish', 'eggs', 'lactose_free_dairy'],
+    'discouraged_foods': ['wheat', 'onions', 'garlic', 'beans', 'apples', 'pears', 'milk'],
+    'meal_frequency': '3 smaller meals + snacks',
+    'difficulty': 'Hard',
+    'good_for': ['IBS', 'Digestive health'],
+    'student_notes': 'Very hard on campus; avoid sauces (onion/garlic) and wheat.'
+}
+
+DIET_CONFIGURATIONS['whole30'] = {
+    'name': 'Whole30',
+    'description': '30-day reset eliminating sugar, alcohol, grains, legumes, and dairy',
+    'macro_ratios': {'carbs': 30, 'protein': 30, 'fat': 40},
+    'daily_limits': {
+        'sodium_mg': 2300,
+        'added_sugar_g': 0,
+        'saturated_fat_percent': 12,
+        'fiber_g': 25
+    },
+    'encouraged_foods': ['meat', 'seafood', 'eggs', 'vegetables', 'fruit', 'natural_fats'],
+    'discouraged_foods': ['sugar', 'alcohol', 'grains', 'legumes', 'dairy', 'additives'],
+    'meal_frequency': '3 meals, minimal snacking',
+    'difficulty': 'Hard',
+    'good_for': ['Metabolic reset', 'Identifying sensitivities'],
+    'student_notes': 'Stick to plain grilled meats and salads; bring your own dressing.'
+}
+
+DIET_CONFIGURATIONS['anti_inflammatory'] = {
+    'name': 'Anti-Inflammatory',
+    'description': 'Focuses on whole foods, omega-3s, and antioxidants to reduce inflammation',
+    'macro_ratios': {'carbs': 45, 'protein': 20, 'fat': 35},
+    'daily_limits': {
+        'sodium_mg': 2000,
+        'added_sugar_g': 15,
+        'saturated_fat_percent': 8,
+        'fiber_g': 30
+    },
+    'encouraged_foods': ['berries', 'fatty_fish', 'leafy_greens', 'nuts', 'olive_oil', 'tomatoes'],
+    'discouraged_foods': ['fried_foods', 'soda', 'red_meat', 'lard', 'refined_carbs'],
+    'meal_frequency': '3 meals + 1 snack',
+    'difficulty': 'Moderate',
+    'good_for': ['Chronic inflammation', 'Heart health', 'Autoimmune conditions'],
+    'student_notes': 'Choose the "healthy station" options; add olive oil to everything.'
+}
+
+DIET_CONFIGURATIONS['low_carb'] = {
+    'name': 'Low Carb',
+    'description': 'Reduced carbohydrate intake with emphasis on protein and healthy fats',
+    'macro_ratios': {'carbs': 20, 'protein': 30, 'fat': 50},
+    'daily_limits': {
+        'sodium_mg': 2300,
+        'added_sugar_g': 15,
+        'saturated_fat_percent': 10,
+        'fiber_g': 25
+    },
+    'encouraged_foods': ['lean_meats', 'fish', 'eggs', 'non_starchy_vegetables', 'healthy_fats', 'nuts', 'seeds'],
+    'discouraged_foods': ['sugary_drinks', 'bread', 'pasta', 'rice', 'potatoes', 'sweets'],
+    'meal_frequency': '3 meals',
+    'difficulty': 'Moderate',
+    'good_for': ['Weight loss', 'Blood sugar control'],
+    'student_notes': 'Swap grain-based sides for extra veggies; prioritize protein at every meal.'
 }
 
 

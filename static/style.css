@@ -1,172 +1,282 @@
-/* Custom styles for Diet Designer */
+/* Modern SaaS / Gen Z Aesthetic - Glassmorphism System */
 
-/* Loading dots animation */
+:root {
+    /* Font Families */
+    --font-sans: 'Geist', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --font-serif: 'Playfair Display', serif;
+
+    /* Modern Palette - Light Mode */
+    --bg-gradient-light: radial-gradient(circle at 50% 0%, #E0F2FE 0%, #FFFFFF 60%, #F0FDF4 100%);
+    --glass-bg-light: rgba(255, 255, 255, 0.7);
+    --glass-border-light: rgba(255, 255, 255, 0.8);
+    --glass-shadow-light: 0 8px 32px 0 rgba(31, 38, 135, 0.05);
+
+    /* Modern Palette - Dark Mode */
+    --bg-gradient-dark: radial-gradient(circle at 50% 0%, #0F172A 0%, #020617 100%);
+    --glass-bg-dark: rgba(15, 23, 42, 0.6);
+    --glass-border-dark: rgba(255, 255, 255, 0.1);
+    --glass-shadow-dark: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+
+    --primary-glow: 16, 185, 129;
+    /* Emerald */
+}
+
+/* Global Reset & Base */
+body {
+    font-family: var(--font-sans);
+    background: var(--bg-gradient-light);
+    background-attachment: fixed;
+    color: #1a202c;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.dark body {
+    background: var(--bg-gradient-dark);
+    color: #f8fafc;
+}
+
+/* Typography Utils */
+.font-serif-accent {
+    font-family: var(--font-serif);
+}
+
+/* --- Glassmorphism Components --- */
+
+/* Glass Panel (Cards, Containers) */
+.glass-panel {
+    background: var(--glass-bg-light);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--glass-border-light);
+    box-shadow: var(--glass-shadow-light);
+}
+
+.dark .glass-panel {
+    background: var(--glass-bg-dark);
+    border: 1px solid var(--glass-border-dark);
+    box-shadow: var(--glass-shadow-dark);
+}
+
+/* Glass Pill (Floating Nav) */
+.glass-pill {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.dark .glass-pill {
+    background: rgba(15, 23, 42, 0.8);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+}
+
+/* Active Navigation - High visibility */
+.nav-link-active {
+    background-color: rgba(16, 185, 129, 0.1);
+    /* Green-50 but generic */
+    color: #059669;
+    /* Green-600 */
+    font-weight: 600;
+}
+
+.dark .nav-link-active {
+    background-color: rgba(16, 185, 129, 0.15);
+    color: #34d399;
+    /* Green-400 */
+}
+
+/* --- Form Elements --- */
+.input-glass {
+    background: rgba(255, 255, 255, 0.75);
+    /* Increased opacity */
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.dark .input-glass {
+    background: rgba(15, 23, 42, 0.6);
+    /* Increased opacity */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+/* Select specific styling to prevent bleed-through */
+select.input-glass {
+    background-image: none;
+    /* We use custom icons usually, but ensure native don't conflict */
+}
+
+/* Ensure focus states remain high contrast */
+.input-glass:focus {
+    background: rgba(255, 255, 255, 0.95);
+    border-color: #10B981;
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+    outline: none;
+}
+
+.dark .input-glass:focus {
+    background: rgba(15, 23, 42, 0.8);
+}
+
+/* --- Buttons --- */
+.btn-primary {
+    background: #18181b;
+    /* Zinc 900 */
+    color: white;
+    transition: transform 0.1s ease, box-shadow 0.2s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-primary:active {
+    transform: translateY(0);
+}
+
+.dark .btn-primary {
+    background: #f8fafc;
+    /* Slate 50 */
+    color: #0f172a;
+}
+
+/* --- Animations --- */
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
+}
+
+.animate-float {
+    animation: float 6s ease-in-out infinite;
+}
+
 .loading-dots::after {
     content: '';
-    animation: loadingDots 1.5s steps(4, end) infinite;
+    animation: dots 1.5s steps(5, end) infinite;
 }
 
-@keyframes loadingDots {
-    0%, 20% { content: ''; }
-    40% { content: '.'; }
-    60% { content: '..'; }
-    80%, 100% { content: '...'; }
-}
+@keyframes dots {
 
-/* Smooth transitions for theme switching */
-* {
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-
-/* Line clamp utility */
-.line-clamp-3 {
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 3;
-}
-
-/* Chat message animations */
-.chat-message {
-    animation: fadeInUp 0.3s ease-out;
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
+    0%,
+    20% {
+        content: '';
     }
-    to {
-        opacity: 1;
-        transform: translateY(0);
+
+    40% {
+        content: '.';
+    }
+
+    60% {
+        content: '..';
+    }
+
+    80%,
+    100% {
+        content: '...';
     }
 }
 
-/* Custom scrollbar for chat */
-#chatMessages::-webkit-scrollbar {
-    width: 6px;
+/* Markdown Content Styling */
+.prose-glass {
+    color: #374151;
 }
 
-#chatMessages::-webkit-scrollbar-track {
+.dark .prose-glass {
+    color: #d1d5db;
+}
+
+.prose-glass strong {
+    color: #111827;
+}
+
+.dark .prose-glass strong {
+    color: #f3f4f6;
+}
+
+.prose-glass h3 {
+    color: #111827;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.dark .prose-glass h3 {
+    color: #f3f4f6;
+}
+
+.prose-glass ul {
+    list-style-type: disc;
+    padding-left: 1.25rem;
+    margin-bottom: 1rem;
+}
+
+.prose-glass li {
+    margin-bottom: 0.25rem;
+}
+
+/* Markdown Tables */
+.prose-glass table {
+    width: 100%;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+}
+
+.prose-glass th {
+    text-align: left;
+    padding: 0.75rem;
+    border-bottom: 2px solid rgba(0, 0, 0, 0.1);
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.dark .prose-glass th {
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+    color: #f3f4f6;
+}
+
+.prose-glass td {
+    padding: 0.75rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.dark .prose-glass td {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.prose-glass tr:last-child td {
+    border-bottom: none;
+}
+
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
     background: transparent;
 }
 
-#chatMessages::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 3px;
+::-webkit-scrollbar-thumb {
+    background: rgba(156, 163, 175, 0.5);
+    border-radius: 4px;
 }
 
-.dark #chatMessages::-webkit-scrollbar-thumb {
-    background: #4b5563;
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(156, 163, 175, 0.8);
 }
-
-/* Button hover effects */
-.hover-scale:hover {
-    transform: scale(1.02);
-}
-
-/* Gradient text utility */
-.gradient-text {
-    background: linear-gradient(135deg, #047857, #059669, #047857);
-    background-size: 200% 200%;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: gradientShift 3s ease infinite;
-}
-
-@keyframes gradientShift {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-}
-
-/* Focus styles */
-.focus-ring:focus {
-    outline: 2px solid #10B981;
-    outline-offset: 2px;
-}
-
-/* Custom green focus styles for all inputs */
-input:focus, textarea:focus {
-    outline: none !important;
-    box-shadow: 0 0 0 2px #10B981 !important;
-    border-color: #10B981 !important;
-}
-
-/* Override Tailwind focus ring colors */
-.focus\:ring-green-500:focus {
-    --tw-ring-color: #10B981 !important;
-    box-shadow: 0 0 0 2px #10B981 !important;
-}
-
-/* Modern card hover effects */
-.modern-card {
-    transition: all 0.3s ease;
-}
-
-.modern-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-.dark .modern-card:hover {
-    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
-}
-
-/* Phosphor icon fixes */
-.ph {
-    font-family: "Phosphor Icons";
-    font-style: normal;
-    font-weight: normal;
-    font-variant: normal;
-    text-transform: none;
-    line-height: 1;
-    -webkit-font-smoothing: antialiased;
-}
-
-/* Drag and drop animation */
-.drag-over {
-    border-color: #10B981 !important;
-    background-color: rgba(16, 185, 129, 0.1) !important;
-}
-
-/* Mobile responsiveness */
-@media (max-width: 768px) {
-    .mobile-full {
-        width: 100%;
-    }
-    
-    .mobile-text-center {
-        text-align: center;
-    }
-    
-    .mobile-hidden {
-        display: none;
-    }
-}
-
-/* Print styles */
-@media print {
-    .no-print {
-        display: none !important;
-    }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-    .bg-gray-50 {
-        background-color: white !important;
-    }
-    
-    .text-gray-600 {
-        color: black !important;
-    }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-} 
