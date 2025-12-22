@@ -529,7 +529,60 @@
             addBotMessage("Analysing your meal... this usually takes about 10 seconds.");
 
             try {
+                // --- Client-Side Compression Logic ---
+                const fileInput = form.querySelector('input[type="file"]');
+                let file = fileInput.files[0];
+
+                if (file && file.type.startsWith('image/')) {
+                    addBotMessage("Optimizing image for upload...");
+                    try {
+                        // Compress logic
+                        const compressedBlob = await new Promise((resolve, reject) => {
+                            const img = new Image();
+                            img.src = URL.createObjectURL(file);
+                            img.onload = () => {
+                                const canvas = document.createElement('canvas');
+                                let width = img.width;
+                                let height = img.height;
+
+                                // Max dimension 1280px (plenty for analysis)
+                                const MAX_SIZE = 1280;
+                                if (width > height) {
+                                    if (width > MAX_SIZE) {
+                                        height *= MAX_SIZE / width;
+                                        width = MAX_SIZE;
+                                    }
+                                } else {
+                                    if (height > MAX_SIZE) {
+                                        width *= MAX_SIZE / height;
+                                        height = MAX_SIZE;
+                                    }
+                                }
+
+                                canvas.width = width;
+                                canvas.height = height;
+                                const ctx = canvas.getContext('2d');
+                                ctx.drawImage(img, 0, 0, width, height);
+
+                                // Compress to JPEG 0.8 quality
+                                canvas.toBlob((blob) => {
+                                    resolve(blob);
+                                }, 'image/jpeg', 0.8);
+                            };
+                            img.onerror = reject;
+                        });
+
+                        // Replace file in FormData
+                        file = new File([compressedBlob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: 'image/jpeg' });
+                        console.log(`Compressed image size: ${(file.size / 1024 / 1024).toFixed(2)} MB`);
+                    } catch (err) {
+                        console.warn('Compression failed, falling back to original', err);
+                    }
+                }
+
                 const formData = new FormData(form);
+                if (file) formData.set('image_file', file); // Update formdata with compressed file
+
                 const res = await fetch('/api/analyze-with-profile', { method: 'POST', body: formData });
                 const data = await res.json();
 
