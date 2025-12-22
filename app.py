@@ -1053,6 +1053,8 @@ def api_analyze_with_profile():
                 'weight_kg': prof.get('weight_kg'),
                 'height_cm': prof.get('height_cm'),
                 'activity_level': prof.get('activity_level'),
+                'medications': prof.get('medications'),
+                'supplements': prof.get('supplements', []),
                 'diet_type': (prefs.get('diet_type') or 'standard_american'),
                 'allergies': prefs.get('allergies', []),
                 'health_conditions': prof.get('health_conditions', []),
@@ -1062,6 +1064,11 @@ def api_analyze_with_profile():
                 'fat_target': goals.get('fat_grams'),
                 'restrictions': prefs.get('food_restrictions', []),
                 'goal_type': goals.get('goal_type') or 'maintain_weight',
+                'living_situation': prefs.get('living_situation'),
+                'meal_prep_preference': prefs.get('meal_prep_preference'),
+                'cooking_skill': prefs.get('cooking_skill'),
+                'budget_per_meal': prefs.get('budget_per_meal'),
+                'class_schedule': prefs.get('class_schedule'),
             }
 
         result = analyzer.analyze_meal_with_profile(image_path, user_context, meal_context)
@@ -1404,6 +1411,8 @@ def save_to_history(analysis_data, chart_path):
     except Exception as e:
         print(f"History save error: {e}")
         return {"success": False, "error": str(e)}
+
+
 
 @app.route('/delete-account', methods=['POST'])
 def delete_account():

@@ -101,15 +101,10 @@
                                     class="ph ph-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
                             </div>
                             <div class="relative flex-1">
-                                <select id="heightInches" name="height_inches" required
-                                    class="input-glass w-full px-4 py-3 rounded-xl focus:ring-2 focus:ring-green-500/50 appearance-none text-gray-900 dark:text-gray-100">
-                                    <option value="">00</option>
-                                    {% for i in range(0, 12) %}
-                                    <option value="{{ i }}">{{ i }} in</option>
-                                    {% endfor %}
-                                </select>
-                                <i
-                                    class="ph ph-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                <input type="number" id="heightInches" name="height_inches" min="0" max="11.9"
+                                    step="0.1" required
+                                    class="input-glass w-full px-4 py-3 rounded-xl focus:ring-2 focus:ring-green-500/50 text-gray-900 dark:text-gray-100 placeholder-gray-400"
+                                    placeholder="Inches">
                             </div>
                         </div>
                         <p class="text-xs font-mono text-gray-400 mt-2 ml-1">
@@ -123,17 +118,12 @@
                             Weight <span class="text-red-500">*</span>
                         </label>
                         <div class="flex space-x-3">
-                            <input type="number" id="weight" name="weight" min="30" max="600" step="0.1" required
+                            <input type="number" id="weight" name="weight" min="50" max="1000" step="0.1" required
                                 class="input-glass flex-1 px-4 py-3 rounded-xl focus:ring-2 focus:ring-green-500/50 text-gray-900 dark:text-gray-100"
-                                placeholder="0.0">
-                            <div class="relative w-24">
-                                <select id="weightUnit" name="weight_unit"
-                                    class="input-glass w-full px-4 py-3 rounded-xl focus:ring-2 focus:ring-green-500/50 appearance-none text-gray-900 dark:text-gray-100 font-medium">
-                                    <option value="lbs">lbs</option>
-                                    <option value="kg">kg</option>
-                                </select>
-                                <i
-                                    class="ph ph-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none"></i>
+                                placeholder="Weight in lbs">
+                            <div
+                                class="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-600 dark:text-gray-300 font-medium flex items-center justify-center min-w-[3.5rem]">
+                                lbs
                             </div>
                         </div>
                         <p class="text-xs font-mono text-gray-400 mt-2 ml-1">
@@ -300,12 +290,18 @@
                             Target Weight
                         </label>
                         <div class="flex space-x-3">
-                            <input type="number" id="target_weight" name="target_weight" min="30" max="600" step="0.1"
+                            <input type="number" id="target_weight" name="target_weight" min="50" max="1000" step="0.1"
                                 class="input-glass flex-1 px-4 py-3 rounded-xl focus:ring-2 focus:ring-green-500/50 text-gray-900 dark:text-gray-100"
-                                placeholder="Target">
-                            <div class="px-4 py-3 bg-gray-100 dark:bg-white/5 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-600 dark:text-gray-300 font-medium flex items-center justify-center min-w-[3.5rem]"
-                                id="targetWeightUnit">lbs</div>
+                                placeholder="Target (lbs)">
+                            <div
+                                class="px-4 py-3 bg-gray-50 dark:bg-white/5 border border-gray-200 dark:border-gray-700 rounded-xl text-gray-600 dark:text-gray-300 font-medium flex items-center justify-center min-w-[3.5rem]">
+                                lbs
+                            </div>
                         </div>
+                        <p class="text-xs font-mono text-gray-400 mt-2 ml-1">
+                            Metric: <span id="targetWeightKg"
+                                class="font-bold text-green-600 dark:text-green-400">-</span>
+                        </p>
                     </div>
 
                     <!-- Timeline -->
@@ -690,23 +686,29 @@
         <div class="absolute inset-0 bg-black/60 backdrop-blur-md"></div>
         <div class="relative max-w-md w-full mx-4">
             <div
-                class="bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 dark:border-gray-800/50 p-8 text-center">
-                <div
-                    class="w-16 h-16 bg-green-100 dark:bg-green-950/30 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <i class="ph ph-check text-2xl text-green-600 dark:text-green-400"></i>
-                </div>
-                <h3 class="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">Profile Complete!</h3>
-                <p class="text-gray-600 dark:text-gray-400 mb-6">Your personalized nutrition profile has been saved
-                    successfully.</p>
-                <div class="flex space-x-3">
-                    <a href="{{ url_for('profile.view_profile') }}"
-                        class="flex-1 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors text-center">
-                        View Profile
-                    </a>
-                    <a href="{{ url_for('index') }}"
-                        class="flex-1 px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition-colors text-center">
-                        Start Analyzing
-                    </a>
+                class="glass-panel rounded-3xl p-8 text-center max-w-sm mx-auto shadow-2xl border border-white/20 relative overflow-hidden">
+                <div class="absolute inset-0 bg-gradient-to-br from-green-500/10 to-blue-500/10 opacity-50"></div>
+                <div class="relative z-10">
+                    <div
+                        class="w-20 h-20 bg-gradient-to-br from-green-400 to-emerald-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg shadow-green-500/30">
+                        <i class="ph ph-check text-4xl text-white"></i>
+                    </div>
+                    <h3 class="text-2xl font-bold text-gray-900 dark:text-white mb-2 font-serif-accent">Profile
+                        Complete!</h3>
+                    <p class="text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
+                        Your personalized nutrition plan is ready. Let's start analyzing your meals!
+                    </p>
+                    <div class="space-y-3">
+                        <a href="{{ url_for('index') }}"
+                            class="btn-primary w-full py-3.5 rounded-xl flex items-center justify-center group shadow-lg shadow-green-500/20">
+                            <i class="ph ph-camera text-lg mr-2 group-hover:scale-110 transition-transform"></i>
+                            Start Analyzing
+                        </a>
+                        <a href="{{ url_for('profile.view_profile') }}"
+                            class="w-full py-3.5 rounded-xl border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-white/5 text-gray-700 dark:text-gray-300 font-medium transition-all flex items-center justify-center">
+                            View Profile
+                        </a>
+                    </div>
                 </div>
             </div>
         </div>
@@ -743,6 +745,11 @@
         border: 2px solid #ffffff;
         box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
+
+    /* Fix time input icon in dark mode */
+    .dark input[type="time"]::-webkit-calendar-picker-indicator {
+        filter: invert(1);
+    }
 </style>
 
 <script>
@@ -761,7 +768,7 @@
         // Unit conversion functions
         function updateHeightCm() {
             const feet = parseInt(document.getElementById('heightFeet').value) || 0;
-            const inches = parseInt(document.getElementById('heightInches').value) || 0;
+            const inches = parseFloat(document.getElementById('heightInches').value) || 0;
             const totalInches = (feet * 12) + inches;
             const cm = Math.round(totalInches * 2.54);
             document.getElementById('heightCm').textContent = cm > 0 ? cm + ' cm' : '-';
@@ -769,11 +776,23 @@
         }
 
         function updateWeightKg() {
-            const weight = parseFloat(document.getElementById('weight').value) || 0;
-            const unit = document.getElementById('weightUnit').value;
-            const kg = unit === 'kg' ? weight : Math.round(weight * 0.453592 * 10) / 10;
-            document.getElementById('weightKg').textContent = weight > 0 ? kg + ' kg' : '-';
-            return kg;
+            const weightLbs = parseFloat(document.getElementById('weight').value) || 0;
+            // Precise conversion for backend/math
+            const preciseKg = weightLbs * 0.453592;
+            // Display rounded to 1 decimal
+            const displayKg = Math.round(preciseKg * 10) / 10;
+            document.getElementById('weightKg').textContent = weightLbs > 0 ? displayKg + ' kg' : '-';
+            return preciseKg;
+        }
+
+        function updateTargetWeightKg() {
+            const weightLbs = parseFloat(document.getElementById('target_weight').value) || 0;
+            // Precise conversion
+            const preciseKg = weightLbs * 0.453592;
+            // Display rounded
+            const displayKg = Math.round(preciseKg * 10) / 10;
+            document.getElementById('targetWeightKg').textContent = weightLbs > 0 ? displayKg + ' kg' : '-';
+            return preciseKg;
         }
 
         // Budget slider
@@ -789,23 +808,30 @@
 
         // Event listeners for calculations
         document.getElementById('heightFeet').addEventListener('change', updateHeightCm);
-        document.getElementById('heightInches').addEventListener('change', updateHeightCm);
+        document.getElementById('heightInches').addEventListener('input', updateHeightCm);
         document.getElementById('weight').addEventListener('input', updateWeightKg);
-        document.getElementById('weightUnit').addEventListener('change', function () {
-            updateWeightKg();
-            document.getElementById('targetWeightUnit').textContent = this.value;
+        document.getElementById('target_weight').addEventListener('input', function () {
+            updateTargetWeightKg();
+            calculateNutritionalNeeds();
         });
+        // Removed weightUnit listener
+        budgetSlider.addEventListener('input', updateBudgetDisplay);
         budgetSlider.addEventListener('input', updateBudgetDisplay);
 
         // Goal type change handler
+        // Goal type change handler
         document.getElementById('goal_type').addEventListener('change', function () {
             const targetWeightDiv = document.getElementById('targetWeightDiv');
+            const targetWeightInput = document.getElementById('target_weight');
             const weightGoals = ['lose_weight_slow', 'lose_weight_moderate', 'lose_weight_fast', 'gain_weight_slow', 'gain_weight_moderate'];
 
             if (weightGoals.includes(this.value)) {
                 targetWeightDiv.classList.remove('hidden');
+                targetWeightInput.setAttribute('required', '');
             } else {
                 targetWeightDiv.classList.add('hidden');
+                targetWeightInput.removeAttribute('required');
+                targetWeightInput.value = ''; // Optional: Clear value when hidden
             }
 
             // Calculate nutritional needs when enough data is available
@@ -834,7 +860,9 @@
                             activity_level: activityLevel,
                             goal_type: goalType,
                             height_cm: heightCm,
-                            weight_kg: weightKg
+                            weight_kg: weightKg,
+                            target_weight_kg: updateTargetWeightKg(),
+                            timeline_weeks: parseInt(document.getElementById('timeline_weeks').value) || 0
                         })
                     });
 
@@ -860,6 +888,7 @@
         document.querySelectorAll('input[name="biological_sex"]').forEach(radio => {
             radio.addEventListener('change', calculateNutritionalNeeds);
         });
+        document.getElementById('timeline_weeks').addEventListener('change', calculateNutritionalNeeds);
 
         function showSection(n) {
             sections.forEach((section, index) => {
@@ -922,12 +951,20 @@
         async function saveProfile(isDraft = false) {
             const formData = new FormData(document.getElementById('profileForm'));
 
+            // Calculate target weight in kg (Assume LBS input)
+            let targetWeightKg = null;
+            const rawTargetWeight = parseFloat(formData.get('target_weight'));
+
+            if (rawTargetWeight) {
+                targetWeightKg = rawTargetWeight * 0.453592; // Use precise conversion
+            }
+
             // Convert FormData to structured object
             const data = {
                 basic_info: {
                     age: formData.get('age') ? parseInt(formData.get('age')) : null,
                     height_cm: updateHeightCm(),
-                    weight_kg: updateWeightKg(),
+                    weight_kg: updateWeightKg(), // This already returns calculated KG from LBS
                     biological_sex: formData.get('biological_sex'),
                     activity_level: formData.get('activity_level'),
                     health_conditions: formData.getAll('health_conditions'),
@@ -936,7 +973,7 @@
                 },
                 goals: {
                     goal_type: formData.get('goal_type'),
-                    target_weight_kg: formData.get('target_weight') ? parseFloat(formData.get('target_weight')) : null,
+                    target_weight_kg: targetWeightKg,
                     timeline_weeks: formData.get('timeline_weeks') ? parseInt(formData.get('timeline_weeks')) : null,
                     secondary_goals: formData.getAll('secondary_goals'),
                     // These will be calculated on the backend
@@ -1008,16 +1045,18 @@
                         // Basic info
                         if (profile.age) document.getElementById('age').value = profile.age;
                         if (profile.height_cm) {
-                            const totalInches = Math.round(profile.height_cm / 2.54);
+                            const totalInches = profile.height_cm / 2.54;
                             const feet = Math.floor(totalInches / 12);
-                            const inches = totalInches % 12;
+                            // Keep decimal precision for inches (e.g. 2.5), round to 1 decimal place to avoid float artifacts
+                            const inches = Math.round((totalInches % 12) * 10) / 10;
                             document.getElementById('heightFeet').value = feet;
                             document.getElementById('heightInches').value = inches;
                             updateHeightCm();
                         }
                         if (profile.weight_kg) {
-                            document.getElementById('weight').value = Math.round(profile.weight_kg * 2.20462); // Convert to lbs
-                            document.getElementById('weightUnit').value = 'lbs';
+                            const weightLbs = profile.weight_kg * 2.20462;
+                            // Round to 1 decimal place to avoid 199.1 artifact
+                            document.getElementById('weight').value = Math.round(weightLbs * 10) / 10;
                             updateWeightKg();
                         }
                         if (profile.biological_sex) {
@@ -1045,7 +1084,14 @@
 
                     if (goals) {
                         if (goals.goal_type) document.getElementById('goal_type').value = goals.goal_type;
-                        if (goals.target_weight_kg) document.getElementById('target_weight').value = Math.round(goals.target_weight_kg * 2.20462);
+                        if (goals.target_weight_kg) {
+                            // Always display in lbs, handle precision
+                            // 2.20462 * kg
+                            const weightLbs = goals.target_weight_kg * 2.20462;
+                            // Round to 1 decimal place to match input step
+                            document.getElementById('target_weight').value = Math.round(weightLbs * 10) / 10;
+                            updateTargetWeightKg();
+                        }
                         if (goals.timeline_weeks) document.getElementById('timeline_weeks').value = goals.timeline_weeks;
                         if (goals.secondary_goals) {
                             goals.secondary_goals.forEach(goal => {

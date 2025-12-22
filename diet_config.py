@@ -579,10 +579,14 @@ def get_diet_config(diet_slug: str) -> Dict[str, Any]:
     return DIETS.get(diet_slug, DIETS['standard_american'])
 
 
-def calculate_daily_targets(age: int, sex: str, weight_kg: float, height_cm: float, activity_level: str, goal_type: str, diet_slug: str) -> Dict[str, int]:
+def calculate_daily_targets(age: int, sex: str, weight_kg: float, height_cm: float, activity_level: str, goal_type: str, diet_slug: str, override_calories: int = None) -> Dict[str, int]:
     bmr = mifflin_st_jeor_bmr(weight_kg, height_cm, age, sex)
     maintenance = int(bmr * get_activity_multiplier(activity_level))
-    target_calories = max(1200, maintenance + goal_adjustment_calories(goal_type))
+    
+    if override_calories:
+        target_calories = max(1200, override_calories)
+    else:
+        target_calories = max(1200, maintenance + goal_adjustment_calories(goal_type))
 
     config = get_diet_config(diet_slug)
     macros = config.get('macros', {})

@@ -327,6 +327,32 @@ def calculate_nutritional_needs():
         if not goal_type:
             goal_type = goals.get('goal_type') or 'maintain_weight'
 
+        # Dynamic Calorie Calculation based on Target Weight & Timeline
+        override_calories = None
+        target_weight_kg = float(data.get('target_weight_kg', 0))
+        timeline_weeks = float(data.get('timeline_weeks', 0))
+
+        if target_weight_kg and timeline_weeks and timeline_weeks > 0:
+            bmr = calculate_bmr(weight_kg, height_cm, age, biological_sex)
+            maintenance = calculate_daily_calories(bmr, activity_level)
+            
+            # 1 kg fat ≈ 7700 kcal
+            weight_diff_kg = target_weight_kg - weight_kg
+            total_calories_needed = weight_diff_kg * 7700
+            daily_adjustment = int(total_calories_needed / (timeline_weeks * 7))
+            
+            # Safety caps (don't starve or overfeed)
+            target = maintenance + daily_adjustment
+            
+            # Ensure safe lower limit (1200) and reasonable upper limit (maintenance + 1000)
+            target = max(1200, min(target, maintenance + 1000))
+            
+            # (Relaxed) If weight loss is too aggressive, we still floor at 1200.
+            # Removed the 1000kcal deficit cap to allow users to see "extreme" changes if they input extreme values,
+            # but 1200 calorie safety floor remains.
+
+            override_calories = int(target)
+
         calcs = calculate_daily_targets(
             age=age,
             sex=biological_sex,
@@ -335,6 +361,7 @@ def calculate_nutritional_needs():
             activity_level=activity_level,
             goal_type=goal_type,
             diet_slug=diet_type,
+            override_calories=override_calories
         )
 
         return jsonify({'success': True, 'calculations': calcs, 'diet_type': diet_type})

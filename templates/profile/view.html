@@ -54,8 +54,8 @@
                             class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Height</label>
                         <p class="text-xl font-medium text-gray-900 dark:text-gray-100">
                             {% if profile.height_cm %}
-                            {{ ((profile.height_cm / 2.54) // 12)|int }}'{{ ((profile.height_cm / 2.54) %
-                            12)|round(0)|int }}"
+                            {{ ((profile.height_cm / 2.54) // 12)|int }}'{{ ((profile.height_cm / 2.54) % 12)|round(1)
+                            }}"
                             <span class="text-sm font-normal text-gray-500 block">{{ profile.height_cm }} cm</span>
                             {% else %}-{% endif %}
                         </p>
@@ -66,7 +66,8 @@
                         <p class="text-xl font-medium text-gray-900 dark:text-gray-100">
                             {% if profile.weight_kg %}
                             {{ (profile.weight_kg * 2.20462)|round(1) }} lbs
-                            <span class="text-sm font-normal text-gray-500 block">{{ profile.weight_kg }} kg</span>
+                            <span class="text-sm font-normal text-gray-500 block">{{ profile.weight_kg|round(1) }}
+                                kg</span>
                             {% else %}-{% endif %}
                         </p>
                     </div>
@@ -141,8 +142,10 @@
                     <div>
                         <label class="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Target
                             Weight</label>
-                        <p class="text-lg font-medium text-gray-900 dark:text-gray-100">
+                        <p class="text-xl font-medium text-gray-900 dark:text-gray-100">
                             {{ (goals.target_weight_kg * 2.20462)|round(1) }} lbs
+                            <span class="text-sm font-normal text-gray-500 block">{{ goals.target_weight_kg|round(1) }}
+                                kg</span>
                         </p>
                     </div>
                     {% if goals.timeline_weeks %}

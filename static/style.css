@@ -33,6 +33,7 @@ body {
 
 .dark body {
     background: var(--bg-gradient-dark);
+    background-attachment: fixed;
     color: #f8fafc;
 }
 
