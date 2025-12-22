@@ -38,7 +38,7 @@
 
     <!-- Main Form -->
     <div class="glass-panel rounded-3xl overflow-hidden shadow-xl">
-        <form id="profileForm" class="relative">
+        <form id="profileForm" class="relative" novalidate>
             <!-- Section 1: Basic Information -->
             <div id="section1" class="form-section p-8 lg:p-10 animate-fade-in">
                 <div class="flex items-center space-x-4 mb-8">
@@ -671,7 +671,7 @@
                         <i class="ph ph-arrow-right ml-2"></i>
                     </button>
 
-                    <button type="submit" id="submitBtn"
+                    <button type="button" id="submitBtn"
                         class="btn-primary w-full sm:w-auto px-8 py-3 rounded-xl flex items-center justify-center hidden">
                         <i class="ph ph-check mr-2"></i>
                         Complete Setup
@@ -814,7 +814,7 @@
             updateTargetWeightKg();
             calculateNutritionalNeeds();
         });
-        // Removed weightUnit listener
+
         budgetSlider.addEventListener('input', updateBudgetDisplay);
         budgetSlider.addEventListener('input', updateBudgetDisplay);
 
@@ -943,8 +943,8 @@
         });
 
         // Form submission
-        document.getElementById('profileForm').addEventListener('submit', function (e) {
-            e.preventDefault();
+        // Form submission (Bind to button click instead of form submit to prevent browser validation on hidden fields)
+        document.getElementById('submitBtn').addEventListener('click', function () {
             saveProfile(false);
         });
 
@@ -1038,103 +1038,122 @@
                 const result = await response.json();
 
                 if (result.success && result.data) {
+                    console.log('Loaded profile data:', result.data);
                     // Populate form with existing data
                     const { profile, goals, preferences } = result.data;
 
                     if (profile) {
-                        // Basic info
-                        if (profile.age) document.getElementById('age').value = profile.age;
-                        if (profile.height_cm) {
-                            const totalInches = profile.height_cm / 2.54;
-                            const feet = Math.floor(totalInches / 12);
-                            // Keep decimal precision for inches (e.g. 2.5), round to 1 decimal place to avoid float artifacts
-                            const inches = Math.round((totalInches % 12) * 10) / 10;
-                            document.getElementById('heightFeet').value = feet;
-                            document.getElementById('heightInches').value = inches;
-                            updateHeightCm();
-                        }
-                        if (profile.weight_kg) {
-                            const weightLbs = profile.weight_kg * 2.20462;
-                            // Round to 1 decimal place to avoid 199.1 artifact
-                            document.getElementById('weight').value = Math.round(weightLbs * 10) / 10;
-                            updateWeightKg();
-                        }
-                        if (profile.biological_sex) {
-                            document.querySelector(`input[name="biological_sex"][value="${profile.biological_sex}"]`).checked = true;
-                        }
-                        if (profile.activity_level) {
-                            document.getElementById('activity_level').value = profile.activity_level;
-                        }
-                        if (profile.health_conditions) {
-                            profile.health_conditions.forEach(condition => {
-                                const checkbox = document.querySelector(`input[name="health_conditions"][value="${condition}"]`);
-                                if (checkbox) checkbox.checked = true;
-                            });
-                        }
-                        if (profile.medications) {
-                            document.getElementById('medications').value = profile.medications;
-                        }
-                        if (profile.supplements) {
-                            profile.supplements.forEach(supplement => {
-                                const checkbox = document.querySelector(`input[name="supplements"][value="${supplement}"]`);
-                                if (checkbox) checkbox.checked = true;
-                            });
+                        try {
+                            // Basic info
+                            if (profile.age) document.getElementById('age').value = profile.age;
+                            if (profile.height_cm) {
+                                const totalInches = profile.height_cm / 2.54;
+                                const feet = Math.floor(totalInches / 12);
+                                // Keep decimal precision for inches (e.g. 2.5), round to 1 decimal place to avoid float artifacts
+                                const inches = Math.round((totalInches % 12) * 10) / 10;
+                                document.getElementById('heightFeet').value = feet;
+                                document.getElementById('heightInches').value = inches;
+                                updateHeightCm();
+                            }
+                            if (profile.weight_kg) {
+                                const weightLbs = profile.weight_kg * 2.20462;
+                                // Round to 1 decimal place to avoid 199.1 artifact
+                                document.getElementById('weight').value = Math.round(weightLbs * 10) / 10;
+                                updateWeightKg();
+                            }
+                            if (profile.biological_sex) {
+                                const radio = document.querySelector(`input[name="biological_sex"][value="${profile.biological_sex}"]`);
+                                if (radio) radio.checked = true;
+                            }
+                            if (profile.activity_level) {
+                                document.getElementById('activity_level').value = profile.activity_level;
+                            }
+                            if (profile.health_conditions) {
+                                profile.health_conditions.forEach(condition => {
+                                    const checkbox = document.querySelector(`input[name="health_conditions"][value="${condition}"]`);
+                                    if (checkbox) checkbox.checked = true;
+                                });
+                            }
+                            if (profile.medications) {
+                                document.getElementById('medications').value = profile.medications;
+                            }
+                            if (profile.supplements) {
+                                profile.supplements.forEach(supplement => {
+                                    const checkbox = document.querySelector(`input[name="supplements"][value="${supplement}"]`);
+                                    if (checkbox) checkbox.checked = true;
+                                });
+                            }
+                        } catch (e) {
+                            console.error('Error loading profile block:', e);
                         }
                     }
 
                     if (goals) {
-                        if (goals.goal_type) document.getElementById('goal_type').value = goals.goal_type;
-                        if (goals.target_weight_kg) {
-                            // Always display in lbs, handle precision
-                            // 2.20462 * kg
-                            const weightLbs = goals.target_weight_kg * 2.20462;
-                            // Round to 1 decimal place to match input step
-                            document.getElementById('target_weight').value = Math.round(weightLbs * 10) / 10;
-                            updateTargetWeightKg();
-                        }
-                        if (goals.timeline_weeks) document.getElementById('timeline_weeks').value = goals.timeline_weeks;
-                        if (goals.secondary_goals) {
-                            goals.secondary_goals.forEach(goal => {
-                                const checkbox = document.querySelector(`input[name="secondary_goals"][value="${goal}"]`);
-                                if (checkbox) checkbox.checked = true;
-                            });
+                        try {
+                            if (goals.goal_type) {
+                                const goalSelect = document.getElementById('goal_type');
+                                goalSelect.value = goals.goal_type;
+                                // Trigger change event to update UI states (show/hide target weight)
+                                goalSelect.dispatchEvent(new Event('change'));
+                            }
+                            if (goals.target_weight_kg) {
+                                // Always display in lbs, handle precision
+                                // 2.20462 * kg
+                                const weightLbs = goals.target_weight_kg * 2.20462;
+                                // Round to 1 decimal place to match input step
+                                document.getElementById('target_weight').value = Math.round(weightLbs * 10) / 10;
+                                updateTargetWeightKg();
+                            }
+                            if (goals.timeline_weeks) document.getElementById('timeline_weeks').value = goals.timeline_weeks;
+                            if (goals.secondary_goals) {
+                                goals.secondary_goals.forEach(goal => {
+                                    const checkbox = document.querySelector(`input[name="secondary_goals"][value="${goal}"]`);
+                                    if (checkbox) checkbox.checked = true;
+                                });
+                            }
+                        } catch (e) {
+                            console.error('Error loading goals block:', e);
                         }
                     }
 
                     if (preferences) {
-                        if (preferences.diet_type) document.getElementById('diet_type').value = preferences.diet_type;
-                        if (preferences.allergies) {
-                            preferences.allergies.forEach(allergy => {
-                                const checkbox = document.querySelector(`input[name="allergies"][value="${allergy}"]`);
-                                if (checkbox) checkbox.checked = true;
-                            });
-                        }
-                        if (preferences.food_restrictions) {
-                            preferences.food_restrictions.forEach(restriction => {
-                                const checkbox = document.querySelector(`input[name="food_restrictions"][value="${restriction}"]`);
-                                if (checkbox) checkbox.checked = true;
-                            });
-                        }
-                        if (preferences.cooking_skill) document.getElementById('cooking_skill').value = preferences.cooking_skill;
-                        if (preferences.prep_time_limit) document.getElementById('prep_time_limit').value = preferences.prep_time_limit;
-                        if (preferences.meal_timing_preference) document.getElementById('meal_timing_preference').value = preferences.meal_timing_preference;
-                        if (preferences.budget_per_meal) {
-                            const dailyBudget = Math.round(preferences.budget_per_meal * 3); // Convert back to daily
-                            document.getElementById('budget_per_day').value = dailyBudget;
-                            updateBudgetDisplay();
-                        }
-                        if (preferences.living_situation) {
-                            const radio = document.querySelector(`input[name="living_situation"][value="${preferences.living_situation}"]`);
-                            if (radio) radio.checked = true;
-                        }
-                        if (preferences.meal_prep_preference) {
-                            const radio = document.querySelector(`input[name="meal_prep_preference"][value="${preferences.meal_prep_preference}"]`);
-                            if (radio) radio.checked = true;
-                        }
-                        if (preferences.class_schedule) {
-                            if (preferences.class_schedule.breakfast_time) document.getElementById('breakfast_time').value = preferences.class_schedule.breakfast_time;
-                            if (preferences.class_schedule.lunch_time) document.getElementById('lunch_time').value = preferences.class_schedule.lunch_time;
-                            if (preferences.class_schedule.dinner_time) document.getElementById('dinner_time').value = preferences.class_schedule.dinner_time;
+                        try {
+                            if (preferences.diet_type) document.getElementById('diet_type').value = preferences.diet_type;
+                            if (preferences.allergies) {
+                                preferences.allergies.forEach(allergy => {
+                                    const checkbox = document.querySelector(`input[name="allergies"][value="${allergy}"]`);
+                                    if (checkbox) checkbox.checked = true;
+                                });
+                            }
+                            if (preferences.food_restrictions) {
+                                preferences.food_restrictions.forEach(restriction => {
+                                    const checkbox = document.querySelector(`input[name="food_restrictions"][value="${restriction}"]`);
+                                    if (checkbox) checkbox.checked = true;
+                                });
+                            }
+                            if (preferences.cooking_skill) document.getElementById('cooking_skill').value = preferences.cooking_skill;
+                            if (preferences.prep_time_limit) document.getElementById('prep_time_limit').value = preferences.prep_time_limit;
+                            if (preferences.meal_timing_preference) document.getElementById('meal_timing_preference').value = preferences.meal_timing_preference;
+                            if (preferences.budget_per_meal) {
+                                const dailyBudget = Math.round(preferences.budget_per_meal * 3); // Convert back to daily
+                                document.getElementById('budget_per_day').value = dailyBudget;
+                                updateBudgetDisplay();
+                            }
+                            if (preferences.living_situation) {
+                                const radio = document.querySelector(`input[name="living_situation"][value="${preferences.living_situation}"]`);
+                                if (radio) radio.checked = true;
+                            }
+                            if (preferences.meal_prep_preference) {
+                                const radio = document.querySelector(`input[name="meal_prep_preference"][value="${preferences.meal_prep_preference}"]`);
+                                if (radio) radio.checked = true;
+                            }
+                            if (preferences.class_schedule) {
+                                if (preferences.class_schedule.breakfast_time) document.getElementById('breakfast_time').value = preferences.class_schedule.breakfast_time;
+                                if (preferences.class_schedule.lunch_time) document.getElementById('lunch_time').value = preferences.class_schedule.lunch_time;
+                                if (preferences.class_schedule.dinner_time) document.getElementById('dinner_time').value = preferences.class_schedule.dinner_time;
+                            }
+                        } catch (e) {
+                            console.error('Error loading preferences block:', e);
                         }
                     }
                 }

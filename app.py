@@ -10,7 +10,7 @@ import re
 import uuid
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
-import tempfile
+
 
 # Auth-related imports
 from flask_login import LoginManager, UserMixin, login_user, logout_user, current_user
@@ -1215,86 +1215,11 @@ def api_analyze_with_profile():
         return jsonify({'success': False, 'error': str(e)}), 500
         
         
-@app.route('/test-auth')
-def test_auth():
-    """Simple test page to verify authentication"""
-    return f"""
-    <h1>Authentication Test</h1>
-    <p>current_user: {current_user}</p>
-    <p>is_authenticated: {getattr(current_user, 'is_authenticated', 'N/A')}</p>
-    <p>email: {getattr(current_user, 'email', 'N/A')}</p>
-    <p>name: {getattr(current_user, 'name', 'N/A')}</p>
-    <p>Session: {dict(session)}</p>
-    <p><a href="/login">Login with Google</a></p>
-    <p><a href="/">Back to Home</a></p>
-    """
 
-@app.route('/test')
-def test():
-    """Test route to check if basic Flask works"""
-    return jsonify({
-        "status": "Flask is working on Vercel!",
-        "environment": "Vercel" if os.environ.get('VERCEL') else "Local",
-        "gemini_configured": bool(GEMINI_API_KEY),
-        "mongodb_uri_exists": bool(os.getenv('MONGODB_URI')),
-        "upload_folder": app.config['UPLOAD_FOLDER']
-    })
 
-@app.route('/debug-db-analyses')
-def debug_db_analyses():
-    """Debug route to check what's in the database"""
-    try:
-        # Get all analyses with user_id
-        cursor = db.collection.find({'user_id': {'$exists': True}}).limit(10)
-        analyses = []
-        for doc in cursor:
-            analyses.append({
-                '_id': str(doc['_id']),
-                'user_id': str(doc.get('user_id', 'no_user_id')),
-                'dietary_goal': doc.get('dietary_goal', 'no_goal'),
-                'created_at': doc.get('created_at', 'no_date'),
-                'has_analysis': bool(doc.get('analysis'))
-            })
-        
-        return jsonify({
-            "success": True,
-            "total_analyses": len(analyses),
-            "analyses": analyses,
-            "current_user_id": str(current_user.id) if current_user and getattr(current_user, 'is_authenticated', False) else 'not_authenticated'
-        })
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        })
 
-@app.route('/debug-users')
-def debug_users():
-    """Debug route to check all users in the database"""
-    try:
-        # Get all users
-        cursor = db.users.find({}).limit(10)
-        users = []
-        for doc in cursor:
-            users.append({
-                '_id': str(doc['_id']),
-                'email': doc.get('email', 'no_email'),
-                'name': doc.get('name', 'no_name'),
-                'google_sub': doc.get('google_sub', 'no_google_sub'),
-                'created_at': doc.get('created_at', 'no_date'),
-                'last_login_at': doc.get('last_login_at', 'no_login')
-            })
-        
-        return jsonify({
-            "success": True,
-            "total_users": len(users),
-            "users": users
-        })
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        })
+
+
 
 @app.route('/health')
 def health_check():
@@ -1345,46 +1270,7 @@ def fix_users():
             "error": str(e)
         })
 
-@app.route('/debug-db')
-def debug_db():
-    """Enhanced database debugging"""
-    try:
-        # Test database connection
-        db_connected = db.is_connected()
-        
-        debug_info = {
-            "mongodb_uri_exists": bool(os.getenv('MONGODB_URI')),
-            "database_connected": db_connected,
-            "client_exists": bool(db.client),
-        }
-        
-        if db_connected:
-            # Test saving a document
-            test_data = {
-                "test": True,
-                "timestamp": datetime.now().isoformat(),
-                "message": "Database test from Vercel",
-                "dietary_goal": "test",
-                "analysis": "This is a test analysis"
-            }
-            
-            save_result = db.save_analysis(test_data)
-            history = db.get_history(3)
-            
-            debug_info.update({
-                "save_test": save_result,
-                "history_count": len(history),
-                "sample_history": history[:1] if history else []
-            })
-        
-        return jsonify(debug_info)
-        
-    except Exception as e:
-        return jsonify({
-            "error": str(e),
-            "error_type": type(e).__name__,
-            "mongodb_uri_exists": bool(os.getenv('MONGODB_URI'))
-        })
+
 
 def save_to_history(analysis_data, chart_path):
     """Save analysis to MongoDB database"""
