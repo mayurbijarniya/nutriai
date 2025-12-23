@@ -6,33 +6,13 @@ Transform your meals into actionable nutrition data with cutting-edge AI technol
 
 ![NutriAI Interface](https://img.shields.io/badge/Status-Production%20Ready-brightgreen) ![Python](https://img.shields.io/badge/Python-3.9+-blue) ![Flask](https://img.shields.io/badge/Flask-2.3+-green) ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas-brightgreen)
 
-## Features
+## Key Features
 
-### **Secure Authentication**
-- **Google OAuth 2.0** integration for seamless sign-in
-- **User profiles** with personalized dashboards
-- **Session management** with secure cookie handling
-- **Sign-in history tracking** for security monitoring
-
-### **AI-Powered Analysis**
-- **Google Gemini 2.5 Pro** for advanced food recognition
-- **Multi-diet support**: Keto, Vegan, Paleo, Mediterranean, Low-Carb
-- **Detailed nutrition breakdown** with macros and micronutrients
-- **Personalized recommendations** based on dietary goals
-- **Smart portion estimation** using visual cues
-
-### **User Management**
-- **Private history** - each user sees only their own analyses
-- **Cross-device sync** - access your data anywhere
-- **Usage tracking** with daily limits (Guest: 10/day, Signed-in: 100/day)
-- **Profile management** with join dates and activity history
-
-### **Modern UI/UX**
-- **Professional interface** inspired by premium apps
-- **Glassmorphism design** with backdrop blur effects
-- **Dark/Light mode** toggle
-- **Responsive design** for desktop and mobile
-- **Smooth animations** and transitions
+- **AI-Powered Analysis**: Instant nutrition breakdown (Calories, Macros, Micros) using Gemini 2.5 Pro.
+- **Global Dashboard**: Timezone-aware tracking for meals & hydration that works anywhere.
+- **Personalized Goals**: Smart scoring & insights for Keto, Vegan, Paleo, and more.
+- **Secure & Private**: Google OAuth, private history, and dedicated guest sessions.
+- **Modern UX**: Responsive Glassmorphism design with Dark Mode support.
 
 ## Quick Setup
 
@@ -121,27 +101,7 @@ Transform your meals into actionable nutrition data with cutting-edge AI technol
 - **Static file** optimization
 - **Production** security settings
 
-## Usage Guide
 
-### For Guests (No Sign-in Required)
-- **Upload food photos** or paste image URLs
-- **Get instant AI analysis** with nutrition breakdown
-- **Try different diet goals** (Keto, Vegan, etc.)
-- **Limited to 10 analyses per day**
-
-### For Signed-in Users
-- **Save analysis history** across devices
-- **100 analyses per day** limit
-- **Personal profile** with activity tracking
-- **Sign-in security** monitoring
-- **Cross-device synchronization**
-
-### Analysis Features
-- **Meal identification** with ingredient breakdown
-- **Nutrition estimation** (calories, macros, vitamins)
-- **Diet compatibility** scoring (1-10)
-- **Personalized recommendations** for improvements
-- **Health insights** and suggestions
 
 ## Security Features
 
