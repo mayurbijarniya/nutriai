@@ -449,6 +449,8 @@
             } catch (e) { console.error(e) }
         }
 
+        const IS_AUTHENTICATED = document.body.dataset.authenticated === 'true';
+
         function emojiFor(slug) {
             const map = {
                 'standard_american': '🍽️', 'mediterranean': '🫒', 'ketogenic': '🥑',
@@ -464,17 +466,39 @@
         }
 
         function renderDiets(diets) {
-            dietDropdownList.innerHTML = diets.map(d => `
+            let displayDiets = diets;
+            let showSignIn = false;
+
+            if (!IS_AUTHENTICATED) {
+                // Show only first diet (Standard American) and prompt
+                displayDiets = diets.slice(0, 1);
+                showSignIn = true;
+            }
+
+            let html = displayDiets.map(d => `
             <button type="button" data-slug="${d.slug}" class="w-full flex items-center space-x-3 px-4 py-2 hover:bg-green-50 dark:hover:bg-green-900/20 text-left transition-colors group">
                 <span class="text-xl">${emojiFor(d.slug)}</span>
                 <div>
                      <p class="text-sm font-medium text-gray-700 dark:text-gray-200 group-hover:text-green-700 dark:group-hover:text-green-400">${d.label}</p>
                 </div>
             </button>
-        `).join('');
+            `).join('');
+
+            if (showSignIn) {
+                html += `
+                <div class="px-4 py-3 border-t border-gray-100 dark:border-gray-800 text-center bg-gray-50/50 dark:bg-black/20">
+                    <p class="text-xs text-gray-500 mb-2">Want more options?</p>
+                    <a href="{{ url_for('auth.login') }}" class="block w-full py-1.5 rounded-lg bg-green-500 text-white text-xs font-bold hover:bg-green-600 transition-colors shadow-sm">
+                        Sign in to see all diets
+                    </a>
+                </div>
+                `;
+            }
+
+            dietDropdownList.innerHTML = html;
 
             // Handlers
-            dietDropdownList.querySelectorAll('button').forEach(btn => {
+            dietDropdownList.querySelectorAll('button[data-slug]').forEach(btn => {
                 btn.addEventListener('click', () => {
                     const slug = btn.dataset.slug;
                     const label = btn.querySelector('p').innerText;

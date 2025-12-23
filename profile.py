@@ -371,7 +371,6 @@ def calculate_nutritional_needs():
 
 
 @profile_bp.route('/api/diets')
-@login_required
 def list_diets():
     """Expose diet configurations for UI (labels, tags, descriptions)."""
     result = []
