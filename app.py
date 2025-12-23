@@ -1600,8 +1600,23 @@ def dashboard_insights():
     try:
         from datetime import datetime, timezone, timedelta
         uid = ObjectId(current_user.id)
-        now = datetime.now(timezone.utc)
-        start = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
+        
+        # Get client timezone offset (minutes)
+        try:
+            offset_min = int(request.args.get('offset', 300)) # Default to EST
+        except (ValueError, TypeError):
+            offset_min = 300
+
+        # Calculate "User's Today" based on offset
+        utc_now = datetime.utcnow()
+        local_now = utc_now - timedelta(minutes=offset_min)
+        target_date = local_now.date()
+        
+        # Calculate UTC start/end for the user's local day
+        local_start = datetime(target_date.year, target_date.month, target_date.day) 
+        start = local_start + timedelta(minutes=offset_min)
+        
+        # Week start is 6 days before 'Today'
         week_start = start - timedelta(days=6)
 
         # Fetch last 7 days
@@ -1610,8 +1625,14 @@ def dashboard_insights():
         # Aggregate by day
         daily = {}
         for m in meals:
-            dt = m.get('created_at')
-            key = dt.date().isoformat() if dt else start.date().isoformat()
+            dt_utc = m.get('created_at')
+            # Shift UTC timestamp to User's Local Time for correct bucketing
+            if dt_utc:
+                dt_local = dt_utc - timedelta(minutes=offset_min)
+                key = dt_local.date().isoformat()
+            else:
+                key = start.date().isoformat()
+                
             d = daily.setdefault(key, {'calories': 0.0, 'carbs_g': 0.0, 'protein_g': 0.0, 'fat_g': 0.0, 'count': 0})
             sj = m.get('analysis_json') or {}
             if 'calories_kcal' in sj:

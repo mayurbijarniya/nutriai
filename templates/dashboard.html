@@ -357,7 +357,8 @@
     // 7. Insights
     if (data.meals && data.meals.length > 0) {
       try {
-        const ir = await fetch('/api/dashboard/insights');
+        const offset = new Date().getTimezoneOffset();
+        const ir = await fetch(`/api/dashboard/insights?offset=${offset}`);
         const idata = await ir.json();
         if (idata.success && Array.isArray(idata.insights) && idata.insights.length > 0) {
           const container = document.getElementById('insights');
