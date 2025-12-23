@@ -194,7 +194,15 @@
       logWaterBtn.disabled = true;
       logWaterBtn.classList.add('opacity-75');
       try {
-        await fetch('/api/dashboard/hydration', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ add_glasses: 1, add_ml: 250 }) });
+        await fetch('/api/dashboard/hydration', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            add_glasses: 1,
+            add_ml: 250,
+            offset: new Date().getTimezoneOffset()
+          })
+        });
         // Refresh just hydration part or page? Page for simplicity
         location.reload();
       } catch (_) {
@@ -205,7 +213,8 @@
     // Load Data
     let data;
     try {
-      const res = await fetch('/api/dashboard/today');
+      const offset = new Date().getTimezoneOffset();
+      const res = await fetch(`/api/dashboard/today?offset=${offset}`);
       data = await res.json();
       if (!data.success) throw new Error(data.error || 'User not logged in?');
     } catch (err) {

@@ -5,7 +5,7 @@ import requests
 from io import BytesIO
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import re
 import uuid
 from werkzeug.utils import secure_filename
@@ -1461,10 +1461,23 @@ def dashboard_today():
         return jsonify({'success': False, 'error': 'auth_required'}), 401
     try:
         uid = ObjectId(current_user.id)
-        from datetime import datetime, timedelta
-        # Use local time since database.py uses datetime.now() (naive/local)
-        now = datetime.now()
-        start = datetime(now.year, now.month, now.day)
+        
+        # Get client timezone offset (minutes)
+        # Positive = Behind UTC (e.g. EST = 300), Negative = Ahead UTC (e.g. IST = -330)
+        try:
+            offset_min = int(request.args.get('offset', 300)) # Default to EST (300) if missing
+        except (ValueError, TypeError):
+            offset_min = 300
+
+        # Calculate "User's Today" based on offset
+        utc_now = datetime.utcnow()
+        local_now = utc_now - timedelta(minutes=offset_min)
+        target_date = local_now.date()
+        
+        # Calculate UTC start/end for the user's local day
+        # UTC = Local + Offset
+        local_start = datetime(target_date.year, target_date.month, target_date.day) 
+        start = local_start + timedelta(minutes=offset_min)
         end = start + timedelta(days=1)
 
         meals = list(db.collection.find({'user_id': uid, 'created_at': {'$gte': start, '$lt': end}}).sort('created_at', 1))
@@ -1510,7 +1523,7 @@ def dashboard_today():
             except Exception:
                 daily_target = None
 
-        today_key = start.strftime('%Y-%m-%d')
+        today_key = target_date.strftime('%Y-%m-%d')
         hyd = db.hydration_logs.find_one({'user_id': uid, 'date': today_key}) or {'glasses': 0, 'ml': 0}
 
         return jsonify({
@@ -1555,8 +1568,19 @@ def dashboard_hydration():
         payload = request.get_json() or {}
         add_glasses = int(payload.get('add_glasses', 1))
         add_ml = int(payload.get('add_ml', 250))
-        # Use local time to match dashboard_today logic
-        today_key = datetime.now().strftime('%Y-%m-%d')
+        
+        # Get client timezone offset (minutes)
+        try:
+            offset_min = int(payload.get('offset', 300))
+        except (ValueError, TypeError):
+            offset_min = 300
+
+        # Calculate "User's Today" based on offset
+        utc_now = datetime.utcnow()
+        local_now = utc_now - timedelta(minutes=offset_min)
+        
+        # Calculate hydration for today (Local Day)
+        today_key = local_now.strftime('%Y-%m-%d')
         existing = db.hydration_logs.find_one({'user_id': uid, 'date': today_key})
         if existing:
             db.hydration_logs.update_one({'_id': existing['_id']}, {'$inc': {'glasses': add_glasses, 'ml': add_ml}})
