@@ -1,0 +1,185 @@
+{% extends "base.html" %}
+
+{% block title %}Recipes - NutriAI{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 space-y-5 sm:space-y-8">
+    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white font-serif-accent">Recipe Library</h1>
+            <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400">Create diet-aware recipes and add them to your planner.</p>
+        </div>
+    </div>
+
+    <div id="recipeContextBanner" class="glass-panel rounded-2xl p-4 text-sm text-gray-700 dark:text-gray-300">Loading profile context...</div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div class="glass-panel rounded-2xl p-4 sm:p-6 lg:col-span-1 lg:sticky lg:top-24 h-fit">
+            <h2 class="text-lg font-bold mb-4">Add Recipe</h2>
+            <div class="space-y-3">
+                <input id="recipeName" class="input-glass w-full rounded-xl px-3 py-2 text-sm" placeholder="Recipe name">
+                <textarea id="recipeDesc" rows="3" class="input-glass w-full rounded-xl px-3 py-2 text-sm" placeholder="Description"></textarea>
+                <input id="recipeDietTags" class="input-glass w-full rounded-xl px-3 py-2 text-sm" placeholder="Diet tags (comma separated)">
+                <input id="recipeIngredients" class="input-glass w-full rounded-xl px-3 py-2 text-sm" placeholder="Ingredients (comma separated)">
+                <input id="recipeSteps" class="input-glass w-full rounded-xl px-3 py-2 text-sm" placeholder="Steps (semicolon separated)">
+                <input id="recipeServings" class="input-glass w-full rounded-xl px-3 py-2 text-sm" placeholder="Servings (e.g. 2)">
+                <div class="grid grid-cols-2 gap-2">
+                    <input id="recipeCookTime" class="input-glass rounded-xl px-3 py-2 text-sm" placeholder="Cook time min">
+                    <input id="recipeCost" class="input-glass rounded-xl px-3 py-2 text-sm" placeholder="Cost / serving $">
+                    <input id="recipeCalories" class="input-glass rounded-xl px-3 py-2 text-sm" placeholder="Calories">
+                    <input id="recipeProtein" class="input-glass rounded-xl px-3 py-2 text-sm" placeholder="Protein g">
+                    <input id="recipeCarbs" class="input-glass rounded-xl px-3 py-2 text-sm" placeholder="Carbs g">
+                    <input id="recipeFat" class="input-glass rounded-xl px-3 py-2 text-sm" placeholder="Fat g">
+                </div>
+                <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                    <input type="checkbox" id="recipePublic">
+                    <span>Make public</span>
+                </label>
+                <button id="addRecipe" class="btn-primary w-full py-2 rounded-xl font-semibold text-sm">Save Recipe</button>
+                <p id="recipeStatus" class="text-xs text-gray-500"></p>
+            </div>
+        </div>
+
+        <div class="lg:col-span-2 glass-panel rounded-2xl p-4 sm:p-6">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold">My + Public Recipes</h2>
+                <button id="refreshRecipes" class="btn-secondary px-3 py-2 rounded-xl text-sm">Refresh</button>
+            </div>
+            <div id="recipeGrid" class="recipe-grid grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function setRecipeStatus(msg, ok = true) {
+        const el = document.getElementById('recipeStatus');
+        el.textContent = msg;
+        el.className = `text-xs ${ok ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`;
+    }
+
+    function recipeCard(recipe) {
+        const nutrition = recipe.nutrition || {};
+        const tags = (recipe.diet_tags || []).slice(0, 4).map(t => `<span class="recipe-chip">${escapeHtml(t)}</span>`).join('');
+        const extraTags = (recipe.diet_tags || []).length > 4 ? `<span class="recipe-chip">+${(recipe.diet_tags || []).length - 4}</span>` : '';
+        const ingredients = (recipe.ingredients || []).slice(0, 4).map(i => `<span class="recipe-ingredient">${escapeHtml(i)}</span>`).join('');
+        const extraIngredients = (recipe.ingredients || []).length > 4 ? `<span class="recipe-ingredient">+${(recipe.ingredients || []).length - 4} more</span>` : '';
+        const ownerBadge = recipe.user_id === '{{ current_user.id if current_user.is_authenticated else "" }}'
+            ? '<span class="recipe-origin-badge mine"><i class="ph ph-user"></i> Mine</span>'
+            : '<span class="recipe-origin-badge public"><i class="ph ph-globe-hemisphere-west"></i> Public</span>';
+
+        return `
+            <div class="recipe-card rounded-xl border border-gray-200 dark:border-gray-700 p-4 bg-white/50 dark:bg-black/20 h-full flex flex-col">
+                <div class="flex items-start justify-between gap-2">
+                    <div class="min-w-0">
+                        <h3 class="font-bold text-gray-900 dark:text-white text-lg leading-tight truncate">${escapeHtml(recipe.name || 'Untitled')}</h3>
+                        <div class="mt-1">${ownerBadge}</div>
+                    </div>
+                    ${recipe.user_id === '{{ current_user.id if current_user.is_authenticated else "" }}' ? `<button onclick="deleteRecipe('${recipe._id}')" class="btn-mini btn-mini-danger recipe-delete-btn" title="Delete recipe"><i class='ph ph-trash'></i></button>` : ''}
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-2 recipe-desc">${escapeHtml(recipe.description || '')}</p>
+
+                <div class="mt-3 flex flex-wrap gap-1.5">${tags}${extraTags || ''}</div>
+
+                <div class="mt-3 recipe-stats grid grid-cols-2 gap-2">
+                    <div class="recipe-stat"><i class="ph ph-fire"></i><span>${Math.round(nutrition.calories_kcal || 0)} kcal</span></div>
+                    <div class="recipe-stat"><i class="ph ph-bowl-food"></i><span>${Math.round(nutrition.protein_g || 0)}g protein</span></div>
+                    <div class="recipe-stat"><i class="ph ph-grains"></i><span>${Math.round(nutrition.carbs_g || 0)}g carbs</span></div>
+                    <div class="recipe-stat"><i class="ph ph-drop"></i><span>${Math.round(nutrition.fat_g || 0)}g fat</span></div>
+                    <div class="recipe-stat"><i class="ph ph-users-three"></i><span>${recipe.servings || 1} servings</span></div>
+                    <div class="recipe-stat"><i class="ph ph-timer"></i><span>${recipe.cook_time_min || 0} min</span></div>
+                    <div class="recipe-stat col-span-2"><i class="ph ph-currency-dollar"></i><span>$${Number(recipe.cost_per_serving || 0).toFixed(2)} per serving</span></div>
+                </div>
+
+                <div class="mt-auto pt-3 border-t border-gray-100 dark:border-gray-800">
+                    <p class="text-[11px] uppercase tracking-wide text-gray-500 mb-1">Top Ingredients</p>
+                    <div class="flex flex-wrap gap-1.5">${ingredients || '<span class="recipe-ingredient">No ingredients</span>'}${extraIngredients || ''}</div>
+                </div>
+            </div>
+        `;
+    }
+
+    async function loadContextBanner() {
+        const el = document.getElementById('recipeContextBanner');
+        const res = await fetch('/api/v3/context');
+        const data = await res.json();
+        if (!data.success) {
+            el.textContent = 'Could not load profile context.';
+            return;
+        }
+        const missing = data.missing || [];
+        if (!missing.length) {
+            el.innerHTML = `<strong class="text-green-700 dark:text-green-300">Recipe personalization active.</strong> Filtering uses your diet, allergies, restrictions, prep time, and budget.`;
+        } else {
+            el.innerHTML = `<strong class="text-amber-700 dark:text-amber-300">Personalization partial.</strong> Missing profile fields: ${missing.join(', ')}.`;
+        }
+    }
+
+    async function loadRecipes() {
+        const res = await fetch('/api/v3/recipes?include_public=1');
+        const data = await res.json();
+        if (!data.success) return;
+        const grid = document.getElementById('recipeGrid');
+        if (!data.recipes.length) {
+            grid.innerHTML = '<p class="text-sm text-gray-500">No recipes yet.</p>';
+            return;
+        }
+        grid.innerHTML = data.recipes.map(recipeCard).join('');
+    }
+
+    async function addRecipe() {
+        const payload = {
+            name: document.getElementById('recipeName').value,
+            description: document.getElementById('recipeDesc').value,
+            diet_tags: document.getElementById('recipeDietTags').value.split(',').map(x => x.trim()).filter(Boolean),
+            ingredients: document.getElementById('recipeIngredients').value.split(',').map(x => x.trim()).filter(Boolean),
+            steps: document.getElementById('recipeSteps').value.split(';').map(x => x.trim()).filter(Boolean),
+            servings: Math.max(1, Number(document.getElementById('recipeServings').value || 1)),
+            cook_time_min: Number(document.getElementById('recipeCookTime').value || 20),
+            cost_per_serving: Number(document.getElementById('recipeCost').value || 0),
+            nutrition: {
+                calories_kcal: Number(document.getElementById('recipeCalories').value || 0),
+                protein_g: Number(document.getElementById('recipeProtein').value || 0),
+                carbs_g: Number(document.getElementById('recipeCarbs').value || 0),
+                fat_g: Number(document.getElementById('recipeFat').value || 0),
+            },
+            is_public: document.getElementById('recipePublic').checked,
+        };
+        const res = await fetch('/api/v3/recipes', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (data.success) {
+            setRecipeStatus('Recipe saved.', true);
+            loadRecipes();
+        } else {
+            setRecipeStatus(data.message || data.error || 'Save failed.', false);
+        }
+    }
+
+    async function deleteRecipe(id) {
+        const res = await fetch(`/api/v3/recipes/${id}`, { method: 'DELETE' });
+        const data = await res.json();
+        if (data.success) loadRecipes();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        document.getElementById('addRecipe').addEventListener('click', addRecipe);
+        document.getElementById('refreshRecipes').addEventListener('click', loadRecipes);
+        loadContextBanner();
+        loadRecipes();
+    });
+</script>
+{% endblock %}

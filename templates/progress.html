@@ -1,0 +1,261 @@
+{% extends "base.html" %}
+
+{% block title %}Progress - NutriAI{% endblock %}
+
+{% block content %}
+<div class="progress-page relative z-20 max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 space-y-5 sm:space-y-8">
+    <div class="relative z-[90] flex flex-col lg:flex-row lg:items-center lg:justify-between gap-3 sm:gap-4">
+        <div>
+            <h1 class="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white font-serif-accent">Progress Tracker</h1>
+            <p class="text-sm sm:text-base text-gray-600 dark:text-gray-400">Review trends for calories, macros, and weight trajectory.</p>
+        </div>
+        <div class="control-strip w-full lg:w-auto relative z-[100]">
+            <div class="relative min-w-[10rem] flex-1">
+                <i class="ph ph-calendar-blank absolute left-3 top-1/2 -translate-y-1/2 text-gray-500"></i>
+                <select id="windowDays" class="selector-pill w-full pl-9 pr-10 py-2 text-sm appearance-none">
+                    <option value="14">Last 14 days</option>
+                    <option value="30" selected>Last 30 days</option>
+                    <option value="90">Last 90 days</option>
+                </select>
+                <i class="ph ph-caret-down absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none"></i>
+            </div>
+            <button id="reloadProgress" class="btn-secondary px-4 py-2 rounded-xl text-sm">Refresh</button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-2 lg:grid-cols-5 gap-3 sm:gap-4" id="kpiGrid"></div>
+
+    <div class="relative z-30 grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div class="lg:col-span-2 glass-panel rounded-2xl p-4 sm:p-6 relative z-10">
+            <h2 class="text-lg font-bold mb-4">Daily Nutrition</h2>
+            <div id="dailyRows" class="space-y-2"></div>
+        </div>
+
+        <div class="space-y-4 sm:space-y-6 relative z-[120]">
+            <div class="glass-panel rounded-2xl p-4 sm:p-6 relative z-[140] overflow-visible">
+                <h2 class="text-lg font-bold mb-3">Weight Log</h2>
+                <div class="space-y-2">
+                    <div class="control-strip relative z-[160]">
+                        <button id="weightDateToggle" class="selector-pill w-full px-3 py-2 text-sm inline-flex items-center justify-between">
+                            <span id="weightDateLabel">Select date</span>
+                            <i class="ph ph-calendar-blank text-gray-500"></i>
+                        </button>
+                        <input id="weightDate" type="date" class="sr-only" aria-hidden="true" tabindex="-1">
+                        <div id="weightDatePanel" class="hidden absolute top-12 left-0 sm:left-auto sm:right-0 z-[620] w-[19.5rem] surface-solid rounded-2xl p-3 shadow-2xl">
+                            <div class="flex items-center justify-between mb-2">
+                                <button id="weightMonthPrev" class="icon-btn h-8 w-8"><i class="ph ph-caret-left"></i></button>
+                                <p id="weightMonthLabel" class="text-sm font-semibold"></p>
+                                <button id="weightMonthNext" class="icon-btn h-8 w-8"><i class="ph ph-caret-right"></i></button>
+                            </div>
+                            <div class="grid grid-cols-7 text-[11px] text-gray-500 mb-1 px-1">
+                                <span class="text-center">S</span><span class="text-center">M</span><span class="text-center">T</span>
+                                <span class="text-center">W</span><span class="text-center">T</span><span class="text-center">F</span><span class="text-center">S</span>
+                            </div>
+                            <div id="weightMonthGrid" class="grid grid-cols-7 gap-1"></div>
+                            <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                                <button id="weightTodayQuick" class="btn-mini btn-mini-primary">Today</button>
+                                <button id="weightOpenNative" class="btn-mini btn-mini-secondary">Use picker</button>
+                            </div>
+                        </div>
+                    </div>
+                    <input id="weightLbs" type="number" step="0.1" class="input-glass w-full rounded-xl px-3 py-2 text-sm" placeholder="Weight (lbs)">
+                    <button id="saveWeight" class="btn-primary w-full py-2 rounded-xl text-sm font-semibold">Save Weight</button>
+                    <p id="weightStatus" class="text-xs text-gray-500"></p>
+                </div>
+            </div>
+
+            <div class="glass-panel rounded-2xl p-4 sm:p-6">
+                <h2 class="text-lg font-bold mb-3">Recent Weights</h2>
+                <div id="weightList" class="space-y-2 text-sm"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function localDateString(d = new Date()) {
+        const pad = (n) => String(n).padStart(2, '0');
+        return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    }
+
+    function prettyDate(dateStr) {
+        return new Date(`${dateStr}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    }
+
+    function setupWeightDatePicker() {
+        const input = document.getElementById('weightDate');
+        const label = document.getElementById('weightDateLabel');
+        const toggle = document.getElementById('weightDateToggle');
+        const panel = document.getElementById('weightDatePanel');
+        const monthLabel = document.getElementById('weightMonthLabel');
+        const monthGrid = document.getElementById('weightMonthGrid');
+        const prev = document.getElementById('weightMonthPrev');
+        const next = document.getElementById('weightMonthNext');
+        const todayBtn = document.getElementById('weightTodayQuick');
+        const nativeBtn = document.getElementById('weightOpenNative');
+        const maxDate = localDateString();
+        let panelMonth = new Date();
+
+        function setValue(dateKey) {
+            input.value = dateKey;
+            label.textContent = prettyDate(dateKey);
+            const d = new Date(`${dateKey}T12:00:00`);
+            panelMonth = new Date(d.getFullYear(), d.getMonth(), 1);
+        }
+
+        function render() {
+            const monthStart = new Date(panelMonth.getFullYear(), panelMonth.getMonth(), 1);
+            const monthEnd = new Date(panelMonth.getFullYear(), panelMonth.getMonth() + 1, 0);
+            monthLabel.textContent = monthStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+            const cells = [];
+            for (let i = 0; i < monthStart.getDay(); i++) cells.push('<div class="h-8"></div>');
+            for (let day = 1; day <= monthEnd.getDate(); day++) {
+                const dt = new Date(panelMonth.getFullYear(), panelMonth.getMonth(), day);
+                const key = localDateString(dt);
+                const isSelected = key === input.value;
+                const isToday = key === maxDate;
+                const isFuture = key > maxDate;
+                const base = 'h-8 w-8 rounded-lg text-xs font-semibold transition-colors';
+                const state = isSelected
+                    ? 'bg-green-600 text-white'
+                    : isToday
+                        ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+                        : 'hover:bg-gray-100 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300';
+
+                if (isFuture) {
+                    cells.push(`<button class="${base} opacity-40 cursor-not-allowed" disabled>${day}</button>`);
+                } else {
+                    cells.push(`<button data-date="${key}" class="${base} ${state}">${day}</button>`);
+                }
+            }
+            monthGrid.innerHTML = cells.join('');
+
+            monthGrid.querySelectorAll('button[data-date]').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    setValue(btn.dataset.date);
+                    panel.classList.add('hidden');
+                });
+            });
+
+            const nextMonth = localDateString(new Date(panelMonth.getFullYear(), panelMonth.getMonth() + 1, 1));
+            next.disabled = nextMonth > maxDate;
+            next.classList.toggle('opacity-40', next.disabled);
+            next.classList.toggle('cursor-not-allowed', next.disabled);
+        }
+
+        toggle.addEventListener('click', () => {
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) render();
+        });
+        prev.addEventListener('click', () => {
+            panelMonth = new Date(panelMonth.getFullYear(), panelMonth.getMonth() - 1, 1);
+            render();
+        });
+        next.addEventListener('click', () => {
+            if (next.disabled) return;
+            panelMonth = new Date(panelMonth.getFullYear(), panelMonth.getMonth() + 1, 1);
+            render();
+        });
+        todayBtn.addEventListener('click', () => {
+            setValue(maxDate);
+            panel.classList.add('hidden');
+        });
+        nativeBtn.addEventListener('click', () => {
+            if (typeof input.showPicker === 'function') input.showPicker();
+            else { input.focus(); input.click(); }
+        });
+        input.addEventListener('change', () => {
+            if (!input.value) return;
+            if (input.value > maxDate) input.value = maxDate;
+            setValue(input.value);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (panel.classList.contains('hidden')) return;
+            const t = e.target;
+            if (!panel.contains(t) && !toggle.contains(t)) panel.classList.add('hidden');
+        });
+
+        setValue(maxDate);
+    }
+
+    function kpiCard(title, value) {
+        return `<div class="glass-panel rounded-xl p-3 sm:p-4"><p class="text-[10px] sm:text-xs uppercase tracking-wider text-gray-500">${title}</p><p class="text-xl sm:text-2xl font-bold mt-1">${value}</p></div>`;
+    }
+
+    async function loadSummary() {
+        const days = document.getElementById('windowDays').value;
+        const res = await fetch(`/api/v3/progress/summary?days=${days}`);
+        const data = await res.json();
+        if (!data.success) return;
+        const k = data.kpis || {};
+        document.getElementById('kpiGrid').innerHTML = [
+            kpiCard('Days Logged', k.days_logged || 0),
+            kpiCard('Meals Logged', k.meals_logged || 0),
+            kpiCard('Avg Calories', Math.round(k.avg_daily_calories || 0)),
+            kpiCard('Avg Protein', `${Math.round(k.avg_daily_protein_g || 0)}g`),
+            kpiCard('Weight Delta', k.weight_delta_kg == null ? 'n/a' : `${k.weight_delta_kg} kg`),
+        ].join('');
+
+        const rows = data.daily || [];
+        const maxCal = Math.max(...rows.map(r => r.calories_kcal || 0), 1);
+        document.getElementById('dailyRows').innerHTML = rows.length
+            ? rows.map(r => `
+                <div class="rounded-lg border border-gray-100 dark:border-gray-800 p-3">
+                    <div class="flex items-center justify-between text-xs mb-2">
+                        <span>${r.date}</span>
+                        <span>${Math.round(r.calories_kcal)} kcal • ${Math.round(r.protein_g)}g protein</span>
+                    </div>
+                    <div class="w-full h-2 bg-gray-100 dark:bg-gray-800 rounded-full overflow-hidden">
+                        <div class="h-full bg-green-500 rounded-full" style="width:${Math.round((r.calories_kcal / maxCal) * 100)}%"></div>
+                    </div>
+                </div>
+            `).join('')
+            : '<p class="text-sm text-gray-500">No daily data yet.</p>';
+    }
+
+    async function loadWeights() {
+        const res = await fetch('/api/v3/progress/weight');
+        const data = await res.json();
+        if (!data.success) return;
+        const rows = data.weights || [];
+        document.getElementById('weightList').innerHTML = rows.length
+            ? rows.slice(-15).reverse().map(w => `<div class="flex justify-between border-b border-gray-100 dark:border-gray-800 py-1"><span>${w.date}</span><span>${w.weight_lbs} lbs</span></div>`).join('')
+            : '<p class="text-sm text-gray-500">No weight entries yet.</p>';
+    }
+
+    async function saveWeight() {
+        const date = document.getElementById('weightDate').value;
+        const lbs = Number(document.getElementById('weightLbs').value || 0);
+        const kg = lbs * 0.453592;
+        const res = await fetch('/api/v3/progress/weight', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ date, weight_kg: kg })
+        });
+        const data = await res.json();
+        const status = document.getElementById('weightStatus');
+        if (data.success) {
+            status.textContent = 'Weight saved.';
+            status.className = 'text-xs text-green-600 dark:text-green-400';
+            loadWeights();
+            loadSummary();
+        } else {
+            status.textContent = data.error || 'Could not save.';
+            status.className = 'text-xs text-red-600 dark:text-red-400';
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        setupWeightDatePicker();
+        document.getElementById('reloadProgress').addEventListener('click', loadSummary);
+        document.getElementById('windowDays').addEventListener('change', loadSummary);
+        document.getElementById('saveWeight').addEventListener('click', saveWeight);
+        loadSummary();
+        loadWeights();
+    });
+</script>
+{% endblock %}

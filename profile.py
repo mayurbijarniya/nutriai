@@ -82,6 +82,10 @@ def save_profile():
         data = request.get_json()
         user_id = ObjectId(current_user.id)
         now = datetime.now(timezone.utc)
+
+        existing_profile = db.user_profiles.find_one({'user_id': user_id}) or {}
+        existing_goals = db.nutrition_goals.find_one({'user_id': user_id}) or {}
+        existing_preferences = db.diet_preferences.find_one({'user_id': user_id}) or {}
         
         # Validate required fields
         if not data:
@@ -142,6 +146,45 @@ def save_profile():
         # Save NutritionGoals data
         if 'goals' in data:
             goals_data = data['goals']
+
+            incoming_profile = data.get('basic_info') or {}
+            incoming_prefs = data.get('preferences') or {}
+
+            merged_profile = {
+                'age': incoming_profile.get('age', existing_profile.get('age')),
+                'height_cm': incoming_profile.get('height_cm', existing_profile.get('height_cm')),
+                'weight_kg': incoming_profile.get('weight_kg', existing_profile.get('weight_kg')),
+                'biological_sex': incoming_profile.get('biological_sex', existing_profile.get('biological_sex')),
+                'activity_level': incoming_profile.get('activity_level', existing_profile.get('activity_level')),
+            }
+            merged_goal_type = goals_data.get('goal_type') or existing_goals.get('goal_type') or 'maintain_weight'
+            merged_diet_type = incoming_prefs.get('diet_type') or existing_preferences.get('diet_type') or 'standard_american'
+
+            derived_targets = None
+            try:
+                age_val = merged_profile.get('age')
+                height_val = merged_profile.get('height_cm')
+                weight_val = merged_profile.get('weight_kg')
+                sex_val = merged_profile.get('biological_sex')
+                activity_val = merged_profile.get('activity_level')
+                if all([age_val, height_val, weight_val, sex_val, activity_val]):
+                    derived_targets = calculate_daily_targets(
+                        age=int(age_val),
+                        sex=str(sex_val),
+                        weight_kg=float(weight_val),
+                        height_cm=float(height_val),
+                        activity_level=str(activity_val),
+                        goal_type=merged_goal_type,
+                        diet_slug=merged_diet_type,
+                    )
+            except Exception:
+                derived_targets = None
+
+            def _final_goal(field_name, derived_key):
+                value = goals_data.get(field_name)
+                if value in [None, ''] and derived_targets:
+                    return derived_targets.get(derived_key)
+                return value
             
             # Validate goal type
             if 'goal_type' in goals_data and goals_data['goal_type'] not in GOAL_TYPES:
@@ -149,16 +192,16 @@ def save_profile():
             
             goals_doc = {
                 'user_id': user_id,
-                'goal_type': goals_data.get('goal_type'),
+                'goal_type': merged_goal_type,
                 'target_weight_kg': goals_data.get('target_weight_kg'),
                 'timeline_weeks': goals_data.get('timeline_weeks'),
-                'daily_calories': goals_data.get('daily_calories'),
-                'protein_grams': goals_data.get('protein_grams'),
-                'carbs_grams': goals_data.get('carbs_grams'),
-                'fat_grams': goals_data.get('fat_grams'),
-                'fiber_grams': goals_data.get('fiber_grams'),
-                'sodium_mg': goals_data.get('sodium_mg'),
-                'sugar_grams': goals_data.get('sugar_grams'),
+                'daily_calories': _final_goal('daily_calories', 'target_calories'),
+                'protein_grams': _final_goal('protein_grams', 'protein_grams'),
+                'carbs_grams': _final_goal('carbs_grams', 'carbs_grams'),
+                'fat_grams': _final_goal('fat_grams', 'fat_grams'),
+                'fiber_grams': _final_goal('fiber_grams', 'fiber_grams'),
+                'sodium_mg': _final_goal('sodium_mg', 'sodium_mg'),
+                'sugar_grams': _final_goal('sugar_grams', 'sugar_grams'),
                 'secondary_goals': goals_data.get('secondary_goals', []),
                 'updated_at': now
             }

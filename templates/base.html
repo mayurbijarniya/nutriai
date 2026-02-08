@@ -64,10 +64,13 @@
 <body class="min-h-full flex flex-col font-sans text-gray-900 dark:text-gray-100 selection:bg-green-500/30"
     data-authenticated="{{ current_user.is_authenticated|tojson }}">
 
+    {% set show_nav_value %}{% block show_nav %}true{% endblock %}{% endset %}
+
     <!-- Floating Glass Navigation -->
-    <div class="fixed top-6 left-0 right-0 z-50 flex justify-center px-4">
+    {% if show_nav_value.strip() != 'false' %}
+    <div class="fixed top-4 left-0 right-0 z-50 flex justify-center px-3 sm:px-4">
         <nav
-            class="glass-pill rounded-full px-6 py-3 flex items-center justify-between w-full max-w-4xl transition-all duration-300 transform hover:scale-[1.01]">
+            class="glass-pill rounded-2xl lg:rounded-full px-4 sm:px-6 py-3 flex items-center justify-between w-full max-w-7xl transition-all duration-200">
 
             <!-- Logo area -->
             <a href="/" class="flex items-center space-x-2 group">
@@ -82,7 +85,7 @@
             </a>
 
             <!-- Desktop Links -->
-            <div class="hidden md:flex items-center space-x-1">
+            <div class="hidden lg:flex items-center space-x-1">
                 <a href="/"
                     class="px-4 py-2 rounded-full text-sm font-medium transition-colors {% if request.endpoint == 'index' %}nav-link-active{% else %}text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100/50 dark:hover:bg-white/5{% endif %}">
                     Analyze
@@ -91,12 +94,28 @@
                     class="px-4 py-2 rounded-full text-sm font-medium transition-colors {% if request.endpoint == 'history' %}nav-link-active{% else %}text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100/50 dark:hover:bg-white/5{% endif %}">
                     History
                 </a>
-                {% if current_user and current_user.is_authenticated %}
-                <a href="/dashboard"
-                    class="px-4 py-2 rounded-full text-sm font-medium transition-colors {% if request.endpoint == 'dashboard' %}nav-link-active{% else %}text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100/50 dark:hover:bg-white/5{% endif %}">
+                <a href="/dashboard" data-login-next="/dashboard"
+                    class="auth-required-link px-4 py-2 rounded-full text-sm font-medium transition-colors {% if request.endpoint == 'dashboard' %}nav-link-active{% else %}text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100/50 dark:hover:bg-white/5{% endif %}">
                     Dashboard
                 </a>
-                {% endif %}
+                <div class="relative group">
+                    <button
+                        class="px-4 py-2 rounded-full text-sm font-medium transition-colors inline-flex items-center gap-1 {% if request.path.startswith('/planner') or request.path.startswith('/recipes') or request.path.startswith('/progress') or request.path.startswith('/coach') or request.path.startswith('/social') or request.path.startswith('/integrations') %}nav-link-active{% else %}text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 hover:bg-gray-100/50 dark:hover:bg-white/5{% endif %}">
+                        <span>Tools</span>
+                        <i class="ph ph-caret-down"></i>
+                    </button>
+                    <div
+                        class="absolute left-0 top-full mt-2 min-w-[13rem] surface-solid rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 overflow-hidden z-[140]">
+                        <div class="p-2 space-y-1">
+                            <a href="/planner" data-login-next="/planner" class="auth-required-link flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-white/10"><i class="ph ph-calendar"></i><span>Planner</span></a>
+                            <a href="/recipes" data-login-next="/recipes" class="auth-required-link flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-white/10"><i class="ph ph-book-open"></i><span>Recipes</span></a>
+                            <a href="/progress" data-login-next="/progress" class="auth-required-link flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-white/10"><i class="ph ph-chart-bar"></i><span>Progress</span></a>
+                            <a href="/coach" data-login-next="/coach" class="auth-required-link flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-white/10"><i class="ph ph-chat-teardrop-text"></i><span>Coach</span></a>
+                            <a href="/social" data-login-next="/social" class="auth-required-link flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-white/10"><i class="ph ph-users"></i><span>Social</span></a>
+                            <a href="/integrations" data-login-next="/integrations" class="auth-required-link flex items-center gap-2 px-3 py-2 rounded-lg text-sm hover:bg-gray-100 dark:hover:bg-white/10"><i class="ph ph-plugs-connected"></i><span>Integrations</span></a>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <!-- Right Actions -->
@@ -107,6 +126,13 @@
                     aria-label="Toggle Theme">
                     <i class="ph ph-sun text-lg dark:hidden"></i>
                     <i class="ph ph-moon text-lg hidden dark:block text-yellow-100"></i>
+                </button>
+
+                <!-- Mobile Nav Toggle -->
+                <button id="mobileMenuToggle"
+                    class="lg:hidden p-2 rounded-full text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/10 transition-colors"
+                    aria-label="Toggle Navigation">
+                    <i id="mobileMenuIcon" class="ph ph-list text-xl"></i>
                 </button>
 
                 <!-- Auth -->
@@ -126,7 +152,7 @@
                     </button>
                     <!-- Dropdown -->
                     <div
-                        class="absolute right-0 top-full mt-2 w-56 glass-panel rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-50 overflow-hidden">
+                        class="absolute right-0 top-full mt-2 w-56 surface-solid rounded-2xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right z-[140] overflow-hidden">
                         <div class="p-2 space-y-1">
                             <div class="px-3 py-2 border-b border-gray-100 dark:border-gray-700/50 mb-1">
                                 <p class="text-sm font-medium truncate">{{ current_user.name }}</p>
@@ -146,6 +172,26 @@
                                     class="flex items-center space-x-3 px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                                     <i class="ph ph-chart-line-up"></i> <span>Dashboard</span>
                                 </a>
+                                <a href="/planner"
+                                    class="flex items-center space-x-3 px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                                    <i class="ph ph-calendar"></i> <span>Planner</span>
+                                </a>
+                                <a href="/recipes"
+                                    class="flex items-center space-x-3 px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                                    <i class="ph ph-book-open"></i> <span>Recipes</span>
+                                </a>
+                                <a href="/progress"
+                                    class="flex items-center space-x-3 px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                                    <i class="ph ph-chart-bar"></i> <span>Progress</span>
+                                </a>
+                                <a href="/coach"
+                                    class="flex items-center space-x-3 px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                                    <i class="ph ph-chat-teardrop-text"></i> <span>Coach</span>
+                                </a>
+                                <a href="/social"
+                                    class="flex items-center space-x-3 px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                                    <i class="ph ph-users"></i> <span>Social</span>
+                                </a>
                             </div>
                             <a href="{{ url_for('auth.profile') }}"
                                 class="flex items-center space-x-3 px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
@@ -154,6 +200,10 @@
                             <a href="{{ url_for('profile.view_profile') }}"
                                 class="flex items-center space-x-3 px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
                                 <i class="ph ph-faders"></i> <span>Diet Profile</span>
+                            </a>
+                            <a href="/integrations"
+                                class="flex items-center space-x-3 px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+                                <i class="ph ph-plugs-connected"></i> <span>Integrations</span>
                             </a>
                             <div class="border-t border-gray-100 dark:border-gray-700/50 my-1"></div>
                             <form method="post" action="{{ url_for('auth.logout') }}">
@@ -174,6 +224,26 @@
             </div>
         </nav>
     </div>
+    {% endif %}
+
+    <!-- Mobile Menu Panel -->
+    {% if show_nav_value.strip() != 'false' %}
+    <div id="mobileMenuPanel" class="fixed top-20 left-3 right-3 sm:left-4 sm:right-4 z-40 hidden lg:hidden">
+        <div class="glass-panel rounded-2xl p-3 shadow-xl">
+            <div class="grid grid-cols-2 gap-2">
+                <a href="/" class="mobile-nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10">Analyze</a>
+                <a href="/history" class="mobile-nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10">History</a>
+                <a href="/dashboard" data-login-next="/dashboard" class="auth-required-link mobile-nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10">Dashboard</a>
+                <a href="/planner" data-login-next="/planner" class="auth-required-link mobile-nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10">Planner</a>
+                <a href="/recipes" data-login-next="/recipes" class="auth-required-link mobile-nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10">Recipes</a>
+                <a href="/progress" data-login-next="/progress" class="auth-required-link mobile-nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10">Progress</a>
+                <a href="/coach" data-login-next="/coach" class="auth-required-link mobile-nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10">Coach</a>
+                <a href="/social" data-login-next="/social" class="auth-required-link mobile-nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10">Social</a>
+                <a href="/integrations" data-login-next="/integrations" class="auth-required-link mobile-nav-link px-3 py-2 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/10">Integrations</a>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
     <!-- Login Modal (Kept mostly semantic, styled with glass) -->
     <div id="loginModal" class="fixed inset-0 z-[100] hidden items-center justify-center">
@@ -194,7 +264,7 @@
                 <p class="text-sm text-gray-500 dark:text-gray-400">Sign in to sync your history and preferences</p>
             </div>
 
-            <a href="{{ url_for('auth.login') }}"
+            <a id="loginWithGoogleLink" href="{{ url_for('auth.login') }}"
                 class="w-full flex items-center justify-center px-6 py-3.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 hover:border-green-500 dark:hover:border-green-500 rounded-xl text-sm font-medium shadow-sm hover:shadow-md transition-all duration-200 group">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google"
                     class="w-5 h-5 mr-3 group-hover:scale-110 transition-transform">
@@ -208,16 +278,18 @@
     </div>
 
     <!-- Main Content -->
-    <main class="flex-grow pt-28 pb-16 px-4 sm:px-6 lg:px-8">
+    <main class="flex-grow {% if show_nav_value.strip() != 'false' %}pt-24 sm:pt-28{% else %}pt-4 sm:pt-6{% endif %} pb-12 sm:pb-16 px-2 sm:px-6 lg:px-8">
         {% block content %}{% endblock %}
     </main>
 
     <!-- Footer -->
+    {% set show_footer_value %}{% block show_footer %}true{% endblock %}{% endset %}
+    {% if show_footer_value.strip() != 'false' %}
     <footer class="relative mt-auto bg-white/50 dark:bg-transparent backdrop-blur-xl overflow-hidden">
 
         <!-- Main Content (Relative z-10) -->
-        <div class="relative z-10 max-w-7xl mx-auto pt-12 pb-32 md:pb-80 px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between items-start gap-8">
+        <div class="relative z-10 max-w-7xl mx-auto pt-8 pb-24 sm:pb-28 md:pb-56 lg:pb-72 px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col lg:flex-row justify-between items-start gap-8">
 
                 <!-- Brand / Logo Small -->
                 <div class="max-w-xs">
@@ -233,7 +305,7 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="flex flex-wrap gap-12">
+                <div class="grid grid-cols-2 sm:grid-cols-3 gap-10">
                     <div>
                         <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Platform</h3>
                         <ul class="space-y-3">
@@ -251,7 +323,27 @@
                         </ul>
                     </div>
 
+                    {% if current_user.is_authenticated %}
                     <div>
+                        <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Tools</h3>
+                        <ul class="space-y-3">
+                            <li><a href="/planner"
+                                    class="text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Planner</a>
+                            </li>
+                            <li><a href="/recipes"
+                                    class="text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Recipes</a>
+                            </li>
+                            <li><a href="/progress"
+                                    class="text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Progress</a>
+                            </li>
+                            <li><a href="/coach"
+                                    class="text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Coach</a>
+                            </li>
+                        </ul>
+                    </div>
+                    {% endif %}
+
+                    <div class="hidden sm:block">
                         <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Socials</h3>
                         <div class="flex space-x-4">
                             <a href="https://github.com/mayurbijarniya"
@@ -279,8 +371,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- BIG TEXT BACKGROUND (The "Shadow" Effect) -->
         <div
             class="absolute bottom-0 left-0 right-0 z-0 flex justify-center pointer-events-none overflow-hidden select-none">
             <h1
@@ -289,6 +379,7 @@
             </h1>
         </div>
     </footer>
+    {% endif %}
 
     <!-- Theme Script -->
     <script>
@@ -306,19 +397,62 @@
         }
 
         // Toggle
-        themeToggle.addEventListener('click', () => {
-            html.classList.toggle('dark');
-            localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
-        });
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                html.classList.toggle('dark');
+                localStorage.setItem('theme', html.classList.contains('dark') ? 'dark' : 'light');
+            });
+        }
 
         // Login Modal Logic
         const openLoginModals = document.querySelectorAll('#openLoginModal'); // Handle multiple triggers
         const loginModal = document.getElementById('loginModal');
         const closeLoginModal = document.getElementById('closeLoginModal');
         const loginBackdrop = document.getElementById('loginBackdrop');
+        const loginWithGoogleLink = document.getElementById('loginWithGoogleLink');
+        const isAuthed = String(document.body?.dataset?.authenticated || 'false') === 'true';
+        const loginBaseHref = '{{ url_for("auth.login") }}';
 
-        function toggleModal(show) {
+        // Mobile menu logic
+        const mobileMenuToggle = document.getElementById('mobileMenuToggle');
+        const mobileMenuPanel = document.getElementById('mobileMenuPanel');
+        const mobileMenuIcon = document.getElementById('mobileMenuIcon');
+
+        function closeMobileMenu() {
+            if (!mobileMenuPanel || !mobileMenuIcon) return;
+            mobileMenuPanel.classList.add('hidden');
+            mobileMenuIcon.className = 'ph ph-list text-xl';
+        }
+
+        if (mobileMenuToggle && mobileMenuPanel && mobileMenuIcon) {
+            mobileMenuToggle.addEventListener('click', () => {
+                const hidden = mobileMenuPanel.classList.toggle('hidden');
+                mobileMenuIcon.className = hidden ? 'ph ph-list text-xl' : 'ph ph-x text-xl';
+            });
+
+            document.querySelectorAll('.mobile-nav-link').forEach(link => {
+                link.addEventListener('click', closeMobileMenu);
+            });
+
+            document.addEventListener('click', (e) => {
+                if (mobileMenuPanel.classList.contains('hidden')) return;
+                const target = e.target;
+                if (!mobileMenuPanel.contains(target) && !mobileMenuToggle.contains(target)) {
+                    closeMobileMenu();
+                }
+            });
+        }
+
+        function setLoginNext(nextPath) {
+            if (!loginWithGoogleLink) return;
+            const fallback = window.location.pathname || '/';
+            const target = nextPath && nextPath.startsWith('/') ? nextPath : fallback;
+            loginWithGoogleLink.href = `${loginBaseHref}?next=${encodeURIComponent(target)}`;
+        }
+
+        function toggleModal(show, nextPath) {
             if (show) {
+                setLoginNext(nextPath);
                 loginModal.classList.remove('hidden');
                 loginModal.classList.add('flex');
             } else {
@@ -330,6 +464,22 @@
         openLoginModals.forEach(btn => btn.addEventListener('click', () => toggleModal(true)));
         if (closeLoginModal) closeLoginModal.addEventListener('click', () => toggleModal(false));
         if (loginBackdrop) loginBackdrop.addEventListener('click', () => toggleModal(false));
+
+        if (!isAuthed) {
+            document.querySelectorAll('.auth-required-link').forEach((link) => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const nextTarget = link.getAttribute('data-login-next') || link.getAttribute('href') || '/';
+                    closeMobileMenu();
+                    toggleModal(true, nextTarget);
+                });
+            });
+        }
+
+        const qs = new URLSearchParams(window.location.search);
+        if (qs.get('login') === '1') {
+            toggleModal(true, qs.get('next') || window.location.pathname);
+        }
     </script>
     {% block scripts %}{% endblock %}
 </body>

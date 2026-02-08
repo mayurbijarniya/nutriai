@@ -131,6 +131,10 @@ app.register_blueprint(auth_bp)
 from profile import profile_bp
 app.register_blueprint(profile_bp)
 
+# Register v3 features blueprint
+from v3_features import v3_bp
+app.register_blueprint(v3_bp)
+
 
 def ensure_guest_cookie(response=None):
     """Ensure guest_session cookie exists for anonymous visitors."""
@@ -1451,8 +1455,35 @@ def mstile_fallback(size):
 def dashboard():
     """Dashboard page (requires login)"""
     if not (current_user and getattr(current_user, 'is_authenticated', False)):
-        return redirect(url_for('auth.login'))
+        return redirect(url_for('index', login=1, next=request.path))
     return render_template('dashboard.html')
+
+
+def _parse_client_offset(raw_offset, default=0):
+    try:
+        val = int(raw_offset)
+    except (ValueError, TypeError):
+        val = default
+    return max(-840, min(840, val))
+
+
+def _resolve_dashboard_day(offset_min, date_str=None):
+    utc_now = datetime.utcnow()
+    local_now = utc_now - timedelta(minutes=offset_min)
+    local_today = local_now.date()
+
+    if date_str:
+        try:
+            target_date = datetime.strptime(str(date_str), '%Y-%m-%d').date()
+        except ValueError:
+            target_date = local_today
+    else:
+        target_date = local_today
+
+    local_start = datetime(target_date.year, target_date.month, target_date.day)
+    start = local_start + timedelta(minutes=offset_min)
+    end = start + timedelta(days=1)
+    return target_date, start, end, (target_date == local_today), local_today
 
 @app.route('/api/dashboard/today')
 def dashboard_today():
@@ -1461,24 +1492,9 @@ def dashboard_today():
         return jsonify({'success': False, 'error': 'auth_required'}), 401
     try:
         uid = ObjectId(current_user.id)
-        
-        # Get client timezone offset (minutes)
-        # Positive = Behind UTC (e.g. EST = 300), Negative = Ahead UTC (e.g. IST = -330)
-        try:
-            offset_min = int(request.args.get('offset', 300)) # Default to EST (300) if missing
-        except (ValueError, TypeError):
-            offset_min = 300
 
-        # Calculate "User's Today" based on offset
-        utc_now = datetime.utcnow()
-        local_now = utc_now - timedelta(minutes=offset_min)
-        target_date = local_now.date()
-        
-        # Calculate UTC start/end for the user's local day
-        # UTC = Local + Offset
-        local_start = datetime(target_date.year, target_date.month, target_date.day) 
-        start = local_start + timedelta(minutes=offset_min)
-        end = start + timedelta(days=1)
+        offset_min = _parse_client_offset(request.args.get('offset', 0), default=0)
+        target_date, start, end, is_today, local_today = _resolve_dashboard_day(offset_min, request.args.get('date'))
 
         meals = list(db.collection.find({'user_id': uid, 'created_at': {'$gte': start, '$lt': end}}).sort('created_at', 1))
         for m in meals:
@@ -1553,7 +1569,10 @@ def dashboard_today():
             'hydration': {
                 'glasses': hyd.get('glasses', 0),
                 'ml': hyd.get('ml', 0)
-            }
+            },
+            'selected_date': target_date.isoformat(),
+            'is_today': is_today,
+            'local_today': local_today.isoformat(),
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)})
@@ -1600,21 +1619,9 @@ def dashboard_insights():
     try:
         from datetime import datetime, timezone, timedelta
         uid = ObjectId(current_user.id)
-        
-        # Get client timezone offset (minutes)
-        try:
-            offset_min = int(request.args.get('offset', 300)) # Default to EST
-        except (ValueError, TypeError):
-            offset_min = 300
 
-        # Calculate "User's Today" based on offset
-        utc_now = datetime.utcnow()
-        local_now = utc_now - timedelta(minutes=offset_min)
-        target_date = local_now.date()
-        
-        # Calculate UTC start/end for the user's local day
-        local_start = datetime(target_date.year, target_date.month, target_date.day) 
-        start = local_start + timedelta(minutes=offset_min)
+        offset_min = _parse_client_offset(request.args.get('offset', 0), default=0)
+        target_date, start, _end, _is_today, _local_today = _resolve_dashboard_day(offset_min, request.args.get('date'))
         
         # Week start is 6 days before 'Today'
         week_start = start - timedelta(days=6)
@@ -1664,7 +1671,7 @@ def dashboard_insights():
         macro_targets = calculate_macro_grams(daily_target, diet_slug) if daily_target else None
 
         # Build a concise context
-        today_key = start.date().isoformat()
+        today_key = target_date.isoformat()
         today = daily.get(today_key, {'calories': 0, 'carbs_g': 0, 'protein_g': 0, 'fat_g': 0, 'count': 0})
 
         insights = []
@@ -1718,7 +1725,7 @@ def dashboard_insights():
             if not insights:
                 insights.append("Keep prioritizing whole foods and hydrate regularly today.")
 
-        return jsonify({'success': True, 'insights': insights, 'used_ai': used_ai})
+        return jsonify({'success': True, 'insights': insights, 'used_ai': used_ai, 'selected_date': target_date.isoformat()})
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 

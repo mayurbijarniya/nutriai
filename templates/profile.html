@@ -3,7 +3,7 @@
 {% block title %}Profile - NutriAI{% endblock %}
 
 {% block content %}
-<div class="max-w-5xl mx-auto py-12 px-4 sm:px-6 lg:px-8 space-y-8">
+<div class="max-w-5xl mx-auto py-8 sm:py-10 px-4 sm:px-6 lg:px-8 space-y-7">
 
     <!-- Hero Profile Card -->
     <div class="glass-panel p-1 rounded-3xl relative overflow-hidden group">
@@ -12,7 +12,7 @@
         </div>
 
         <div
-            class="relative z-10 bg-white/40 dark:bg-gray-900/40 rounded-[1.4rem] p-8 md:p-10 flex flex-col md:flex-row items-center gap-8 text-center md:text-left">
+            class="relative z-10 bg-white/40 dark:bg-gray-900/40 rounded-[1.4rem] p-6 sm:p-8 md:p-10 flex flex-col md:flex-row items-center gap-6 sm:gap-8 text-center md:text-left">
             <!-- Avatar -->
             <div class="relative">
                 <div class="w-32 h-32 rounded-full p-1 bg-gradient-to-tr from-green-400 to-emerald-600 shadow-xl">
@@ -51,6 +51,17 @@
                         </button>
                     </form>
                 </div>
+
+                <div class="mt-4 flex flex-wrap justify-center md:justify-start gap-2">
+                    <a href="{{ url_for('profile.setup') }}" class="btn-primary px-4 py-2 rounded-xl text-sm font-semibold inline-flex items-center gap-2">
+                        <i class="ph ph-faders"></i>
+                        <span>Edit Diet Profile</span>
+                    </a>
+                    <a href="{{ url_for('profile.view_profile') }}" class="btn-secondary px-4 py-2 rounded-xl text-sm font-semibold inline-flex items-center gap-2">
+                        <i class="ph ph-file-text"></i>
+                        <span>View Profile Summary</span>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
@@ -81,7 +92,8 @@
             <div>
                 <p class="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Account
                     Status</p>
-                <p class="text-xl font-bold text-green-600 dark:text-green-400">Secure & Active</p>
+                <p id="accountStatusValue" class="text-xl font-bold text-gray-900 dark:text-gray-100">Checking...</p>
+                <p id="accountStatusHint" class="text-xs text-gray-500 mt-0.5">Reviewing recent sign-ins.</p>
             </div>
         </div>
     </div>
@@ -97,10 +109,10 @@
         </div>
 
         {% if login_history %}
-        <div class="space-y-4">
+        <div id="sessionList" class="space-y-4">
             {% for login in login_history %}
             <div
-                class="flex flex-col md:flex-row gap-5 items-center p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800">
+                class="flex flex-col md:flex-row gap-5 items-center p-4 rounded-2xl bg-gray-50 dark:bg-white/5 border border-gray-100 dark:border-gray-800 {% if loop.index0 >= 3 %}older-session hidden{% endif %}">
                 <!-- Device Icon -->
                 <div
                     class="w-14 h-14 rounded-xl bg-white dark:bg-gray-800 shadow-sm flex items-center justify-center flex-shrink-0 text-gray-400 dark:text-gray-500">
@@ -115,6 +127,10 @@
                         <span class="flex items-center gap-1.5">
                             <i class="ph ph-clock"></i>
                             <span class="local-time" data-utc="{{ login.when_iso }}">{{ login.when_formatted }}</span>
+                        </span>
+                        <span class="flex items-center gap-1.5">
+                            <i class="ph ph-globe"></i>
+                            <span>{{ login.ip or 'Unknown IP' }}</span>
                         </span>
                     </div>
                 </div>
@@ -134,6 +150,11 @@
             </div>
             {% endfor %}
         </div>
+        {% if login_history|length > 3 %}
+        <button id="toggleSessions" class="btn-secondary mt-4 px-4 py-2 rounded-xl text-sm font-semibold">
+            Show older sessions
+        </button>
+        {% endif %}
         {% else %}
         <div class="text-center py-8 opacity-60">
             <p>Session details unavailable.</p>
@@ -150,7 +171,7 @@
                     Permanently delete your account and all of your content. This action is irreversible.
                 </p>
             </div>
-            <button onclick="document.getElementById('deleteModal').classList.remove('hidden')"
+            <button onclick="openDeleteModal()"
                 class="px-6 py-2.5 rounded-xl bg-red-600 text-white font-bold text-sm shadow-lg shadow-red-500/30 hover:bg-red-700 transition-all flex items-center justify-center gap-2 whitespace-nowrap">
                 <i class="ph ph-trash"></i> Delete Account
             </button>
@@ -179,13 +200,19 @@
                 cannot be undone.
             </p>
 
+            <div class="mb-4 text-left">
+                <label for="deleteConfirmInput" class="block text-xs font-semibold text-gray-500 mb-1">Type <span class="font-bold">DELETE</span> to confirm</label>
+                <input id="deleteConfirmInput" type="text" class="input-glass w-full rounded-xl px-3 py-2 text-sm" placeholder="DELETE">
+                <p id="deleteError" class="text-xs text-red-600 dark:text-red-400 mt-2 hidden"></p>
+            </div>
+
             <div class="flex flex-col gap-3">
                 <button onclick="deleteAccount()" id="confirmDeleteBtn"
-                    class="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg shadow-red-500/30 transition-all flex items-center justify-center gap-2">
+                    class="w-full py-3 rounded-xl bg-red-600 hover:bg-red-700 text-white font-bold shadow-lg shadow-red-500/30 transition-all flex items-center justify-center gap-2 opacity-60 cursor-not-allowed" disabled>
                     <span id="deleteBtnText">Yes, Delete Everything</span>
                     <i class="ph ph-spinner animate-spin hidden" id="deleteSpinner"></i>
                 </button>
-                <button onclick="document.getElementById('deleteModal').classList.add('hidden')"
+                <button onclick="closeDeleteModal()"
                     class="w-full py-3 rounded-xl bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 font-bold transition-all">
                     Cancel
                 </button>
@@ -210,12 +237,106 @@
                 });
             }
         });
+
+        const toggleBtn = document.getElementById('toggleSessions');
+        if (toggleBtn) {
+            let expanded = false;
+            toggleBtn.addEventListener('click', () => {
+                expanded = !expanded;
+                document.querySelectorAll('.older-session').forEach((el) => {
+                    el.classList.toggle('hidden', !expanded);
+                });
+                toggleBtn.textContent = expanded ? 'Hide older sessions' : 'Show older sessions';
+            });
+        }
+
+        const confirmInput = document.getElementById('deleteConfirmInput');
+        if (confirmInput) {
+            confirmInput.addEventListener('input', () => {
+                const canDelete = confirmInput.value.trim() === 'DELETE';
+                const btn = document.getElementById('confirmDeleteBtn');
+                btn.disabled = !canDelete;
+                btn.classList.toggle('opacity-60', !canDelete);
+                btn.classList.toggle('cursor-not-allowed', !canDelete);
+                hideDeleteError();
+            });
+        }
+
+        updateAccountStatus();
     });
+
+    function updateAccountStatus() {
+        const statusValue = document.getElementById('accountStatusValue');
+        const statusHint = document.getElementById('accountStatusHint');
+        const latest = document.querySelector('.local-time[data-utc]');
+
+        if (!statusValue || !statusHint || !latest) return;
+
+        const raw = latest.getAttribute('data-utc');
+        if (!raw) return;
+        const dt = new Date(raw);
+        if (Number.isNaN(dt.getTime())) return;
+
+        const daysSince = Math.floor((Date.now() - dt.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysSince <= 7) {
+            statusValue.textContent = 'Secure & Active';
+            statusValue.className = 'text-xl font-bold text-green-600 dark:text-green-400';
+            statusHint.textContent = 'Recent sign-in activity looks healthy.';
+            return;
+        }
+
+        if (daysSince <= 30) {
+            statusValue.textContent = 'Active';
+            statusValue.className = 'text-xl font-bold text-amber-600 dark:text-amber-400';
+            statusHint.textContent = 'No recent risk signals. Last login was a while ago.';
+            return;
+        }
+
+        statusValue.textContent = 'Review Recommended';
+        statusValue.className = 'text-xl font-bold text-red-600 dark:text-red-400';
+        statusHint.textContent = 'Long inactivity detected. Review your account sessions.';
+    }
+
+    function openDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.remove('hidden');
+        const input = document.getElementById('deleteConfirmInput');
+        input.value = '';
+        const btn = document.getElementById('confirmDeleteBtn');
+        btn.disabled = true;
+        btn.classList.add('opacity-60', 'cursor-not-allowed');
+        hideDeleteError();
+        input.focus();
+    }
+
+    function closeDeleteModal() {
+        const modal = document.getElementById('deleteModal');
+        modal.classList.add('hidden');
+        hideDeleteError();
+    }
+
+    function showDeleteError(message) {
+        const el = document.getElementById('deleteError');
+        el.textContent = message;
+        el.classList.remove('hidden');
+    }
+
+    function hideDeleteError() {
+        const el = document.getElementById('deleteError');
+        el.textContent = '';
+        el.classList.add('hidden');
+    }
 
     async function deleteAccount() {
         const btn = document.getElementById('confirmDeleteBtn');
         const txt = document.getElementById('deleteBtnText');
         const spin = document.getElementById('deleteSpinner');
+        const confirmInput = document.getElementById('deleteConfirmInput');
+
+        if (confirmInput.value.trim() !== 'DELETE') {
+            showDeleteError('Type DELETE exactly to confirm account deletion.');
+            return;
+        }
 
         // Disable button state
         btn.disabled = true;
@@ -236,7 +357,7 @@
             if (result.success) {
                 window.location.href = '/';
             } else {
-                alert('Error deleting account: ' + (result.error || 'Unknown error'));
+                showDeleteError('Error deleting account: ' + (result.error || 'Unknown error'));
                 // Reset state on error
                 btn.disabled = false;
                 btn.classList.remove('opacity-75', 'cursor-not-allowed');
@@ -245,7 +366,7 @@
             }
         } catch (error) {
             console.error('Delete error:', error);
-            alert('An error occurred. Please try again.');
+            showDeleteError('An error occurred. Please try again.');
             // Reset state on error
             btn.disabled = false;
             btn.classList.remove('opacity-75', 'cursor-not-allowed');

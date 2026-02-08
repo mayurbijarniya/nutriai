@@ -1,35 +1,66 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+<div class="dashboard-page relative z-10 max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-5 sm:py-8 space-y-5 sm:space-y-8">
 
   <!-- Header with Greeting -->
-  <div class="flex items-center justify-between">
+  <div class="relative z-[70] flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
     <div>
-      <h1 id="welcomeHeading" class="text-3xl font-bold tracking-tight text-gray-900 dark:text-white font-serif-accent">
+      <h1 id="welcomeHeading" class="text-2xl sm:text-3xl font-bold tracking-tight text-gray-900 dark:text-white font-serif-accent">
         Welcome back!</h1>
       <div class="flex items-center gap-2 mt-1">
         <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
         <p id="dayProgress" class="text-sm font-medium text-gray-500 dark:text-gray-400">Loading today's status...</p>
       </div>
     </div>
-    <div>
-      <!-- Settings or Profile shortcut could go here -->
+    <div class="control-strip w-full lg:w-auto">
+      <div class="flex items-center gap-2 relative">
+        <button id="prevDayBtn" class="icon-btn" aria-label="Previous day">
+          <i class="ph ph-caret-left"></i>
+        </button>
+        <button id="calendarToggle" class="selector-pill w-full lg:w-48 px-3 py-2 text-sm flex items-center justify-between">
+          <span id="calendarToggleLabel" class="truncate">Select date</span>
+          <i class="ph ph-calendar-blank text-gray-500"></i>
+        </button>
+        <input id="dashboardDate" type="date" class="sr-only" aria-hidden="true" tabindex="-1">
+        <button id="nextDayBtn" class="icon-btn" aria-label="Next day">
+          <i class="ph ph-caret-right"></i>
+        </button>
+        <button id="todayBtn" class="today-chip">Today</button>
+
+        <div id="calendarPanel" class="hidden absolute top-12 left-0 sm:left-auto sm:right-0 z-[120] w-[19.5rem] surface-solid rounded-2xl p-3 shadow-xl">
+          <div class="flex items-center justify-between mb-2">
+            <button id="monthPrev" class="icon-btn h-8 w-8"><i class="ph ph-caret-left"></i></button>
+            <p id="monthLabel" class="text-sm font-semibold"></p>
+            <button id="monthNext" class="icon-btn h-8 w-8"><i class="ph ph-caret-right"></i></button>
+          </div>
+          <div class="grid grid-cols-7 text-[11px] text-gray-500 mb-1 px-1">
+            <span class="text-center">S</span><span class="text-center">M</span><span class="text-center">T</span>
+            <span class="text-center">W</span><span class="text-center">T</span><span class="text-center">F</span><span class="text-center">S</span>
+          </div>
+          <div id="monthGrid" class="grid grid-cols-7 gap-1"></div>
+          <div class="flex items-center justify-between mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+            <button id="calendarTodayQuick" class="btn-mini btn-mini-primary">Jump to Today</button>
+            <button id="openNativePicker" class="btn-mini btn-mini-secondary">Use picker</button>
+          </div>
+        </div>
+      </div>
+      <p id="selectedDateLabel" class="text-[11px] text-gray-500 mt-2 px-1 truncate">Loading date...</p>
     </div>
   </div>
 
   <!-- Top Metrics Row -->
-  <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+  <div class="metric-grid relative z-10 grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-6">
     <!-- Daily Calories (Glass Card) -->
-    <div class="glass-panel rounded-2xl p-1 relative overflow-hidden group">
+    <div class="metric-card glass-panel rounded-2xl p-1 relative overflow-hidden group">
       <div
         class="absolute inset-0 bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-900/10 dark:to-emerald-900/10 pointer-events-none">
       </div>
-      <div class="bg-white/40 dark:bg-gray-900/40 rounded-xl p-5 relative z-10 h-full">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4">Daily Calories</h3>
+      <div class="bg-white/40 dark:bg-gray-900/40 rounded-xl p-4 sm:p-5 relative z-10 h-full">
+        <h3 class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3 sm:mb-4">Daily Calories</h3>
         <div class="flex items-center justify-between">
-          <div class="relative w-20 h-20">
-            <svg viewBox="0 0 36 36" class="w-20 h-20 transform -rotate-90">
+          <div class="relative w-16 h-16 sm:w-20 sm:h-20">
+            <svg viewBox="0 0 36 36" class="w-16 h-16 sm:w-20 sm:h-20 transform -rotate-90">
               <path class="text-gray-200 dark:text-gray-700" stroke="currentColor" stroke-width="3" fill="none"
                 d="M18 2a16 16 0 1 1 0 32 16 16 0 0 1 0-32" />
               <path id="calProgressPath" class="text-green-500 drop-shadow-sm transition-all duration-1000 ease-out"
@@ -37,12 +68,12 @@
                 d="M18 2a16 16 0 1 1 0 32 16 16 0 0 1 0-32" stroke-dasharray="0,100" />
             </svg>
             <div class="absolute inset-0 flex items-center justify-center flex-col">
-              <span id="caloriesRemain" class="text-sm font-bold text-gray-900 dark:text-white leading-none">—</span>
+              <span id="caloriesRemain" class="text-xs sm:text-sm font-bold text-gray-900 dark:text-white leading-none">—</span>
               <span class="text-[9px] text-gray-500 uppercase">Left</span>
             </div>
           </div>
           <div class="text-right">
-            <div class="text-2xl font-bold font-serif-accent text-gray-900 dark:text-white"><span
+            <div class="text-xl sm:text-2xl font-bold font-serif-accent text-gray-900 dark:text-white"><span
                 id="caloriesConsumed">—</span></div>
             <div class="text-xs text-gray-500 mb-2">of <span id="caloriesTarget">—</span> kcal</div>
             <button id="quickMeal"
@@ -55,9 +86,9 @@
     </div>
 
     <!-- Macros (Glass Card) -->
-    <div class="glass-panel rounded-2xl p-6 flex flex-col justify-center">
-      <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-4">Macronutrients</h3>
-      <div class="space-y-4">
+    <div class="metric-card glass-panel rounded-2xl p-4 sm:p-6 flex flex-col justify-center">
+      <h3 class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3 sm:mb-4">Macronutrients</h3>
+      <div class="space-y-3 sm:space-y-4">
         <!-- Protein -->
         <div>
           <div class="flex justify-between text-xs mb-1">
@@ -94,16 +125,16 @@
     </div>
 
     <!-- Diet Score (Glass Card) -->
-    <div class="glass-panel rounded-2xl p-6 text-center flex flex-col items-center justify-center relative">
+    <div class="metric-card glass-panel rounded-2xl p-4 sm:p-6 text-center flex flex-col items-center justify-center relative">
       <div
         class="absolute inset-0 bg-gradient-to-t from-green-50/30 to-transparent dark:from-green-900/10 pointer-events-none">
       </div>
-      <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-2 relative z-10">
+      <h3 class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-1 sm:mb-2 relative z-10">
         Adherence Score</h3>
 
       <div class="relative z-10">
         <span
-          class="text-5xl font-bold font-serif-accent bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent"
+          class="text-4xl sm:text-5xl font-bold font-serif-accent bg-gradient-to-r from-green-500 to-emerald-600 bg-clip-text text-transparent"
           id="dietScore">—</span>
         <span class="text-xl text-gray-400 font-light">/10</span>
       </div>
@@ -115,9 +146,9 @@
     </div>
 
     <!-- Hydration (Glass Card) -->
-    <div class="glass-panel rounded-2xl p-6 flex flex-col">
+    <div class="metric-card glass-panel rounded-2xl p-4 sm:p-6 flex flex-col">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Hydration</h3>
+        <h3 class="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400">Hydration</h3>
         <span class="text-xs font-medium text-blue-500 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded-full"><span
             id="hydrationMl">0</span> ml</span>
       </div>
@@ -135,14 +166,14 @@
   </div>
 
   <!-- Main Content Grid -->
-  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
 
     <!-- Timeline (Left 2/3) -->
     <div class="lg:col-span-2 space-y-6">
       <div class="flex items-center justify-between">
-        <h2 class="text-xl font-bold text-gray-900 dark:text-white font-serif-accent">Today's Meals</h2>
+        <h2 id="mealsHeading" class="text-xl font-bold text-gray-900 dark:text-white font-serif-accent">Today's Meals</h2>
         <a href="/history" class="text-sm font-medium text-green-600 hover:text-green-700 flex items-center gap-1">
-          View History <i class="ph ph-arrow-right"></i>
+          <span class="hidden sm:inline">View History</span> <i class="ph ph-arrow-right"></i>
         </a>
       </div>
 
@@ -158,7 +189,7 @@
     <div class="lg:col-span-1">
       <h2 class="text-xl font-bold text-gray-900 dark:text-white font-serif-accent mb-6">AI Insights</h2>
       <div class="glass-panel rounded-2xl p-6 relative overflow-hidden">
-        <div class="absolute -top-10 -right-10 w-32 h-32 bg-yellow-200/20 dark:bg-yellow-500/10 rounded-full blur-2xl">
+        <div class="hidden sm:block absolute -top-10 -right-10 w-32 h-32 bg-yellow-200/20 dark:bg-yellow-500/10 rounded-full blur-2xl">
         </div>
 
         <div id="insights" class="space-y-4 relative z-10 text-sm text-gray-600 dark:text-gray-300">
@@ -177,88 +208,120 @@
 {% block scripts %}
 <script>
   (async function initDashboard() {
-    // --- Setup & UI ---
-    const hours = new Date().getHours();
-    const part = hours < 12 ? 'morning' : hours < 18 ? 'afternoon' : 'evening';
-    // Attempt to get name safely
-    const greetingEl = document.getElementById('welcomeHeading');
-    // Logic to keep part of the jinja template or just client side update
-    // We'll trust the server rendered part if valid, else update client side
-
-    // Wire Buttons
+    const dateInput = document.getElementById('dashboardDate');
+    const calendarToggle = document.getElementById('calendarToggle');
+    const calendarToggleLabel = document.getElementById('calendarToggleLabel');
+    const calendarPanel = document.getElementById('calendarPanel');
+    const monthPrev = document.getElementById('monthPrev');
+    const monthNext = document.getElementById('monthNext');
+    const monthLabel = document.getElementById('monthLabel');
+    const monthGrid = document.getElementById('monthGrid');
+    const calendarTodayQuick = document.getElementById('calendarTodayQuick');
+    const openNativePicker = document.getElementById('openNativePicker');
+    const prevDayBtn = document.getElementById('prevDayBtn');
+    const nextDayBtn = document.getElementById('nextDayBtn');
+    const todayBtn = document.getElementById('todayBtn');
+    const selectedDateLabel = document.getElementById('selectedDateLabel');
     const quickMealBtn = document.getElementById('quickMeal');
-    if (quickMealBtn) quickMealBtn.addEventListener('click', () => { window.location.href = '/'; });
-
     const logWaterBtn = document.getElementById('logWater');
-    if (logWaterBtn) logWaterBtn.addEventListener('click', async () => {
-      logWaterBtn.disabled = true;
-      logWaterBtn.classList.add('opacity-75');
-      try {
-        await fetch('/api/dashboard/hydration', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            add_glasses: 1,
-            add_ml: 250,
-            offset: new Date().getTimezoneOffset()
-          })
-        });
-        // Refresh just hydration part or page? Page for simplicity
-        location.reload();
-      } catch (_) {
-        logWaterBtn.disabled = false;
-      }
-    });
+    const offset = new Date().getTimezoneOffset();
 
-    // Load Data
-    let data;
-    try {
-      const offset = new Date().getTimezoneOffset();
-      const res = await fetch(`/api/dashboard/today?offset=${offset}`);
-      data = await res.json();
-      if (!data.success) throw new Error(data.error || 'User not logged in?');
-    } catch (err) {
-      console.warn(err);
-      document.getElementById('dayProgress').textContent = 'Please sign in to view dashboard.';
-      document.getElementById('mealsList').innerHTML = `
-        <div class="glass-panel p-8 text-center rounded-2xl">
-           <p class="text-gray-500 mb-4">Sign in to track your meals.</p>
-           <a href="/" class="btn-primary px-4 py-2 rounded-lg text-sm">Go to Home</a>
-        </div>
-    `;
-      return;
+    const formatLocalDate = (dt) => {
+      const d = new Date(dt);
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+    const prettyDate = (dateStr) => new Date(`${dateStr}T12:00:00`).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+    const shiftDate = (dateStr, deltaDays) => {
+      const d = new Date(`${dateStr}T12:00:00`);
+      d.setDate(d.getDate() + deltaDays);
+      return formatLocalDate(d);
+    };
+    const parseLocalDate = (dateStr) => new Date(`${dateStr}T12:00:00`);
+
+    let localToday = formatLocalDate(new Date());
+    let selectedDate = localToday;
+    let panelMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+
+    function openCalendarPanel() {
+      calendarPanel.classList.remove('hidden');
+      renderMonthCalendar();
     }
 
-    // 1. Date Progress
-    const now = new Date();
-    const started = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    // Determine if it's already "tomorrow" relative to start of day? No, just % of passed hours
-    const minutesPassed = hours * 60 + now.getMinutes();
-    const pctDay = Math.round((minutesPassed / (24 * 60)) * 100);
-    document.getElementById('dayProgress').textContent = `${now.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })} • ${pctDay}% of day elapsed`;
+    function closeCalendarPanel() {
+      calendarPanel.classList.add('hidden');
+    }
 
-    // 2. Calories
-    const consumed = data.totals.calories || 0;
-    const target = data.targets.calories || 2000; // Default fallback
-    const remain = Math.max(0, target - consumed);
+    function toggleCalendarPanel() {
+      if (calendarPanel.classList.contains('hidden')) {
+        openCalendarPanel();
+      } else {
+        closeCalendarPanel();
+      }
+    }
 
-    document.getElementById('caloriesConsumed').innerText = Math.round(consumed);
-    document.getElementById('caloriesTarget').innerText = Math.round(target);
-    document.getElementById('caloriesRemain').innerText = Math.round(remain);
+    function renderMonthCalendar() {
+      const monthStart = new Date(panelMonth.getFullYear(), panelMonth.getMonth(), 1);
+      const monthEnd = new Date(panelMonth.getFullYear(), panelMonth.getMonth() + 1, 0);
+      monthLabel.textContent = monthStart.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
 
-    // Ring calc
-    const pct = Math.min(100, Math.round((consumed / target) * 100));
-    // Circle perimeter ~ 100 units for stroke-dasharray?
-    // SVG path length: 2 * pi * 16 ≈ 100.5. stroke-dasharray="current, 100" maps nicely.
-    document.getElementById('calProgressPath').setAttribute('stroke-dasharray', `${pct}, 100`);
+      const firstWeekday = monthStart.getDay();
+      const totalDays = monthEnd.getDate();
+      const cells = [];
 
-    if (pct > 100) document.getElementById('calProgressPath').classList.replace('text-green-500', 'text-red-500');
+      for (let i = 0; i < firstWeekday; i++) {
+        cells.push('<div class="h-8"></div>');
+      }
 
-    // 3. Macros
-    const t = data.targets.macros_g || {};
-    const g = { protein: data.totals.protein_g || 0, carbs: data.totals.carbs_g || 0, fat: data.totals.fat_g || 0 };
+      for (let day = 1; day <= totalDays; day++) {
+        const cellDate = new Date(panelMonth.getFullYear(), panelMonth.getMonth(), day);
+        const key = formatLocalDate(cellDate);
+        const isFuture = key > localToday;
+        const isSelected = key === selectedDate;
+        const isToday = key === localToday;
+        const base = 'h-8 w-8 rounded-lg text-xs font-medium transition-colors';
+        const state = isSelected
+          ? 'bg-green-600 text-white'
+          : isToday
+            ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300'
+            : 'hover:bg-gray-100 dark:hover:bg-white/10 text-gray-700 dark:text-gray-300';
 
-    const updateMacro = (id, val, max, colorClass) => {
+        if (isFuture) {
+          cells.push(`<button class="${base} opacity-40 cursor-not-allowed" disabled>${day}</button>`);
+        } else {
+          cells.push(`<button data-date="${key}" class="${base} ${state}">${day}</button>`);
+        }
+      }
+
+      monthGrid.innerHTML = cells.join('');
+      monthGrid.querySelectorAll('button[data-date]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedDate = btn.dataset.date;
+          panelMonth = new Date(parseLocalDate(selectedDate).getFullYear(), parseLocalDate(selectedDate).getMonth(), 1);
+          closeCalendarPanel();
+          loadDay();
+        });
+      });
+
+      const canNext = formatLocalDate(new Date(panelMonth.getFullYear(), panelMonth.getMonth() + 1, 1)) <= localToday;
+      monthNext.disabled = !canNext;
+      monthNext.classList.toggle('opacity-40', !canNext);
+      monthNext.classList.toggle('cursor-not-allowed', !canNext);
+    }
+
+    function updateDateControls() {
+      dateInput.max = localToday;
+      dateInput.value = selectedDate;
+      calendarToggleLabel.textContent = prettyDate(selectedDate);
+      nextDayBtn.disabled = selectedDate >= localToday;
+      nextDayBtn.classList.toggle('opacity-50', nextDayBtn.disabled);
+      nextDayBtn.classList.toggle('cursor-not-allowed', nextDayBtn.disabled);
+      panelMonth = new Date(parseLocalDate(selectedDate).getFullYear(), parseLocalDate(selectedDate).getMonth(), 1);
+    }
+
+    function updateMacro(id, val, max) {
       document.getElementById(`${id}G`).innerText = Math.round(val);
       document.getElementById(`${id}T`).innerText = max ? Math.round(max) : '-';
       const w = max ? Math.min(100, (val / max) * 100) : 0;
@@ -266,112 +329,277 @@
       bar.style.width = `${w}%`;
     }
 
-    updateMacro('pro', g.protein, t.protein);
-    updateMacro('carb', g.carbs, t.carbs);
-    updateMacro('fat', g.fat, t.fat);
+    function renderMeals(data) {
+      const mealsEl = document.getElementById('mealsList');
+      const mealsHeading = document.getElementById('mealsHeading');
+      mealsHeading.textContent = data.is_today ? "Today's Meals" : `Meals on ${prettyDate(data.selected_date)}`;
 
-    // 4. Score
-    if (data.adherence_avg != null) {
-      document.getElementById('dietScore').innerText = data.adherence_avg.toFixed(1);
-    } else {
-      document.getElementById('dietScore').innerText = '-';
-    }
-    document.getElementById('dietBadge').innerText = (data.diet_type || 'General').replace(/_/g, ' ');
+      if (!data.meals || data.meals.length === 0) {
+        mealsEl.innerHTML = `
+          <div class="glass-panel p-8 text-center rounded-2xl border-dashed border-2 border-gray-200 dark:border-gray-700">
+             <div class="w-12 h-12 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-3 text-green-600">
+                  <i class="ph ph-calendar-blank text-xl"></i>
+             </div>
+             <p class="text-gray-500 mb-4">No meals logged for ${data.is_today ? 'today' : prettyDate(data.selected_date)}.</p>
+             <a href="/" class="btn-primary px-5 py-2 rounded-xl text-sm">Log Meal</a>
+          </div>
+        `;
+        return;
+      }
 
-    // 5. Hydration
-    const glasses = data.hydration.glasses || 0;
-    const hContainer = document.getElementById('hydrationDrops');
-    hContainer.innerHTML = '';
-    // Show 8 slots
-    for (let i = 0; i < 8; i++) {
-      const active = i < glasses;
-      const el = document.createElement('div');
-      el.className = `flex-1 h-8 rounded-lg flex items-center justify-center transition-all ${active ? 'bg-blue-500 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-300'}`;
-      el.innerHTML = '<i class="ph ph-drop-fill"></i>';
-      hContainer.appendChild(el);
-    }
-    document.getElementById('hydrationMl').innerText = data.hydration.ml || 0;
-
-    // 6. Meals List (Base64 Aware)
-    const mealsEl = document.getElementById('mealsList');
-    if (!data.meals || data.meals.length === 0) {
-      mealsEl.innerHTML = `
-        <div class="glass-panel p-8 text-center rounded-2xl border-dashed border-2 border-gray-200 dark:border-gray-700">
-           <div class="w-12 h-12 bg-green-50 dark:bg-green-900/20 rounded-full flex items-center justify-center mx-auto mb-3 text-green-600">
-                <i class="ph ph-camera-plus text-xl"></i>
-           </div>
-           <p class="text-gray-500 mb-4">No meals logged today.</p>
-           <a href="/" class="btn-primary px-5 py-2 rounded-xl text-sm">Log Your First Meal</a>
-        </div>
-      `;
-    } else {
       mealsEl.innerHTML = data.meals.map(m => {
         const sj = m.analysis_json || {};
         const p = m.personalization || {};
-        let score = (p.macro_adherence && p.macro_adherence.score != null) ? p.macro_adherence.score : null;
+        const score = (p.macro_adherence && p.macro_adherence.score != null) ? p.macro_adherence.score : null;
 
         const timeStr = m.ts ? new Date(m.ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '';
         const name = (typeof sj.meal_identification === 'object' ? sj.meal_identification?.name : sj.meal_identification) || 'Unknown Meal';
         const cal = sj.calories_kcal || (sj.total_nutrition ? sj.total_nutrition.calories : '—');
 
-        let imgHtml = '';
-        // Prioritize Base64, then path
+        let imgHtml = '<div class="w-full h-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center text-xs text-gray-400"><i class="ph ph-image"></i></div>';
         if (m.image_base64) {
-          imgHtml = `<img src="data:image/jpeg;base64,${m.image_base64}" class="w-full h-full object-cover">`;
+          imgHtml = `<img src="data:image/jpeg;base64,${m.image_base64}" loading="lazy" decoding="async" class="w-full h-full object-cover">`;
         } else if (m.image_path) {
-          // Same fallback logic as history
-          let src = m.image_path;
+          const src = m.image_path;
           if (src.startsWith('static') || src.startsWith('/static')) {
-            imgHtml = `<img src="${src}" class="w-full h-full object-cover">`;
-          } else {
-            imgHtml = `<div class="w-full h-full bg-gray-200 flex items-center justify-center text-xs text-gray-400">No Img</div>`;
+            imgHtml = `<img src="${src}" loading="lazy" decoding="async" class="w-full h-full object-cover">`;
           }
         }
 
         let scoreBadge = '';
         if (score !== null) {
-          let color = score >= 8 ? 'bg-green-100 text-green-700' : score >= 5 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700';
+          const color = score >= 8 ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300' : score >= 5 ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300';
           scoreBadge = `<span class="px-2 py-1 rounded-md text-xs font-bold ${color}">${score}/10</span>`;
         }
 
         return `
-            <div class="glass-panel rounded-xl p-3 flex items-center gap-4 hover:shadow-md transition-all">
-                <div class="w-16 h-16 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
-                    ${imgHtml}
-                </div>
-                <div class="flex-1 min-w-0">
-                    <div class="flex items-center justify-between mb-1">
-                        <h4 class="font-bold text-gray-900 dark:text-gray-100 truncate">${name}</h4>
-                        <span class="text-xs text-gray-500">${timeStr}</span>
-                    </div>
-                    <div class="flex items-center gap-3 text-sm text-gray-600 dark:text-gray-400">
-                        <span class="flex items-center gap-1"><i class="ph ph-fire"></i> ${cal} kcal</span>
-                        ${scoreBadge}
-                    </div>
-                </div>
+          <div class="glass-panel rounded-xl p-2.5 sm:p-3 flex items-center gap-3 sm:gap-4 sm:hover:shadow-md transition-all">
+            <div class="w-14 h-14 sm:w-16 sm:h-16 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800 flex-shrink-0">${imgHtml}</div>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-center justify-between mb-1">
+                <h4 class="font-bold text-gray-900 dark:text-gray-100 truncate">${name}</h4>
+                <span class="text-xs text-gray-500">${timeStr}</span>
+              </div>
+              <div class="flex items-center gap-2 sm:gap-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                <span class="flex items-center gap-1"><i class="ph ph-fire"></i> ${cal} kcal</span>
+                ${scoreBadge}
+              </div>
             </div>
-          `;
+          </div>
+        `;
       }).join('');
     }
 
-    // 7. Insights
-    if (data.meals && data.meals.length > 0) {
-      try {
-        const offset = new Date().getTimezoneOffset();
-        const ir = await fetch(`/api/dashboard/insights?offset=${offset}`);
-        const idata = await ir.json();
-        if (idata.success && Array.isArray(idata.insights) && idata.insights.length > 0) {
-          const container = document.getElementById('insights');
-          container.innerHTML = idata.insights.map((txt, idx) => `
-            <div class="flex items-start gap-3 p-3 rounded-lg bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/10">
-                <span class="text-lg">${['💡', '🥦', '🔥'][idx % 3]}</span>
-                <p class="text-xs leading-relaxed opacity-90">${txt}</p>
-            </div>
-          `).join('');
-        }
-      } catch (_) { }
+    function renderDashboard(data) {
+      const now = new Date();
+      const todayMinutes = now.getHours() * 60 + now.getMinutes();
+      const pctDay = Math.round((todayMinutes / (24 * 60)) * 100);
+
+      const dayProgress = document.getElementById('dayProgress');
+      if (data.is_today) {
+        dayProgress.textContent = `${prettyDate(data.selected_date)} • ${pctDay}% of day elapsed`;
+      } else {
+        dayProgress.textContent = `Viewing ${prettyDate(data.selected_date)} • historical day`;
+      }
+
+      selectedDateLabel.textContent = data.is_today
+        ? 'Live view for your local today'
+        : `Viewing archived meals for ${prettyDate(data.selected_date)}`;
+
+      const consumed = data.totals.calories || 0;
+      const target = data.targets.calories || 2000;
+      const remain = Math.max(0, target - consumed);
+
+      document.getElementById('caloriesConsumed').innerText = Math.round(consumed);
+      document.getElementById('caloriesTarget').innerText = Math.round(target);
+      document.getElementById('caloriesRemain').innerText = Math.round(remain);
+
+      const pct = target > 0 ? Math.min(100, Math.round((consumed / target) * 100)) : 0;
+      const path = document.getElementById('calProgressPath');
+      path.setAttribute('stroke-dasharray', `${pct}, 100`);
+      path.classList.remove('text-red-500');
+      path.classList.add('text-green-500');
+      if (consumed > target) {
+        path.classList.remove('text-green-500');
+        path.classList.add('text-red-500');
+      }
+
+      const t = data.targets.macros_g || {};
+      const g = { protein: data.totals.protein_g || 0, carbs: data.totals.carbs_g || 0, fat: data.totals.fat_g || 0 };
+      updateMacro('pro', g.protein, t.protein);
+      updateMacro('carb', g.carbs, t.carbs);
+      updateMacro('fat', g.fat, t.fat);
+
+      document.getElementById('dietScore').innerText = data.adherence_avg != null ? data.adherence_avg.toFixed(1) : '-';
+      document.getElementById('dietBadge').innerText = (data.diet_type || 'General').replace(/_/g, ' ');
+
+      const glasses = data.hydration.glasses || 0;
+      const hContainer = document.getElementById('hydrationDrops');
+      hContainer.innerHTML = '';
+      for (let i = 0; i < 8; i++) {
+        const active = i < glasses;
+        const el = document.createElement('div');
+        el.className = `flex-1 h-8 rounded-lg flex items-center justify-center transition-all ${active ? 'bg-blue-500 text-white shadow-sm' : 'bg-gray-100 dark:bg-gray-800 text-gray-300'}`;
+        el.innerHTML = '<i class="ph ph-drop-fill"></i>';
+        hContainer.appendChild(el);
+      }
+      document.getElementById('hydrationMl').innerText = data.hydration.ml || 0;
+
+      if (data.is_today) {
+        logWaterBtn.dataset.locked = '0';
+        logWaterBtn.setAttribute('aria-disabled', 'false');
+        logWaterBtn.className = 'w-full btn-primary py-2 rounded-lg text-xs font-bold uppercase tracking-wide flex items-center justify-center gap-2';
+        logWaterBtn.innerHTML = '<i class="ph ph-drop-fill text-blue-400"></i><span>Add Water (250ml)</span>';
+      } else {
+        logWaterBtn.dataset.locked = '1';
+        logWaterBtn.setAttribute('aria-disabled', 'true');
+        logWaterBtn.className = 'w-full btn-secondary py-2 rounded-lg text-xs font-bold uppercase tracking-wide flex items-center justify-center gap-2';
+        logWaterBtn.innerHTML = '<i class="ph ph-lock-key text-amber-500"></i><span>Viewing past date (read-only)</span>';
+      }
+
+      renderMeals(data);
     }
 
+    async function loadInsights(hasMeals) {
+      const container = document.getElementById('insights');
+      if (!hasMeals) {
+        container.innerHTML = `
+          <div class="flex items-start gap-3">
+            <i class="ph ph-sparkle text-yellow-500 mt-1"></i>
+            <p>Log a meal on this date to unlock personalized insights.</p>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        const ir = await fetch(`/api/dashboard/insights?offset=${offset}&date=${encodeURIComponent(selectedDate)}`);
+        const idata = await ir.json();
+        if (!idata.success || !Array.isArray(idata.insights) || idata.insights.length === 0) {
+          throw new Error('No insights');
+        }
+        container.innerHTML = idata.insights.map((txt, idx) => `
+          <div class="flex items-start gap-3 p-3 rounded-lg bg-white/40 dark:bg-white/5 border border-white/20 dark:border-white/10">
+            <span class="text-lg">${['💡', '🥦', '🔥'][idx % 3]}</span>
+            <p class="text-xs leading-relaxed opacity-90">${txt}</p>
+          </div>
+        `).join('');
+      } catch (_) {
+        container.innerHTML = `
+          <div class="flex items-start gap-3">
+            <i class="ph ph-warning-circle text-amber-500 mt-1"></i>
+            <p>Insights are not available right now. Please try again.</p>
+          </div>
+        `;
+      }
+    }
+
+    async function loadDay() {
+      updateDateControls();
+      try {
+        const res = await fetch(`/api/dashboard/today?offset=${offset}&date=${encodeURIComponent(selectedDate)}`);
+        const data = await res.json();
+        if (!data.success) throw new Error(data.error || 'auth_required');
+
+        selectedDate = data.selected_date || selectedDate;
+        localToday = data.local_today || localToday;
+        updateDateControls();
+        renderDashboard(data);
+        await loadInsights(Boolean(data.meals && data.meals.length));
+      } catch (err) {
+        console.warn(err);
+        document.getElementById('dayProgress').textContent = 'Please sign in to view dashboard.';
+        document.getElementById('mealsList').innerHTML = `
+          <div class="glass-panel p-8 text-center rounded-2xl">
+             <p class="text-gray-500 mb-4">Sign in to track your meals.</p>
+             <a href="/" class="btn-primary px-4 py-2 rounded-lg text-sm">Go to Home</a>
+          </div>
+        `;
+      }
+    }
+
+    if (quickMealBtn) quickMealBtn.addEventListener('click', () => { window.location.href = '/'; });
+
+    if (logWaterBtn) {
+      logWaterBtn.addEventListener('click', async () => {
+        if (logWaterBtn.dataset.locked === '1') return;
+        logWaterBtn.disabled = true;
+        logWaterBtn.classList.add('opacity-75');
+        try {
+          await fetch('/api/dashboard/hydration', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ add_glasses: 1, add_ml: 250, offset })
+          });
+          await loadDay();
+        } finally {
+          logWaterBtn.disabled = false;
+          logWaterBtn.classList.remove('opacity-75');
+        }
+      });
+    }
+
+    prevDayBtn.addEventListener('click', () => {
+      selectedDate = shiftDate(selectedDate, -1);
+      loadDay();
+    });
+
+    nextDayBtn.addEventListener('click', () => {
+      if (selectedDate >= localToday) return;
+      selectedDate = shiftDate(selectedDate, 1);
+      loadDay();
+    });
+
+    todayBtn.addEventListener('click', () => {
+      selectedDate = localToday;
+      loadDay();
+    });
+
+    dateInput.addEventListener('change', () => {
+      selectedDate = dateInput.value || localToday;
+      if (selectedDate > localToday) selectedDate = localToday;
+      loadDay();
+    });
+
+    calendarToggle.addEventListener('click', toggleCalendarPanel);
+
+    monthPrev.addEventListener('click', () => {
+      panelMonth = new Date(panelMonth.getFullYear(), panelMonth.getMonth() - 1, 1);
+      renderMonthCalendar();
+    });
+
+    monthNext.addEventListener('click', () => {
+      const candidate = new Date(panelMonth.getFullYear(), panelMonth.getMonth() + 1, 1);
+      if (formatLocalDate(candidate) > localToday) return;
+      panelMonth = candidate;
+      renderMonthCalendar();
+    });
+
+    calendarTodayQuick.addEventListener('click', () => {
+      selectedDate = localToday;
+      closeCalendarPanel();
+      loadDay();
+    });
+
+    openNativePicker.addEventListener('click', () => {
+      if (typeof dateInput.showPicker === 'function') {
+        dateInput.showPicker();
+      } else {
+        dateInput.focus();
+        dateInput.click();
+      }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (calendarPanel.classList.contains('hidden')) return;
+      const t = e.target;
+      if (!calendarPanel.contains(t) && !calendarToggle.contains(t)) {
+        closeCalendarPanel();
+      }
+    });
+
+    selectedDate = localToday;
+    loadDay();
   })();
 </script>
 {% endblock %}
