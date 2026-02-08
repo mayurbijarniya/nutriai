@@ -12,30 +12,43 @@
                     class="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
                 <span class="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
             </span>
-            <span>AI-Powered 2.0</span>
+            <span>Nutrition Intelligence Platform</span>
         </div>
 
         <h1 class="text-5xl md:text-7xl font-bold tracking-tight text-gray-900 dark:text-white leading-[1.1]">
-            Your Personal <br />
+            Nutrition guidance <br />
             <span
-                class="font-serif-accent italic bg-gradient-to-r from-emerald-500 to-teal-500 bg-clip-text text-transparent pr-2">Nutritionist</span>
-            in Your Pocket
+                class="font-serif-accent italic bg-gradient-to-r from-emerald-500 to-cyan-500 bg-clip-text text-transparent pr-2">that adapts to you</span>
+            every day
         </h1>
 
         <p class="text-lg md:text-xl text-gray-600 dark:text-gray-400 max-w-2xl mx-auto leading-relaxed">
-            Upload a meal photo and let our advanced AI analyze macros, ingredients, and compatibility with your diet
-            goals instantly.
+            Analyze meals, track progress, and get practical coaching based on your profile, goals, and history.
         </p>
+    </div>
+
+    <!-- Product Navigation Strip -->
+    <div class="glass-panel rounded-2xl p-2 sm:p-3">
+        <div class="grid grid-cols-2 md:grid-cols-4 xl:grid-cols-8 gap-2">
+            <a href="/" class="surface-solid rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-center">Analyze</a>
+            <a href="/history" class="surface-solid rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-center">History</a>
+            <a href="/dashboard" data-login-next="/dashboard" class="auth-required-link surface-solid rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-center">Dashboard</a>
+            <a href="/planner" data-login-next="/planner" class="auth-required-link surface-solid rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-center">Planner</a>
+            <a href="/recipes" data-login-next="/recipes" class="auth-required-link surface-solid rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-center">Recipes</a>
+            <a href="/progress" data-login-next="/progress" class="auth-required-link surface-solid rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-center">Progress</a>
+            <a href="/coach" data-login-next="/coach" class="auth-required-link surface-solid rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-center">Coach</a>
+            <a href="/social" data-login-next="/social" class="auth-required-link surface-solid rounded-xl px-3 py-2 text-xs sm:text-sm font-semibold text-center">Social</a>
+        </div>
     </div>
 
     <!-- Main Glass Interface -->
     <div class="relative">
         <!-- Abstract Glow Behind -->
         <div
-            class="absolute -top-10 -left-10 w-72 h-72 bg-purple-300/30 dark:bg-purple-900/20 rounded-full blur-[80px] -z-10 animate-pulse">
+            class="absolute -top-10 -left-10 w-72 h-72 bg-emerald-300/30 dark:bg-emerald-900/20 rounded-full blur-[80px] -z-10 animate-pulse">
         </div>
         <div
-            class="absolute -bottom-10 -right-10 w-72 h-72 bg-green-300/30 dark:bg-green-900/20 rounded-full blur-[80px] -z-10 animate-pulse delay-700">
+            class="absolute -bottom-10 -right-10 w-72 h-72 bg-cyan-300/30 dark:bg-cyan-900/20 rounded-full blur-[80px] -z-10 animate-pulse delay-700">
         </div>
 
         <div class="glass-panel rounded-[2rem] p-1 shadow-2xl overflow-hidden">
@@ -81,7 +94,7 @@
                 </div>
 
                 <!-- Chat Area -->
-                <div id="chatMessages" class="h-[400px] overflow-y-auto p-6 space-y-6 scroll-smooth">
+                <div id="chatMessages" class="h-[52vh] sm:h-[420px] lg:h-[460px] overflow-y-auto p-6 space-y-6 scroll-smooth">
                     <!-- Intro Message -->
                     <div class="flex items-start gap-4 max-w-[90%] chat-message">
                         <div
@@ -102,13 +115,17 @@
                     <form id="analysisForm" enctype="multipart/form-data" class="space-y-4">
 
                         <!-- Upload Tabs (Minimal) -->
-                        <div class="flex space-x-4 mb-2">
+                        <div class="control-strip w-full mb-2">
                             <button type="button" id="uploadTab"
-                                class="text-sm font-medium text-green-600 dark:text-green-400 border-b-2 border-green-500 pb-1 transition-colors">Upload
+                                class="selector-pill flex-1 text-sm font-semibold text-green-700 dark:text-green-300 border-green-500 bg-green-50 dark:bg-green-900/30 py-2 transition-colors">Upload
                                 File</button>
                             <button type="button" id="urlTab"
-                                class="text-sm font-medium text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 pb-1 transition-colors">Image
+                                class="selector-pill flex-1 text-sm font-semibold text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 py-2 transition-colors">Image
                                 URL</button>
+                        </div>
+                        <div class="flex items-center justify-between mb-2 px-1">
+                            <p class="text-[11px] text-gray-500">Need text, barcode, or manual macros?</p>
+                            <a href="/planner" data-login-next="/planner" class="auth-required-link text-[11px] font-semibold text-emerald-600 hover:text-emerald-700 dark:text-emerald-400">Open tools</a>
                         </div>
 
                         <!-- Drop Zone -->
@@ -196,6 +213,13 @@
                             </span>
                         </button>
 
+                        {% if not (current_user and current_user.is_authenticated) %}
+                        <div class="surface-solid rounded-xl p-3 text-xs sm:text-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                            <p class="text-gray-600 dark:text-gray-300">Sign in to unlock dashboard, planner, progress, and coach insights.</p>
+                            <button type="button" class="open-login-modal btn-secondary px-3 py-2 rounded-lg text-xs font-semibold">Continue with Google</button>
+                        </div>
+                        {% endif %}
+
                         <!-- Loading State -->
                         <div id="loadingState" class="hidden text-center py-2">
                             <div
@@ -242,7 +266,7 @@
         see details clearly.'},
         {'icon': 'ph-frame-corners', 'color': 'text-blue-500', 'title': 'Full Frame', 'desc': 'Capture the entire plate
         from above.'},
-        {'icon': 'ph-fork-knife', 'color': 'text-purple-500', 'title': 'Utensils Context', 'desc': 'Helps estimate
+        {'icon': 'ph-fork-knife', 'color': 'text-cyan-500', 'title': 'Utensils Context', 'desc': 'Helps estimate
         portion sizes accurately.'},
         {'icon': 'ph-list-magnifying-glass', 'color': 'text-rose-500', 'title': 'Visible Ingredients', 'desc': 'Ensure
         key components aren\'t hidden.'}
@@ -271,6 +295,38 @@
         document.head.appendChild(s);
     }
 
+    function escapeHtml(value) {
+        return String(value ?? '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function sanitizeHtml(unsafeHtml) {
+        const template = document.createElement('template');
+        template.innerHTML = String(unsafeHtml || '');
+
+        template.content.querySelectorAll('script, style, iframe, object, embed, link, meta').forEach((el) => el.remove());
+
+        template.content.querySelectorAll('*').forEach((el) => {
+            Array.from(el.attributes).forEach((attr) => {
+                const name = attr.name.toLowerCase();
+                const value = String(attr.value || '').trim().toLowerCase();
+                if (name.startsWith('on')) {
+                    el.removeAttribute(attr.name);
+                    return;
+                }
+                if ((name === 'href' || name === 'src') && value.startsWith('javascript:')) {
+                    el.removeAttribute(attr.name);
+                }
+            });
+        });
+
+        return template.innerHTML;
+    }
+
     document.addEventListener('DOMContentLoaded', function () {
         // --- UI Interactions ---
 
@@ -280,28 +336,30 @@
         const fileUpload = document.getElementById('fileUpload');
         const urlInput = document.getElementById('urlInput');
 
+        function setTabVisual(activeTab, inactiveTab) {
+            activeTab.classList.add('text-green-700', 'dark:text-green-300', 'bg-green-50', 'dark:bg-green-900/30', 'border-green-500');
+            activeTab.classList.remove('text-gray-500', 'dark:text-gray-400', 'bg-transparent', 'border-transparent');
+
+            inactiveTab.classList.add('text-gray-500', 'dark:text-gray-400', 'bg-transparent', 'border-transparent');
+            inactiveTab.classList.remove('text-green-700', 'dark:text-green-300', 'bg-green-50', 'dark:bg-green-900/30', 'border-green-500');
+        }
+
         function switchTab(mode) {
             if (mode === 'file') {
-                uploadTab.classList.add('text-green-600', 'dark:text-green-400', 'border-b-2', 'border-green-500');
-                uploadTab.classList.remove('text-gray-500', 'dark:text-gray-400');
-                urlTab.classList.remove('text-green-600', 'dark:text-green-400', 'border-b-2', 'border-green-500');
-                urlTab.classList.add('text-gray-500', 'dark:text-gray-400');
-
+                setTabVisual(uploadTab, urlTab);
                 fileUpload.classList.remove('hidden');
                 urlInput.classList.add('hidden');
-            } else {
-                urlTab.classList.add('text-green-600', 'dark:text-green-400', 'border-b-2', 'border-green-500');
-                urlTab.classList.remove('text-gray-500', 'dark:text-gray-400');
-                uploadTab.classList.remove('text-green-600', 'dark:text-green-400', 'border-b-2', 'border-green-500');
-                uploadTab.classList.add('text-gray-500', 'dark:text-gray-400');
-
-                urlInput.classList.remove('hidden');
-                fileUpload.classList.add('hidden');
+                return;
             }
+
+            setTabVisual(urlTab, uploadTab);
+            urlInput.classList.remove('hidden');
+            fileUpload.classList.add('hidden');
         }
 
         uploadTab.addEventListener('click', () => switchTab('file'));
         urlTab.addEventListener('click', () => switchTab('url'));
+        switchTab('file');
 
         // Drag & Drop
         const dropZone = document.getElementById('dropZone');
@@ -344,7 +402,7 @@
                 <div class="relative w-full max-w-sm rounded-2xl overflow-hidden glass-panel">
                     <img src="${e.target.result}" class="w-full h-48 object-cover">
                     <div class="absolute bottom-0 inset-x-0 bg-black/50 backdrop-blur-sm p-2 text-white text-xs truncate">
-                        ${file.name}
+                        ${escapeHtml(file.name)}
                     </div>
                 </div>
             `;
@@ -379,7 +437,7 @@
             div.className = "flex items-start justify-end gap-4 max-w-[90%] ml-auto chat-message";
             div.innerHTML = `
             <div class="bg-blue-600 text-white rounded-2xl rounded-tr-none p-4 shadow-md text-sm leading-relaxed">
-                ${text}
+                ${escapeHtml(text)}
             </div>
              <div class="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center flex-shrink-0 mt-1">
                 <i class="ph ph-user text-gray-500 dark:text-gray-300"></i>
@@ -397,7 +455,7 @@
                 <i class="ph ph-robot text-lg"></i>
             </div>
             <div class="glass-panel bg-white/60 dark:bg-gray-800/60 rounded-2xl rounded-tl-none p-4 shadow-sm text-gray-800 dark:text-gray-200 text-sm leading-relaxed border-0">
-                ${text}
+                ${escapeHtml(text)}
             </div>
         `;
             chatContainer.appendChild(div);
@@ -508,7 +566,7 @@
                     selectedDietText.textContent = label;
                     dietDropdown.classList.add('hidden');
 
-                    addBotMessage(`Goal updated to <b>${label}</b>. I'll analyze your meals with this focus.`);
+                    addBotMessage(`Goal updated to ${label}. I will analyze your meals with this focus.`);
                 });
             });
 
@@ -615,7 +673,7 @@
                 loadingState.classList.add('hidden');
 
                 if (data.error) {
-                    addBotMessage(`⚠️ Error: ${data.message || data.error}`);
+                    addBotMessage(`Error: ${data.message || data.error}`);
                 } else {
                     renderResults(data);
                     loadUsage(); // Refresh limits
@@ -624,7 +682,7 @@
             } catch (err) {
                 analyzeBtn.classList.remove('hidden');
                 loadingState.classList.add('hidden');
-                addBotMessage("⚠️ Network error. Please try again.");
+                addBotMessage("Network error. Please try again.");
             }
         });
 
@@ -637,6 +695,7 @@
             if (typeof marked !== 'undefined') {
                 html = marked.parse(data.analysis);
             }
+            html = sanitizeHtml(html);
 
             analysisResult.innerHTML = `
             <div class="prose prose-glass max-w-none">
