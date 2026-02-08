@@ -315,33 +315,35 @@
                             <li><a href="/history"
                                     class="text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">History</a>
                             </li>
-                            {% if current_user.is_authenticated %}
-                            <li><a href="/dashboard"
-                                    class="text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Dashboard</a>
+                            <li><a href="/dashboard" data-login-next="/dashboard"
+                                    class="auth-required-link text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Dashboard</a>
                             </li>
-                            {% endif %}
                         </ul>
                     </div>
 
-                    {% if current_user.is_authenticated %}
                     <div>
                         <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Tools</h3>
                         <ul class="space-y-3">
-                            <li><a href="/planner"
-                                    class="text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Planner</a>
+                            <li><a href="/planner" data-login-next="/planner"
+                                    class="auth-required-link text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Planner</a>
                             </li>
-                            <li><a href="/recipes"
-                                    class="text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Recipes</a>
+                            <li><a href="/recipes" data-login-next="/recipes"
+                                    class="auth-required-link text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Recipes</a>
                             </li>
-                            <li><a href="/progress"
-                                    class="text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Progress</a>
+                            <li><a href="/progress" data-login-next="/progress"
+                                    class="auth-required-link text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Progress</a>
                             </li>
-                            <li><a href="/coach"
-                                    class="text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Coach</a>
+                            <li><a href="/coach" data-login-next="/coach"
+                                    class="auth-required-link text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Coach</a>
+                            </li>
+                            <li><a href="/social" data-login-next="/social"
+                                    class="auth-required-link text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Social</a>
+                            </li>
+                            <li><a href="/integrations" data-login-next="/integrations"
+                                    class="auth-required-link text-sm text-gray-600 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 transition-colors">Integrations</a>
                             </li>
                         </ul>
                     </div>
-                    {% endif %}
 
                     <div class="hidden sm:block">
                         <h3 class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-4">Socials</h3>
@@ -361,7 +363,7 @@
 
             <div class="mt-8 pt-0 flex flex-col items-start md:flex-row md:items-center md:justify-between gap-4">
                 <p class="text-xs text-gray-500">
-                    &copy; 2025 NutriAI. All rights reserved.
+                    &copy; 2026 NutriAI. All rights reserved.
                 </p>
                 <div class="flex space-x-6">
                     <a href="/privacy"
