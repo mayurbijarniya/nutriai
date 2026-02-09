@@ -1376,14 +1376,44 @@ def delete_account():
             return jsonify({'success': False, 'error': 'auth_required'}), 401
             
         uid = ObjectId(current_user.id)
-        
-        # Delete from all collections
-        db.users.delete_one({'_id': uid})
-        db.collection.delete_many({'user_id': uid})  # Analysis history
-        db.user_profiles.delete_one({'user_id': uid})
-        db.diet_preferences.delete_one({'user_id': uid})
-        db.nutrition_goals.delete_one({'user_id': uid})
+        uid_str = str(uid)
+
+        created_challenges = list(db.challenges.find({'created_by': uid}, {'_id': 1}))
+        created_challenge_ids = [c.get('_id') for c in created_challenges if c.get('_id') is not None]
+
+        db.collection.delete_many({'user_id': uid})
+        db.meal_logs.delete_many({'user_id': uid})
+        db.food_items.delete_many({'user_id': uid})
+        db.recipes.delete_many({'user_id': uid})
+        db.meal_plans.delete_many({'user_id': uid})
+        db.grocery_lists.delete_many({'user_id': uid})
+        db.weight_logs.delete_many({'user_id': uid})
+        db.chat_sessions.delete_many({'user_id': uid})
         db.hydration_logs.delete_many({'user_id': uid})
+
+        db.challenge_members.delete_many({'user_id': uid})
+        if created_challenge_ids:
+            db.challenge_members.delete_many({'challenge_id': {'$in': created_challenge_ids}})
+        db.challenges.delete_many({'created_by': uid})
+
+        db.activity_integrations.delete_many({'user_id': uid})
+        db.notification_settings.delete_many({'user_id': uid})
+
+        db.user_profiles.delete_many({'user_id': uid})
+        db.diet_preferences.delete_many({'user_id': uid})
+        db.nutrition_goals.delete_many({'user_id': uid})
+
+        db.logins.delete_many({'user_id': uid})
+        db.share_links.delete_many({'user_id': uid})
+        db.usage.delete_many({'scope': f'user:{uid_str}'})
+
+        db.barcode_cache.delete_many({'created_by': uid})
+        db.migration_state.delete_many({'$or': [
+            {'name': f'analysis_history_to_meal_logs:{uid_str}'},
+            {'name': {'$regex': f':{re.escape(uid_str)}$'}},
+        ]})
+
+        db.users.delete_one({'_id': uid})
         
         logout_user()
         flash('Your account has been permanently deleted.', 'info')
