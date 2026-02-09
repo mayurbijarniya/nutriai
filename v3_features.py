@@ -47,7 +47,14 @@ def _is_authed():
 def _auth_guard():
     if not _is_authed():
         return None, (jsonify({"success": False, "error": "auth_required"}), 401)
-    return ObjectId(current_user.id), None
+    user_id = ObjectId(current_user.id)
+
+    try:
+        migrate_user_history_to_meal_logs(user_id)
+    except Exception:
+        pass
+
+    return user_id, None
 
 
 def _serialize_oid(doc):

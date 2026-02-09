@@ -1206,12 +1206,76 @@ def api_analyze_with_profile():
         if current_user and getattr(current_user, 'is_authenticated', False):
             db_result = save_to_history(save_payload, None)
 
+        v3_meal_id = None
+        if current_user and getattr(current_user, 'is_authenticated', False):
+            try:
+                uid = ObjectId(current_user.id)
+
+                def to_num(value, default=0.0):
+                    try:
+                        return float(value)
+                    except Exception:
+                        return float(default)
+
+                now_utc = datetime.now(timezone.utc)
+                legacy_analysis_id = None
+                if db_result and db_result.get('success') and db_result.get('id'):
+                    try:
+                        legacy_analysis_id = ObjectId(str(db_result.get('id')))
+                    except Exception:
+                        legacy_analysis_id = None
+
+                raw_input = request.form.get('image_url') or (request.files.get('image_file').filename if request.files.get('image_file') else 'image_upload')
+                meal_doc = {
+                    'schema_version': 3,
+                    'user_id': uid,
+                    'source': 'analyze_with_profile',
+                    'meal_name': structured.get('meal_name') or 'Meal from analysis',
+                    'notes': meal_context or '',
+                    'diet_type': user_context.get('diet_type') or 'standard_american',
+                    'meal_type': meal_context or 'unspecified',
+                    'macros': {
+                        'calories_kcal': to_num(structured.get('calories_kcal')),
+                        'protein_g': to_num(structured.get('protein_g')),
+                        'carbs_g': to_num(structured.get('carbs_g')),
+                        'fat_g': to_num(structured.get('fat_g')),
+                        'fiber_g': to_num(structured.get('fiber_g')),
+                        'sodium_mg': to_num(structured.get('sodium_mg')),
+                    },
+                    'image_base64': result.get('image_base64'),
+                    'barcode': None,
+                    'raw_input': raw_input,
+                    'metadata': {
+                        'analysis_json': structured,
+                        'legacy_analysis_id': str(legacy_analysis_id) if legacy_analysis_id else None,
+                    },
+                    'logged_at': now_utc,
+                    'created_at': now_utc,
+                    'updated_at': now_utc,
+                }
+                if legacy_analysis_id:
+                    meal_doc['legacy_analysis_id'] = legacy_analysis_id
+                    db.meal_logs.update_one(
+                        {'legacy_analysis_id': legacy_analysis_id},
+                        {'$setOnInsert': meal_doc},
+                        upsert=True,
+                    )
+                    existing = db.meal_logs.find_one({'legacy_analysis_id': legacy_analysis_id}, {'_id': 1})
+                    if existing and existing.get('_id'):
+                        v3_meal_id = str(existing.get('_id'))
+                else:
+                    ins = db.meal_logs.insert_one(meal_doc)
+                    v3_meal_id = str(ins.inserted_id)
+            except Exception as sync_err:
+                print(f"v3 meal sync warning: {sync_err}")
+
         return jsonify({
             'success': True,
             'structured': structured,
             'analysis': analysis_text,
             'personalization': personalization,
-            'database_id': db_result.get('id') if db_result and db_result.get('success') else None
+            'database_id': db_result.get('id') if db_result and db_result.get('success') else None,
+            'v3_meal_id': v3_meal_id,
         })
 
     except Exception as e:
