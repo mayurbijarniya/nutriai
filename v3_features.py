@@ -779,7 +779,9 @@ Recipe pool:
 
 def migrate_user_history_to_meal_logs(user_id):
     already = db.migration_state.find_one({"name": f"analysis_history_to_meal_logs:{str(user_id)}"})
-    if already and already.get("completed"):
+    legacy_count = db.collection.count_documents({"user_id": user_id})
+    linked_count = db.meal_logs.count_documents({"user_id": user_id, "legacy_analysis_id": {"$exists": True, "$ne": None}})
+    if already and already.get("completed") and linked_count >= legacy_count:
         return {"migrated": 0, "skipped": 0, "already_completed": True}
 
     cursor = db.collection.find({"user_id": user_id})
@@ -827,13 +829,18 @@ def migrate_user_history_to_meal_logs(user_id):
         db.meal_logs.insert_one(meal)
         migrated += 1
 
+    legacy_count_after = db.collection.count_documents({"user_id": user_id})
+    linked_count_after = db.meal_logs.count_documents({"user_id": user_id, "legacy_analysis_id": {"$exists": True, "$ne": None}})
+
     db.migration_state.update_one(
         {"name": f"analysis_history_to_meal_logs:{str(user_id)}"},
         {
             "$set": {
-                "completed": True,
+                "completed": linked_count_after >= legacy_count_after,
                 "migrated": migrated,
                 "skipped": skipped,
+                "legacy_count": legacy_count_after,
+                "linked_count": linked_count_after,
                 "updated_at": now,
             },
             "$setOnInsert": {"created_at": now},
@@ -1812,19 +1819,54 @@ def _coach_context_payload(user_id):
     preferences = preferences_raw if isinstance(preferences_raw, dict) else {}
     recent_meals = recent_meals_raw if isinstance(recent_meals_raw, list) else []
 
-    now = datetime.now(timezone.utc)
-    today_start = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
-    today_meals = list(db.meal_logs.find({"user_id": user_id, "logged_at": {"$gte": today_start}}))
+    reminder_settings = db.notification_settings.find_one({"user_id": user_id}) or {}
+    tz_name = str(reminder_settings.get("timezone") or "UTC").strip() or "UTC"
+    try:
+        tz = ZoneInfo(tz_name)
+    except Exception:
+        tz_name = "UTC"
+        tz = timezone.utc
+
+    now_local = datetime.now(tz)
+    local_day_start = datetime(now_local.year, now_local.month, now_local.day, 0, 0, 0, tzinfo=tz)
+    local_day_end = local_day_start + timedelta(days=1)
+    start_utc = local_day_start.astimezone(timezone.utc)
+    end_utc = local_day_end.astimezone(timezone.utc)
+
+    today_meals = list(db.meal_logs.find({"user_id": user_id, "logged_at": {"$gte": start_utc, "$lt": end_utc}}))
     today_calories = sum(_safe_float((m.get("macros") or {}).get("calories_kcal")) for m in today_meals)
+    today_meals_count = len(today_meals)
+
+    linked_legacy_ids = {
+        m.get("legacy_analysis_id")
+        for m in today_meals
+        if m.get("legacy_analysis_id") is not None
+    }
+
+    legacy_today_cursor = db.collection.find({"user_id": user_id, "created_at": {"$gte": start_utc, "$lt": end_utc}})
+    for legacy in legacy_today_cursor:
+        legacy_id = legacy.get("_id")
+        if legacy_id in linked_legacy_ids:
+            continue
+        analysis_json = legacy.get("analysis_json") or {}
+        tn = analysis_json.get("total_nutrition") or {}
+        today_calories += _safe_float(analysis_json.get("calories_kcal", tn.get("calories", 0)))
+        today_meals_count += 1
+
     target_daily_cal = _safe_float(goals.get("daily_calories"), 0)
+    if target_daily_cal <= 0:
+        target_daily_cal = _safe_float((_get_user_context(user_id) or {}).get("daily_calories"), 2000)
+    if target_daily_cal <= 0:
+        target_daily_cal = 2000
     remaining_calories = None if target_daily_cal <= 0 else round(max(0.0, target_daily_cal - today_calories), 1)
 
+    now = now_local.astimezone(timezone.utc)
     week_start = _week_start(now)
     plan = db.meal_plans.find_one({"user_id": user_id, "week_start": week_start})
     if not plan:
         plan = db.meal_plans.find_one({"user_id": user_id}, sort=[("week_start", -1)])
 
-    today_iso = now.date().isoformat()
+    today_iso = now_local.date().isoformat()
     normalized_plan_days = []
     if plan and isinstance(plan.get("days"), list):
         for d in plan.get("days", []):
@@ -1869,11 +1911,13 @@ def _coach_context_payload(user_id):
         "picture": user_doc.get("picture"),
         "current_date_utc": today_iso,
         "current_datetime_utc": now.isoformat(),
+        "current_date_local": today_iso,
+        "timezone": tz_name,
         "diet_type": preferences.get("diet_type") or "standard_american",
         "goal_type": goals.get("goal_type") or "maintain_weight",
         "daily_calories": target_daily_cal,
         "today_calories": round(today_calories, 1),
-        "today_meals_count": len(today_meals),
+        "today_meals_count": today_meals_count,
         "remaining_calories": remaining_calories,
         "budget_per_meal": preferences.get("budget_per_meal"),
         "recent_meals_count": len(recent_meals),

@@ -352,7 +352,7 @@
 
         snapshot.innerHTML = `
             <p><strong>Target calories:</strong> ${Math.round(c.daily_calories || 0)} kcal</p>
-            <p><strong>Meals logged:</strong> ${c.recent_meals_count || 0}</p>
+            <p><strong>Meals logged:</strong> ${c.today_meals_count ?? c.recent_meals_count ?? 0}</p>
             <p><strong>Plan available:</strong> ${c.has_week_plan ? 'Yes' : 'No'}</p>
             <p><strong>Weight delta:</strong> ${c.weight_delta_kg == null ? 'n/a' : `${c.weight_delta_kg} kg`}</p>
             <p><strong>Budget/meal:</strong> ${c.budget_per_meal ? `$${Number(c.budget_per_meal).toFixed(2)}` : 'n/a'}</p>
