@@ -7,6 +7,7 @@ from itsdangerous import URLSafeSerializer
 from datetime import datetime
 import os
 import uuid
+from werkzeug.local import LocalProxy
 from database import get_db
 from bson import ObjectId
 
@@ -14,7 +15,7 @@ load_dotenv()
 
 auth_bp = Blueprint('auth', __name__)
 
-db = get_db()
+db = LocalProxy(get_db)
 
 # OAuth setup - will be initialized when blueprint is registered
 oauth = OAuth()
@@ -239,5 +240,4 @@ def api_me():
         response.set_cookie(GUEST_COOKIE_NAME, signed, httponly=True, samesite='Lax', secure=bool(os.getenv('PRODUCTION')))
         return response
     return jsonify({'authenticated': False, 'user': None})
-
 

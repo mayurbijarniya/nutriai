@@ -3,6 +3,7 @@ from flask import Blueprint, render_template, request, jsonify, redirect, url_fo
 from flask_login import login_required, current_user
 from datetime import datetime, timezone
 from bson import ObjectId
+from werkzeug.local import LocalProxy
 from database import get_db
 from diet_config import (
     DIETS,
@@ -12,7 +13,7 @@ from diet_config import (
 import json
 
 profile_bp = Blueprint('profile', __name__, url_prefix='/profile')
-db = get_db()
+db = LocalProxy(get_db)
 
 # Validation constants and enums
 BIOLOGICAL_SEX_OPTIONS = ['male', 'female', 'other']

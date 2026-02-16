@@ -68,73 +68,11 @@ class MongoDBManager:
             self.nutrition_goals = self.db.nutrition_goals
             self.diet_preferences = self.db.diet_preferences
 
-            # Ensure indexes
-            try:
-                # User indexes
-                self.users.create_index([('email', ASCENDING)], unique=True, sparse=True)
-                self.users.create_index([('google_sub', ASCENDING)], unique=True, sparse=True)
-                
-                # Analysis indexes
-                self.collection.create_index([('created_at', ASCENDING)])
-                self.collection.create_index([('user_id', ASCENDING)])
-                self.collection.create_index([('guest_session_id', ASCENDING)])
-                
-                # Login tracking indexes
-                self.logins.create_index([('when', ASCENDING)])
-                
-                # Usage tracking indexes (compound index for scope + date)
-                self.usage.create_index([('scope', ASCENDING), ('date', ASCENDING)], unique=True)
-                
-                # Share links indexes
-                self.share_links.create_index([('token', ASCENDING)], unique=True)
-                self.share_links.create_index([('user_id', ASCENDING), ('is_active', ASCENDING)])
-                self.share_links.create_index([('expires_at', ASCENDING)])  # For cleanup
-                
-                # User Profile indexes
-                self.user_profiles.create_index([('user_id', ASCENDING)], unique=True)
-                self.nutrition_goals.create_index([('user_id', ASCENDING)])
-                self.diet_preferences.create_index([('user_id', ASCENDING)], unique=True)
-                # Hydration indexes
-                self.hydration_logs.create_index([('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
-
-                # V3 indexes
-                self.meal_logs.create_index([('user_id', ASCENDING), ('logged_at', DESCENDING)])
-                self.meal_logs.create_index([('source', ASCENDING), ('created_at', DESCENDING)])
-                self.meal_logs.create_index([('schema_version', ASCENDING)])
-
-                self.food_items.create_index([('user_id', ASCENDING), ('created_at', DESCENDING)])
-
-                self.barcode_cache.create_index([('barcode', ASCENDING)], unique=True)
-                self.barcode_cache.create_index([('updated_at', DESCENDING)])
-
-                self.recipes.create_index([('user_id', ASCENDING), ('created_at', DESCENDING)])
-                self.recipes.create_index([('is_public', ASCENDING), ('diet_tags', ASCENDING)])
-
-                self.meal_plans.create_index([('user_id', ASCENDING), ('week_start', ASCENDING)], unique=True)
-                self.grocery_lists.create_index([('user_id', ASCENDING), ('week_start', ASCENDING)], unique=True)
-
-                self.weight_logs.create_index([('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
-                self.weight_logs.create_index([('user_id', ASCENDING), ('created_at', DESCENDING)])
-
-                self.chat_sessions.create_index([('user_id', ASCENDING), ('updated_at', DESCENDING)])
-
-                self.challenges.create_index([('is_active', ASCENDING), ('created_at', DESCENDING)])
-                self.challenges.create_index([('created_by', ASCENDING), ('created_at', DESCENDING)])
-
-                self.challenge_members.create_index([('challenge_id', ASCENDING), ('user_id', ASCENDING)], unique=True)
-                self.challenge_members.create_index([('user_id', ASCENDING), ('joined_at', DESCENDING)])
-
-                self.activity_integrations.create_index([('user_id', ASCENDING), ('provider', ASCENDING)], unique=True)
-                self.notification_settings.create_index([('user_id', ASCENDING)], unique=True)
-
-                self.migration_state.create_index([('name', ASCENDING)], unique=True)
-            except Exception as e:
-                print(f"Index creation warning: {e}")
-            
-            # Test connection with ping
-            print("Testing MongoDB connection...")
-            self.client.admin.command('ping')
-            print("Connected to MongoDB Atlas successfully!")
+            self._indexes_ensured = False
+            if os.getenv('AUTO_CREATE_INDEXES', '0') == '1':
+                self.ensure_indexes()
+            else:
+                print("MongoDB connected. Skipping index creation at startup.")
             
         except Exception as e:
             print(f"MongoDB connection failed: {e}")
@@ -150,6 +88,83 @@ class MongoDBManager:
             
             self.client = None
             self.db = None
+
+    def ensure_indexes(self):
+        """Create required indexes (idempotent)."""
+        if not self.client:
+            print("Cannot create indexes: database not connected")
+            return False
+
+        if self._indexes_ensured:
+            return True
+
+        try:
+            # User indexes
+            self.users.create_index([('email', ASCENDING)], unique=True, sparse=True)
+            self.users.create_index([('google_sub', ASCENDING)], unique=True, sparse=True)
+
+            # Analysis indexes
+            self.collection.create_index([('created_at', ASCENDING)])
+            self.collection.create_index([('user_id', ASCENDING)])
+            self.collection.create_index([('guest_session_id', ASCENDING)])
+
+            # Login tracking indexes
+            self.logins.create_index([('when', ASCENDING)])
+
+            # Usage tracking indexes (compound index for scope + date)
+            self.usage.create_index([('scope', ASCENDING), ('date', ASCENDING)], unique=True)
+
+            # Share links indexes
+            self.share_links.create_index([('token', ASCENDING)], unique=True)
+            self.share_links.create_index([('user_id', ASCENDING), ('is_active', ASCENDING)])
+            self.share_links.create_index([('expires_at', ASCENDING)])
+
+            # User Profile indexes
+            self.user_profiles.create_index([('user_id', ASCENDING)], unique=True)
+            self.nutrition_goals.create_index([('user_id', ASCENDING)])
+            self.diet_preferences.create_index([('user_id', ASCENDING)], unique=True)
+
+            # Hydration indexes
+            self.hydration_logs.create_index([('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
+
+            # V3 indexes
+            self.meal_logs.create_index([('user_id', ASCENDING), ('logged_at', DESCENDING)])
+            self.meal_logs.create_index([('source', ASCENDING), ('created_at', DESCENDING)])
+            self.meal_logs.create_index([('schema_version', ASCENDING)])
+
+            self.food_items.create_index([('user_id', ASCENDING), ('created_at', DESCENDING)])
+
+            self.barcode_cache.create_index([('barcode', ASCENDING)], unique=True)
+            self.barcode_cache.create_index([('updated_at', DESCENDING)])
+
+            self.recipes.create_index([('user_id', ASCENDING), ('created_at', DESCENDING)])
+            self.recipes.create_index([('is_public', ASCENDING), ('diet_tags', ASCENDING)])
+
+            self.meal_plans.create_index([('user_id', ASCENDING), ('week_start', ASCENDING)], unique=True)
+            self.grocery_lists.create_index([('user_id', ASCENDING), ('week_start', ASCENDING)], unique=True)
+
+            self.weight_logs.create_index([('user_id', ASCENDING), ('date', ASCENDING)], unique=True)
+            self.weight_logs.create_index([('user_id', ASCENDING), ('created_at', DESCENDING)])
+
+            self.chat_sessions.create_index([('user_id', ASCENDING), ('updated_at', DESCENDING)])
+
+            self.challenges.create_index([('is_active', ASCENDING), ('created_at', DESCENDING)])
+            self.challenges.create_index([('created_by', ASCENDING), ('created_at', DESCENDING)])
+
+            self.challenge_members.create_index([('challenge_id', ASCENDING), ('user_id', ASCENDING)], unique=True)
+            self.challenge_members.create_index([('user_id', ASCENDING), ('joined_at', DESCENDING)])
+
+            self.activity_integrations.create_index([('user_id', ASCENDING), ('provider', ASCENDING)], unique=True)
+            self.notification_settings.create_index([('user_id', ASCENDING)], unique=True)
+
+            self.migration_state.create_index([('name', ASCENDING)], unique=True)
+
+            self._indexes_ensured = True
+            print("MongoDB indexes ensured successfully")
+            return True
+        except Exception as e:
+            print(f"Index creation warning: {e}")
+            return False
     
     def is_connected(self):
         """Check if database is connected"""

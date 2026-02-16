@@ -13,12 +13,13 @@ import requests
 from PIL import Image
 import google.generativeai as genai
 from pymongo.errors import DuplicateKeyError
+from werkzeug.local import LocalProxy
 
 from database import get_db
 
 
 v3_bp = Blueprint("v3", __name__)
-db = get_db()
+db = LocalProxy(get_db)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
 GEMINI_MODEL_ID = os.getenv("GEMINI_MODEL_ID", "gemini-2.5-flash-lite")

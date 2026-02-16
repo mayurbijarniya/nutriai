@@ -572,7 +572,9 @@
 
             // Set default if exists
             if (dietsData.length === 0) dietsData = diets; // Cache
-            restoreUserPref();
+            if (IS_AUTHENTICATED) {
+                restoreUserPref();
+            }
         }
 
         let dietsData = [];
@@ -593,7 +595,9 @@
         }
 
         loadDiets();
-        loadUsage();
+        if (IS_AUTHENTICATED) {
+            loadUsage();
+        }
 
         // --- Analysis Actions ---
         const form = document.getElementById('analysisForm');

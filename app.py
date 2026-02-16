@@ -9,6 +9,7 @@ from datetime import datetime, timedelta, timezone
 import re
 import uuid
 from werkzeug.utils import secure_filename
+from werkzeug.local import LocalProxy
 from dotenv import load_dotenv
 
 
@@ -66,7 +67,7 @@ else:
     print("Gemini API configured successfully")
 
 # Initialize MongoDB database
-db = get_db()
+db = LocalProxy(get_db)
 
 # Flask-Login setup
 login_manager = LoginManager()
@@ -1289,19 +1290,47 @@ def api_analyze_with_profile():
 
 
 
+@app.route('/ping')
+def ping():
+    """Lightweight keep-warm endpoint without DB access."""
+    return jsonify({
+        'ok': True,
+        'timestamp': datetime.now(timezone.utc).isoformat(),
+    }), 200
+
+
 @app.route('/health')
 def health_check():
+    """App health without forcing DB initialization."""
+    return jsonify({
+        'status': 'healthy',
+        'timestamp': datetime.now(timezone.utc).isoformat(),
+        'database': 'not_checked'
+    }), 200
+
+
+@app.route('/health/db')
+def health_db_check():
+    """Explicit database health check endpoint."""
     try:
-        # Check MongoDB connection
-        db.command('ping')
+        manager = get_db()
+        if not manager.client:
+            return jsonify({
+                'status': 'unhealthy',
+                'database': 'disconnected',
+                'error': 'Database client not initialized'
+            }), 500
+
+        manager.client.admin.command('ping')
         return jsonify({
             'status': 'healthy',
-            'timestamp': datetime.now().isoformat(),
+            'timestamp': datetime.now(timezone.utc).isoformat(),
             'database': 'connected'
         }), 200
     except Exception as e:
         return jsonify({
             'status': 'unhealthy',
+            'database': 'error',
             'error': str(e)
         }), 500
 
@@ -1833,10 +1862,7 @@ if __name__ == '__main__':
     else:
         print("Gemini API key missing - create .env file")
     
-    if db.client:
-        print("MongoDB Atlas connected")
-    else:
-        print("MongoDB Atlas connection failed")
+    print("MongoDB connection is lazy and initializes on first DB request")
     
     print("Starting server at: http://localhost:5001")
     print("Access from mobile: http://your-ip:5001")
