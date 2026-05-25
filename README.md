@@ -69,9 +69,6 @@ NutriAI is a full-stack web application focused on day-to-day nutrition decision
    GOOGLE_CLIENT_SECRET=your_google_oauth_client_secret
    OAUTH_REDIRECT_URI=http://localhost:5001/auth/callback
    FLASK_SECRET_KEY=your_secure_secret_key
-   
-   # Optional
-   ADMIN_EMAILS=admin@example.com,admin2@example.com
    ```
 
 3. **Google Cloud Console Setup**

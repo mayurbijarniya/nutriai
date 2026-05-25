@@ -1342,33 +1342,6 @@ def privacy():
 def terms():
     return render_template('legal/terms.html')
 
-
-@app.route('/fix-users', methods=['POST'])
-def fix_users():
-    """Fix corrupted users with null google_sub"""
-    try:
-        # Find users with null or missing google_sub
-        bad_users = list(db.users.find({'$or': [{'google_sub': None}, {'google_sub': {'$exists': False}}]}))
-        
-        if not bad_users:
-            return jsonify({"success": True, "message": "No bad users found"})
-        
-        # Delete bad users (they'll be recreated properly on next login)
-        result = db.users.delete_many({'$or': [{'google_sub': None}, {'google_sub': {'$exists': False}}]})
-        
-        return jsonify({
-            "success": True, 
-            "message": f"Deleted {result.deleted_count} corrupted users. They will be recreated properly on next login.",
-            "deleted_users": [{'email': u.get('email'), '_id': str(u['_id'])} for u in bad_users]
-        })
-    except Exception as e:
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        })
-
-
-
 def save_to_history(analysis_data, chart_path):
     """Save analysis to MongoDB database"""
     try:

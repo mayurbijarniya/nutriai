@@ -16,6 +16,7 @@ from pymongo.errors import DuplicateKeyError
 from werkzeug.local import LocalProxy
 
 from database import get_db
+from usage_tracker import try_consume_usage
 
 
 v3_bp = Blueprint("v3", __name__)
@@ -1608,6 +1609,16 @@ def v3_planner_generate():
     recent_meals_raw = ai_context.get("recent_meals")
     recent_meals = recent_meals_raw if isinstance(recent_meals_raw, list) else []
     recent_meals_count = len(recent_meals)
+
+    limit_check = try_consume_usage("ai_search")
+    if not limit_check.get("allowed"):
+        status = 503 if limit_check.get("error") == "usage_unavailable" else 429
+        return jsonify({
+            "success": False,
+            "error": limit_check.get("error") or "limit_exceeded",
+            "message": "AI usage tracking is temporarily unavailable." if status == 503 else f"Daily AI limit reached ({limit_check.get('current')}/{limit_check.get('limit')}).",
+        }), status
+
     ai_days = _ai_generate_week_plan(week_start, ai_context, recipes)
     if not ai_days:
         return jsonify(
@@ -1661,7 +1672,6 @@ def v3_planner_generate():
         },
         upsert=True,
     )
-
     return jsonify(
         {
             "success": True,
@@ -2022,6 +2032,15 @@ def v3_coach_chat():
         reply = f"Today's date is {now.strftime('%B %d, %Y')} (UTC)."
         messages = _append_coach_exchange(session_doc, message, reply)
         return jsonify({"success": True, "reply": reply, "messages": messages[-20:]})
+
+    limit_check = try_consume_usage("ai_search")
+    if not limit_check.get("allowed"):
+        status = 503 if limit_check.get("error") == "usage_unavailable" else 429
+        return jsonify({
+            "success": False,
+            "error": limit_check.get("error") or "limit_exceeded",
+            "message": "AI usage tracking is temporarily unavailable." if status == 503 else f"Daily AI limit reached ({limit_check.get('current')}/{limit_check.get('limit')}).",
+        }), status
 
     prompt_context = {
         "current_date_utc": context_payload.get("current_date_utc"),

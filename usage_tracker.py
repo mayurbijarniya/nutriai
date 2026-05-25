@@ -117,6 +117,67 @@ def track_usage(feature):
     scope = get_current_scope()
     return increment_usage(scope, feature)
 
+def try_consume_usage(feature):
+    """Atomically reserve one usage slot for spend-sensitive features.
+
+    Fails closed when usage storage is unavailable so paid AI calls are not made
+    without a persisted counter.
+    """
+    scope = get_current_scope()
+    user_type = get_user_type()
+    limit = LIMITS[user_type][feature]
+    date = get_today_date()
+    db = get_db()
+
+    if not db.client:
+        return {
+            'allowed': False,
+            'current': None,
+            'limit': limit,
+            'user_type': user_type,
+            'scope': scope,
+            'error': 'usage_unavailable'
+        }
+
+    counter_field = f"counters.{feature}"
+
+    try:
+        db.usage.update_one(
+            {'scope': scope, 'date': date},
+            {'$setOnInsert': {'scope': scope, 'date': date, 'counters': {}}},
+            upsert=True
+        )
+
+        result = db.usage.update_one(
+            {
+                'scope': scope,
+                'date': date,
+                '$expr': {'$lt': [{'$ifNull': [f'${counter_field}', 0]}, limit]}
+            },
+            {'$inc': {counter_field: 1}}
+        )
+
+        usage_doc = db.usage.find_one({'scope': scope, 'date': date}) or {}
+        current = ((usage_doc.get('counters') or {}).get(feature)) or 0
+
+        return {
+            'allowed': result.modified_count == 1,
+            'current': current,
+            'limit': limit,
+            'user_type': user_type,
+            'scope': scope
+        }
+    except Exception as e:
+        print(f"Error consuming usage: {e}")
+        return {
+            'allowed': False,
+            'current': None,
+            'limit': limit,
+            'user_type': user_type,
+            'scope': scope,
+            'error': 'usage_unavailable'
+        }
+
 def get_active_share_links_count(user_id):
     """Get count of active share links for a user"""
     db = get_db()
