@@ -23,7 +23,7 @@ v3_bp = Blueprint("v3", __name__)
 db = LocalProxy(get_db)
 
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
-GEMINI_MODEL_ID = os.getenv("GEMINI_MODEL_ID", "gemini-2.5-flash-lite")
+GEMINI_MODEL_ID = os.getenv("GEMINI_MODEL_ID", "gemini-3.1-flash-lite")
 _v3_model = None
 if GEMINI_API_KEY:
     try:
